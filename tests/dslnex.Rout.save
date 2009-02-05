@@ -1,0 +1,508 @@
+
+R version 2.8.1 (2008-12-22)
+Copyright (C) 2008 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Dennis Schnabel example
+> 
+> library("nleqslv")
+>     
+> dslnex <- function(x) {
++     y <- numeric(2)
++     y[1] <- x[1]^2 + x[2]^2 - 2
++     y[2] <- exp(x[1]-1) + x[2]^3 - 2
++     y
++ }
+> 
+> jacdsln <- function(x) {
++     n <- length(x)
++     Df <- matrix(numeric(n*n),n,n)
++     Df[1,1] <- 2*x[1]
++     Df[1,2] <- 2*x[2]
++     Df[2,1] <- exp(x[1]-1)
++     Df[2,2] <- 3*x[2]^2
++ 
++     Df
++ }
+> 
+> xstart <- c(2,0.5)
+> fstart <- dslnex(xstart)
+> xstart
+[1] 2.0 0.5
+> fstart
+[1] 2.2500000 0.8432818
+> 
+> # a solution is c(1,1)
+> znleqa <- nleqslv(xstart, dslnex, global="qline",control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: quadratic linesearch
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac   Lambda          Ftarg         Fnorm   Largest |f|
+     0                                      2.886812e+00  2.250000e+00
+     1  N(9.6e-03)   1.0000   2.886235e+00  5.787362e+05  1.070841e+03
+     1               0.1000   2.886754e+00  9.857947e+00  3.214799e+00
+     1               0.0100   2.886806e+00  2.866321e+00  2.237878e+00
+     2  B(2.2e-02)   1.0000   2.865748e+00  4.541965e+03  9.341610e+01
+     2               0.1000   2.866264e+00  3.253536e+00  2.242344e+00
+     2               0.0298   2.866304e+00  2.805872e+00  2.200544e+00
+     3  B(5.5e-02)   1.0000   2.805311e+00  2.919089e+01  7.073082e+00
+     3               0.1000   2.805816e+00  2.437606e+00  2.027297e+00
+     4  B(1.0e-01)   1.0000   2.437118e+00  9.839802e-01  1.142529e+00
+     5  B(1.9e-01)   1.0000   9.837834e-01  7.263320e-02  3.785249e-01
+     6  B(2.2e-01)   1.0000   7.261868e-02  1.581364e-02  1.774419e-01
+     7  B(1.5e-01)   1.0000   1.581047e-02  9.328284e-03  1.213052e-01
+     8  B(1.7e-01)   1.0000   9.326419e-03  1.003283e-04  1.400491e-02
+     9  B(1.9e-01)   1.0000   1.003082e-04  3.072159e-06  2.206943e-03
+    10  B(1.5e-01)   1.0000   3.071544e-06  1.143217e-07  4.757203e-04
+    11  B(1.3e-01)   1.0000   1.142989e-07  1.144686e-09  4.783197e-05
+    12  B(1.2e-01)   1.0000   1.144457e-09  4.515245e-13  9.502885e-07
+    13  B(1.2e-01)   1.0000   4.514342e-13  1.404463e-17  5.299877e-09
+> znleqa
+$x
+[1] 1 1
+
+$fvec
+[1] 5.299877e-09 2.378364e-11
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 18
+
+$njcnt
+[1] 1
+
+> 
+> znleqb <- nleqslv(xstart, dslnex, global="gline",control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: geometric linesearch (reduction = 0.5)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac   Lambda          Ftarg         Fnorm   Largest |f|
+     0                                      2.886812e+00  2.250000e+00
+     1  N(9.6e-03)   1.0000   2.886235e+00  5.787362e+05  1.070841e+03
+     1               0.5000   2.886523e+00  1.211981e+04  1.533192e+02
+     1               0.2500   2.886668e+00  3.346737e+02  2.454656e+01
+     1               0.1250   2.886740e+00  1.860606e+01  4.931671e+00
+     1               0.0625   2.886776e+00  4.468205e+00  2.514779e+00
+     1               0.0312   2.886794e+00  3.097106e+00  2.281039e+00
+     1               0.0156   2.886803e+00  2.888770e+00  2.240182e+00
+     1               0.0078   2.886808e+00  2.864341e+00  2.238756e+00
+     2  B(1.9e-02)   1.0000   2.863768e+00  1.026894e+04  1.410555e+02
+     2               0.5000   2.864054e+00  3.038612e+02  2.346774e+01
+     2               0.2500   2.864197e+00  1.774832e+01  4.936364e+00
+     2               0.1250   2.864269e+00  4.259875e+00  2.397912e+00
+     2               0.0625   2.864305e+00  2.987137e+00  2.220967e+00
+     2               0.0312   2.864323e+00  2.822740e+00  2.205520e+00
+     3  B(5.3e-02)   1.0000   2.822176e+00  3.640971e+01  7.932621e+00
+     3               0.5000   2.822458e+00  4.461754e+00  2.260940e+00
+     3               0.2500   2.822599e+00  2.451565e+00  1.898167e+00
+     4  B(1.7e-01)   1.0000   2.451075e+00  4.645809e-02  3.012542e-01
+     5  B(1.7e-01)   1.0000   4.644880e-02  3.610709e-02  2.100750e-01
+     6  B(1.7e-01)   1.0000   3.609987e-02  4.937229e-04  3.114050e-02
+     7  B(1.8e-01)   1.0000   4.936242e-04  1.156794e-05  3.863626e-03
+     8  B(1.5e-01)   1.0000   1.156563e-05  7.281774e-08  2.923123e-04
+     9  B(1.5e-01)   1.0000   7.280317e-08  1.723949e-10  1.815046e-05
+    10  B(1.4e-01)   1.0000   1.723604e-10  2.225489e-13  6.604661e-07
+    11  B(1.5e-01)   1.0000   2.225044e-13  4.798220e-19  9.698051e-10
+> znleqb
+$x
+[1] 1 1
+
+$fvec
+[1] 9.698051e-10 1.382823e-10
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 25
+
+$njcnt
+[1] 1
+
+> 
+> znleqc <- nleqslv(xstart, dslnex, global="dbldog",control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda    Gamma      Eta     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                                             2.886812e+00  2.250000e+00
+     1  N(9.6e-03) C            0.9430   0.9544   0.4671   0.9343  1.699715e-01  5.421673e-01
+     1             W   0.0833   0.9430   0.9544   0.9343   0.4671  1.699715e-01  5.421673e-01
+     2  B(1.1e-02) W   0.1154   0.3564   0.4851   0.4671   0.4671  1.277667e-01  5.043571e-01
+     3  B(7.3e-02) W   0.7879   0.6611   0.7289   0.4671   0.0759  5.067893e-01  7.973542e-01
+     3             C            0.6611   0.7289   0.0759   0.1519  5.440250e-02  2.726084e-01
+     4  B(8.3e-02) W   0.5307   0.1588   0.3271   0.1519   0.3037  3.576547e-02  2.657553e-01
+     5  B(1.8e-01) N            0.5843   0.6674   0.2191   0.4383  6.566182e-03  8.555110e-02
+     6  B(1.8e-01) N            0.9752   0.9801   0.0376   0.0752  4.921645e-04  3.094104e-02
+     7  B(1.9e-01) N            0.7476   0.7981   0.0157   0.0313  4.960629e-06  2.826064e-03
+     8  B(1.6e-01) N            0.2427   0.3942   0.0029   0.0058  1.545503e-08  1.757498e-04
+     9  B(1.5e-01) N            0.5669   0.6536   0.0001   0.0003  2.968676e-11  5.983765e-06
+    10  B(1.5e-01) N            0.3413   0.4730   0.0000   0.0000  4.741792e-14  2.198380e-07
+    11  B(1.5e-01) N            0.9734   0.9787   0.0000   0.0000  6.451792e-19  8.118586e-10
+> znleqc
+$x
+[1] 1 1
+
+$fvec
+[1]  8.118586e-10 -7.945087e-10
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 13
+
+$njcnt
+[1] 1
+
+> 
+> znleqd <- nleqslv(xstart, dslnex, global="pwldog",control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: single dogleg (initial trust region = -1)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                           2.886812e+00  2.250000e+00
+     1  N(9.6e-03) C            0.4671   0.9343  1.699715e-01  5.421673e-01
+     1             W   0.0794   0.9343   0.4671  1.699715e-01  5.421673e-01
+     2  B(1.1e-02) W   0.0559   0.4671   0.4671  1.205661e-01  4.890487e-01
+     3  B(7.3e-02) W   0.5662   0.4671   0.0960  4.119560e-01  7.254441e-01
+     3             W   0.0237   0.0960   0.1921  4.426507e-02  2.139252e-01
+     4  B(8.8e-02) W   0.2306   0.1921   0.3842  2.303135e-02  2.143943e-01
+     4             W   0.4769   0.3842   0.1921  2.303135e-02  2.143943e-01
+     5  B(1.9e-01) N            0.1375   0.2750  8.014508e-04  3.681498e-02
+     6  B(1.7e-01) N            0.0162   0.0325  1.355741e-05  5.084627e-03
+     7  B(1.3e-01) N            0.0070   0.0035  1.282776e-05  4.920962e-03
+     8  B(1.8e-01) N            0.0028   0.0056  3.678140e-08  2.643592e-04
+     9  B(1.9e-01) N            0.0001   0.0003  1.689182e-12  1.747622e-06
+    10  B(1.9e-01) N            0.0000   0.0000  9.568768e-16  4.288618e-08
+    11  B(1.9e-01) N            0.0000   0.0000  1.051357e-18  1.422036e-09
+> znleqd
+$x
+[1] 1 1
+
+$fvec
+[1] 2.837748e-10 1.422036e-09
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 14
+
+$njcnt
+[1] 1
+
+> 
+> znleqe <- nleqslv(xstart, dslnex, global="dbldog",
++                     control=list(trace=1,btol=.01,delta=-2.0))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda    Gamma      Eta     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                                             2.886812e+00  2.250000e+00
+     1  N(9.6e-03) N            0.9430   0.9544  10.1874   1.0187  5.787362e+05  1.070841e+03
+     1             W   0.0932   0.9430   0.9544   1.0187   1.0187  1.862204e+00  1.387696e+00
+     2  B(1.9e-01) N            0.9572   0.9658   0.6119   1.2239  1.003362e-01  4.468549e-01
+     3  B(2.1e-01) N            0.5588   0.6470   0.2521   0.5042  1.763418e-02  1.819978e-01
+     4  B(1.3e-01) N            0.1857   0.3486   0.2617   0.0598  5.952083e-02  3.020657e-01
+     4             W   0.6248   0.1857   0.3486   0.0598   0.1196  6.625459e-03  8.319100e-02
+     5  B(1.5e-01) N            0.2765   0.4212   0.1186   0.1186  3.368227e-03  5.868436e-02
+     6  B(1.4e-01) N            0.9944   0.9955   0.0177   0.0354  9.352918e-05  1.350724e-02
+     7  B(1.8e-01) N            0.6950   0.7560   0.0073   0.0146  9.330438e-06  3.933436e-03
+     8  B(1.5e-01) N            0.8498   0.8799   0.0020   0.0041  1.458619e-09  3.825434e-05
+     9  B(1.5e-01) N            0.9961   0.9969   0.0000   0.0000  1.640555e-13  4.501888e-07
+    10  B(1.5e-01) N            0.9974   0.9979   0.0000   0.0000  3.239034e-18  2.056389e-09
+> znleqe
+$x
+[1] 1 1
+
+$fvec
+[1] 1.499778e-09 2.056389e-09
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 12
+
+$njcnt
+[1] 1
+
+> 
+> znleqf <- nleqslv(xstart, dslnex, global="pwldog",
++                     control=list(trace=1,btol=.01,delta=-2.0))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: single dogleg (initial trust region = -2)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                           2.886812e+00  2.250000e+00
+     1  N(9.6e-03) N           10.1874   1.0187  5.787362e+05  1.070841e+03
+     1             W   0.0888   1.0187   1.0187  1.838308e+00  1.378307e+00
+     2  B(1.9e-01) N            0.6096   1.2192  1.003319e-01  4.467900e-01
+     3  B(2.1e-01) N            0.2521   0.5041  1.741527e-02  1.807484e-01
+     4  B(1.3e-01) N            0.2596   0.0597  5.827737e-02  2.987481e-01
+     4             W   0.2042   0.0597   0.1195  7.171322e-03  9.908693e-02
+     5  B(1.5e-01) N            0.1177   0.1177  4.991568e-03  7.167276e-02
+     6  B(1.4e-01) N            0.0206   0.0412  1.473080e-04  1.672712e-02
+     7  B(1.8e-01) N            0.0092   0.0183  8.799389e-06  3.660344e-03
+     8  B(1.5e-01) N            0.0017   0.0035  1.377573e-10  1.596674e-05
+     9  B(1.6e-01) N            0.0000   0.0000  9.117172e-14  4.240867e-07
+    10  B(1.5e-01) N            0.0000   0.0000  6.229751e-18  3.480300e-09
+> znleqf
+$x
+[1] 1 1
+
+$fvec
+[1]  3.480300e-09 -5.890812e-10
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 12
+
+$njcnt
+[1] 1
+
+> 
+> znlejc <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
++                     control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda    Gamma      Eta     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                                             2.886812e+00  2.250000e+00
+     1  N(9.6e-03) C            0.9430   0.9544   0.4671   0.9343  1.699714e-01  5.421673e-01
+     1             W   0.0833   0.9430   0.9544   0.9343   0.4671  1.699714e-01  5.421673e-01
+     2  B(1.1e-02) W   0.1154   0.3564   0.4851   0.4671   0.4671  1.277668e-01  5.043571e-01
+     3  B(7.3e-02) W   0.7879   0.6611   0.7289   0.4671   0.0759  5.067894e-01  7.973543e-01
+     3             C            0.6611   0.7289   0.0759   0.1519  5.440250e-02  2.726085e-01
+     4  B(8.3e-02) W   0.5307   0.1588   0.3271   0.1519   0.3037  3.576547e-02  2.657553e-01
+     5  B(1.8e-01) N            0.5843   0.6674   0.2191   0.4383  6.566179e-03  8.555108e-02
+     6  B(1.8e-01) N            0.9752   0.9801   0.0376   0.0752  4.921642e-04  3.094104e-02
+     7  B(1.9e-01) N            0.7476   0.7981   0.0157   0.0313  4.960623e-06  2.826062e-03
+     8  B(1.6e-01) N            0.2427   0.3942   0.0029   0.0058  1.545502e-08  1.757497e-04
+     9  B(1.5e-01) N            0.5669   0.6536   0.0001   0.0003  2.968669e-11  5.983760e-06
+    10  B(1.5e-01) N            0.3413   0.4730   0.0000   0.0000  4.741776e-14  2.198378e-07
+    11  B(1.5e-01) N            0.9734   0.9787   0.0000   0.0000  6.451765e-19  8.118572e-10
+> znlejc
+$x
+[1] 1 1
+
+$fvec
+[1]  8.118572e-10 -7.945067e-10
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 13
+
+$njcnt
+[1] 1
+
+> 
+> znlejd <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
++                     method="Newton", control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Newton  Global strategy: double dogleg (initial trust region = -1)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda    Gamma      Eta     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                                             2.886812e+00  2.250000e+00
+     1  N(9.6e-03) C            0.9430   0.9544   0.4671   0.9343  1.699714e-01  5.421673e-01
+     1             W   0.0833   0.9430   0.9544   0.9343   0.4671  1.699714e-01  5.421673e-01
+     2  N(2.7e-03) W   0.0229   0.3992   0.5194   0.4671   0.9343  9.974170e-02  4.398408e-01
+     2             W   0.0466   0.3992   0.5194   0.9343   0.4671  9.974170e-02  4.398408e-01
+     3  N(1.7e-01) N            0.5096   0.6077   0.4366   0.4366  5.854330e-02  2.841666e-01
+     4  N(1.5e-01) N            0.9950   0.9960   0.0780   0.1561  1.989417e-04  1.899518e-02
+     5  N(1.5e-01) N            0.8605   0.8884   0.0092   0.0184  2.284798e-08  1.962281e-04
+     6  N(1.5e-01) N            0.9142   0.9313   0.0001   0.0002  1.933627e-16  1.833717e-08
+     7  N(1.5e-01) N            0.8930   0.9144   0.0000   0.0000  0.000000e+00  0.000000e+00
+> znlejd
+$x
+[1] 1 1
+
+$fvec
+[1] 0 0
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 9
+
+$njcnt
+[1] 7
+
+> 
+> # singular function with a singular start
+> 
+> sngsrt <- function(x) {
++     y <- numeric(length(x))
++     y[1] <- x[1]^2/2 + x[2]
++     y[2] <- x[1] + x[2]^2/2
++     
++     y
++ }    
+> 
+> sngsrtjac <- function(x)  {
++     n <- length(x)
++     Df <- matrix(numeric(n*n),n,n)
++     Df[1,1] <- x[1]
++     Df[1,2] <- 1
++     Df[2,1] <- 1
++     Df[2,2] <- x[2]
++ 
++     Df  
++ }                    
+> xstart <- c(1,1)
+> nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",control=list(trace=1,btol=.01))
+  Algorithm parameters
+  --------------------
+  Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
+  Maximum stepsize = 1000
+  Scaling: fixed
+  ftol = 1e-08 xtol = 1e-08 btol = 0.01
+
+  Iteration report
+  ----------------
+  Iter         Jac     Lambda    Gamma      Eta     Dlt0     Dltn         Fnorm   Largest |f|
+     0                                                             2.250000e+00  1.500000e+00
+     1 Ns(4.2e-07) N            1.0000   1.0000   1.0607   2.1213  7.910156e-02  2.812500e-01
+     2 Bi(3.4e-07) N            1.0000   1.0000   0.2448   0.4895  6.381079e-03  7.988166e-02
+     3 Bi(2.5e-07) N            1.0000   1.0000   0.0971   0.1942  6.886699e-05  8.298613e-03
+     4 Bi(2.2e-07) N            1.0000   1.0000   0.0113   0.0225  9.297897e-08  3.049245e-04
+     5 Bi(2.1e-07) N            1.0000   1.0000   0.0004   0.0009  1.573651e-12  1.254453e-06
+     6 Bi(2.1e-07) N            1.0000   1.0000   0.0000   0.0000  3.655673e-20  1.911984e-10
+$x
+[1] 1.911979e-10 1.911984e-10
+
+$fvec
+[1] 1.911984e-10 1.911979e-10
+
+$termcd
+[1] 1
+
+$message
+[1] "Function criterion near zero"
+
+$scalex
+[1] 1 1
+
+$nfcnt
+[1] 6
+
+$njcnt
+[1] 1
+
+> 
