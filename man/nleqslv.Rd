@@ -124,7 +124,7 @@ A value of \eqn{-2.0} is replaced by the length of the Newton step in the initia
 Any value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
 the algorithm will thus start with the length of the Cauchy step in the initial point.
 If it is positive it will be set to the smaller of the value supplied or the maximum stepsize.
-The default is \eqn{-1.0}.}
+The default is \eqn{-2.0}.}
 \item{\code{stepmax}}{Maximum scaled stepsize. The default is 1000.}
 }
 }
@@ -135,21 +135,21 @@ A list containing components
   \item{termcd}{termination code as integer.
          The values returned are
          \describe{
-         \item{\code{0}}{Function criterion is near zero.
+         \item{\code{1}}{Function criterion is near zero.
          Convergence of function values has been achieved.}
-         \item{\code{1}}{No better point found.
-         This means that the algorithm has stalled and cannot find an acceptable new point.}
-         \item{\code{2}}{x-values within tolerance. This means that the relative distance between two consecutive x-values
+         \item{\code{2}}{x-values within tolerance. This means that the relative distance between two                    consecutive x-values
          is smaller than \code{xtol}.
+         \item{\code{3}}{No better point found.
+         This means that the algorithm has stalled and cannot find an acceptable new point.}
          This may or may not indicate acceptably small function values.}
-         \item{\code{3}}{Iteration limit \code{maxit} exceeded.}
+         \item{\code{4}}{Iteration limit \code{maxit} exceeded.}
          }
    }
   \item{message}{a string describing the termination code} 
   \item{scalex}{a vector containing the scaling factors, 
                 which will be the final values when automatic scaling was selected}
-  \item{jcnt}{number of jacobian evaluations}
-  \item{fcnt}{number of function evaluations, excluding those required for calculating a jacobian}
+  \item{njcnt}{number of jacobian evaluations}
+  \item{nfcnt}{number of function evaluations, excluding those required for calculating a jacobian}
 }
 
 %\note{
