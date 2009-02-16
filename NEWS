@@ -1,0 +1,11 @@
+1.1                                     
+
+o the default initial trust region size is now set to the length of the Newton step
+
+o corrected various errors in the documentation
+	* the termination codes were a muddle
+	* several elements of the return list were incorrectly named in the documentation
+
+1.0
+
+o initial version

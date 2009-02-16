@@ -158,7 +158,8 @@ $njcnt
 [1] 1
 
 > 
-> znleqc <- nleqslv(xstart, dslnex, global="dbldog",control=list(trace=1,btol=.01))
+> znleqc <- nleqslv(xstart, dslnex, global="dbldog",
++                     control=list(trace=1,btol=.01,delta=-1.0))
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
@@ -206,7 +207,8 @@ $njcnt
 [1] 1
 
 > 
-> znleqd <- nleqslv(xstart, dslnex, global="pwldog",control=list(trace=1,btol=.01))
+> znleqd <- nleqslv(xstart, dslnex, global="pwldog",
++                     control=list(trace=1,btol=.01,delta=-1.0))
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: single dogleg (initial trust region = -1)
@@ -352,7 +354,7 @@ $njcnt
 
 > 
 > znlejc <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
-+                     control=list(trace=1,btol=.01))
++                     control=list(trace=1,btol=.01,delta=-1.0))
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
@@ -401,7 +403,7 @@ $njcnt
 
 > 
 > znlejd <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
-+                     method="Newton", control=list(trace=1,btol=.01))
++                     method="Newton", control=list(trace=1,btol=.01,delta=-1.0))
   Algorithm parameters
   --------------------
   Method: Newton  Global strategy: double dogleg (initial trust region = -1)
@@ -466,7 +468,7 @@ $njcnt
 +     Df  
 + }                    
 > xstart <- c(1,1)
-> nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",control=list(trace=1,btol=.01))
+> nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",control=list(trace=1,btol=.01,delta=-1.0))
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -1)

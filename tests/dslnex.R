@@ -32,10 +32,12 @@ znleqa
 znleqb <- nleqslv(xstart, dslnex, global="gline",control=list(trace=1,btol=.01))
 znleqb
 
-znleqc <- nleqslv(xstart, dslnex, global="dbldog",control=list(trace=1,btol=.01))
+znleqc <- nleqslv(xstart, dslnex, global="dbldog",
+                    control=list(trace=1,btol=.01,delta=-1.0))
 znleqc
 
-znleqd <- nleqslv(xstart, dslnex, global="pwldog",control=list(trace=1,btol=.01))
+znleqd <- nleqslv(xstart, dslnex, global="pwldog",
+                    control=list(trace=1,btol=.01,delta=-1.0))
 znleqd
 
 znleqe <- nleqslv(xstart, dslnex, global="dbldog",
@@ -47,11 +49,11 @@ znleqf <- nleqslv(xstart, dslnex, global="pwldog",
 znleqf
 
 znlejc <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
-                    control=list(trace=1,btol=.01))
+                    control=list(trace=1,btol=.01,delta=-1.0))
 znlejc
 
 znlejd <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
-                    method="Newton", control=list(trace=1,btol=.01))
+                    method="Newton", control=list(trace=1,btol=.01,delta=-1.0))
 znlejd
 
 # singular function with a singular start
@@ -75,4 +77,4 @@ sngsrtjac <- function(x)  {
     Df  
 }                    
 xstart <- c(1,1)
-nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",control=list(trace=1,btol=.01))
+nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",control=list(trace=1,btol=.01,delta=-1.0))
