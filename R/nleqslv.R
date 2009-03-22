@@ -32,7 +32,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 scalex = rep(1, length(x)),
                 maxit=150,
                 trace=0,
-                checkjac=FALSE
+                chkjac=FALSE
                )
                
     nmsC <- names(con)

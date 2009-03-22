@@ -2,15 +2,15 @@
       subroutine nwnleq(x0,n,scalex,maxit,
      *                  jacflg,xtol,ftol,btol,method,global,xscalm,
      *                  stepmx,dlt,sigma,rwork,lrwork,
-     *                  rcdwrk,icdwrk,fjac,fvec,outopt,xp,
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,fjac,fvec,outopt,xp,
      *                  fp,gp,njcnt,nfcnt,termcd)
 
       integer n,jacflg,maxit,njcnt,nfcnt,termcd,method
-      integer global,xscalm,lrwork
+      integer global,xscalm,lrwork,qrwsiz
       integer outopt(*)
       double precision  xtol,ftol,btol,stepmx,dlt,sigma
       double precision  xp(*),fp(*),gp(*),x0(*)
-      double precision  rwork(*),rcdwrk(*)
+      double precision  rwork(*),rcdwrk(*),qrwork(*)
       double precision  scalex(*)         
       integer           icdwrk(*)
       external fjac,fvec
@@ -51,6 +51,8 @@ c     Out      rwork   Real(*)         real workspace (9n+2n^2)
 c     In       lrwork  Integer         size real workspace
 c     In       rcdwrk  Real(*)         workspace for Dtrcon (3n)
 c     In       icdwrk  Integer(*)      workspace for Dtrcon (n) 
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwsiz  Integer         size of qrwork
 c     In       fjac    Name            optional name of routine to calculate
 c                                      analytic jacobian
 c     In       fvec    Name            name of routine to calculate f(x)
@@ -127,7 +129,7 @@ c     should be at least n
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
      *               rwork(1+6*n),rwork(1+7*n),
-     *               rwork(1+8*n),rcdwrk,icdwrk,
+     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,
      *               epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,termcd)
 
       elseif( method .eq. 1 ) then
@@ -140,7 +142,7 @@ c     should be at least n
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
      *               rwork(1+6*n),rwork(1+7*n),
-     *               rwork(1+8*n),rcdwrk,icdwrk,
+     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,
      *               epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,termcd)
 
       endif
@@ -148,6 +150,30 @@ c     should be at least n
   100 return
       end
 
+c-----------------------------------------------------------------------
+
+      subroutine nwqmem(n,wrksiz)
+      integer n, wrksiz
+
+c-------------------------------------------------------------------------
+c     Query the size of the double precision work array required
+c     for optimal operation of the Lapack QR routines
+c-------------------------------------------------------------------------
+
+      double precision A(1), work(1)
+      integer lwork
+      
+      lwork = -1
+      call dgeqrf(n,n,A,n,work,work,lwork,info)
+      if( info .ne. 0 ) then
+          wrksiz = -1
+      else
+          wrksiz = int(work(1))
+      endif
+      
+      return
+      end
+      
 c-----------------------------------------------------------------------
 
       subroutine nwpchk(n,lrwk,

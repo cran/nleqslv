@@ -235,7 +235,7 @@ nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
 # example for error message in case of an error in analytical jacobian
 
 nleqslv(xstart, dslnex, BADjacdsln, method="Newton", 
-                    control=list(btol=.01,checkjac=TRUE))
+                    control=list(btol=.01,chkjac=TRUE))
 
 # singular function with a singular start
 
