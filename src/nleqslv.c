@@ -25,10 +25,12 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n);
 void F77_NAME(nwnleq)(double *x, int *n, double *scalex, int *maxit, int *jacflg, double *xtol,
                       double *ftol, double *btol,
                       int *method, int *global, int *xscalm, double *stepmx, double *dlt, double *sigma,
-                      double *rwork, int *lrwork, double *rcdwrk, int *icdwrk,
+                      double *rwork, int *lrwork, double *rcdwrk, int *icdwrk, double *qrwork, int *qrwsiz,
                       void (*fcnjac)(double *rjac, int *ldr, double *x, int *n),
                       void (*fcnval)(double *xc, double *fc, int *n, int *flag),
    			          int *outopt, double *xp, double *fp, double *gp, int *njcnt, int *nfcnt, int *termcd);
+
+void F77_NAME(nwqmem)(int *n, int *wrksiz); /* returns size of optimal QR work memory */
 
 void deactivatenleq(void)
 {
@@ -181,7 +183,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     int     n, ldfjac, lr;
     int     info, nfev, njev;
 
-    double  *x, *rwork, *rcdwrk;
+    double  *x, *rwork, *rcdwrk, *qrwork;
 	double  *xp, *fp, *gp, *scalex;
 	int     *icdwrk, *outopt;
 	const char *z;
@@ -192,7 +194,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     char    message[256];
 
-	int     njcnt, nfcnt, termcd, lrwork;
+	int     njcnt, nfcnt, termcd, lrwork, qrwsiz;
     int     maxit, jacflg, method, global, xscalm;
 	double  xtol, ftol, btol, stepmx, dlt, sigma;
 
@@ -236,8 +238,20 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 			error("evaluation of fn function has non-finite values\n   (starting at index=%d)",i+1);
 
     UNPROTECT(1);
-
-	lrwork = 9*n+2*n*n;
+    
+    /*
+     * query the optimal amount of memory Lapack needs
+     * to execute blocked QR code
+     * for largish n (500+) this speeds up significantly
+     */
+     
+    F77_CALL(nwqmem)(&n, &qrwsiz);
+    if( qrwsiz <= 0 )
+        error("Error in querying amount of workspace for QR routines\n");
+  
+    qrwork  = real_vector(qrwsiz);
+        
+	lrwork  = 9*n+2*n*n;
 
     x       = real_vector(n);
     xp      = real_vector(n);
@@ -330,8 +344,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 		jacflg = 0;
         F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol,
                          &method, &global, &xscalm, &stepmx, &dlt, &sigma,
-                         rwork, &lrwork, rcdwrk, icdwrk, FCNJACDUM, &fcnval,
-   						 outopt, xp, fp, gp, &njcnt, &nfcnt, &termcd);
+                         rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
+                         FCNJACDUM, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &termcd);
     }
     else {
         if (!isFunction(jac))
@@ -350,8 +364,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 		jacflg = 1;
         F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol,
                          &method, &global, &xscalm, &stepmx, &dlt, &sigma,
-                         rwork, &lrwork, rcdwrk, icdwrk, &fcnjac, &fcnval,
-   						 outopt, xp, fp, gp, &njcnt, &nfcnt, &termcd);
+                         rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
+                         &fcnjac, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &termcd);
         UNPROTECT(1);
     }
 

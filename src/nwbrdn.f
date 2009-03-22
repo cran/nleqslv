@@ -3,12 +3,12 @@
      *                  jacflg,xtol,ftol,btol,global,xscalm,
      *                  stepmx,dlt,sigma,
      *                  rjac,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
-     *                  rcdwrk,icdwrk,
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,
      *                  epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,
      *                  termcd)
 
       integer ldr,n,termcd,njcnt,nfcnt
-      integer maxit,jacflg,global,xscalm
+      integer maxit,jacflg,global,xscalm,qrwsiz
       integer outopt(*)
       double precision  xtol,ftol,btol,stepmx,dlt,sigma,fpnorm,epsm
       double precision  rjac(ldr,*)
@@ -16,7 +16,7 @@
       double precision  wrk1(*),wrk2(*),wrk3(*),wrk4(*)
       double precision  qtf(*),gp(*),fq(*)
       double precision  scalex(*)
-      double precision  rcdwrk(*)
+      double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
       external fjac,fvec
 
@@ -65,6 +65,8 @@ c     Wk       d       Real(*)         workspace
 c     Wk       qtf     Real(*)         workspace
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwsiz  Integer         size of qrwork
 c     In       epsm    Real            machine precision
 c     In       fjac    Name            name of routine to calculate jacobian
 c                                      (optional)
@@ -179,9 +181,9 @@ c            - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lap
                call dcopy(n,fc,1,fq,1)
                call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
      *                     wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,cond,
-     *                     rcdwrk,icdwrk,amu)
+     *                     rcdwrk,icdwrk,qrwork,qrwsiz,amu)
                call nwsnot(0,ierr,cond,amu)
-               call liqrqq(rjac,ldr,wrk1,n,wrk3,ierr)
+               call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
 
 c              now Rjac(*  ,1..n) holds expanded Q
 c              now Rjac(n+1,1..n) holds full upper triangle R

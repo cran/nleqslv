@@ -1,4 +1,14 @@
-1.1                                     
+1.3
+
+o use blocked Lapack QR routines.
+  Significant speed increase for larger n (500+) in most cases.
+
+1.2
+
+o corrected wrong name for the flag for checking an analytical jacobian in  nleqslv.R
+  and the documentation
+
+1.1
 
 o the default initial trust region size is now set to the length of the Newton step
 

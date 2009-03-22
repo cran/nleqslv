@@ -3,12 +3,12 @@
      *                  jacflg,xtol,ftol,btol,global,xscalm,
      *                  stepmx,dlt,sigma,
      *                  rjac,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
-     *                  rcdwrk,icdwrk,
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,
      *                  epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,
      *                  termcd)
 
       integer ldr,n,termcd,njcnt,nfcnt
-      integer maxit,jacflg,global,xscalm
+      integer maxit,jacflg,global,xscalm,qrwsiz
       integer outopt(*)
       double precision  xtol,ftol,btol,stepmx,dlt,sigma,fpnorm,epsm
       double precision  rjac(ldr,*)
@@ -16,7 +16,7 @@
       double precision  wrk1(*),wrk2(*),wrk3(*),wrk4(*)
       double precision  qtf(*),gp(*),fq(*)
       double precision  scalex(*)                  
-      double precision  rcdwrk(*)
+      double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
       external fjac,fvec
 
@@ -65,6 +65,8 @@ c     Wk       d       Real(*)         workspace
 c     Wk       qtf     Real(*)         workspace
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwsiz  Integer         size of qrwork
 c     In       epsm    Real            machine precision
 c     In       fjac    Name            name of routine to calculate jacobian
 c                                      (optional)
@@ -172,7 +174,7 @@ c         - get newton step
             call dcopy(n,fc,1,fq,1)
             call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
      *                  wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,rcond,
-     *                  rcdwrk,icdwrk,amu)
+     *                  rcdwrk,icdwrk,qrwork,qwsiz,amu)
             call nwsnot(0,ierr,rcond,amu)
 
 c         - choose the next iterate xp by a global strategy
@@ -225,12 +227,12 @@ c-----------------------------------------------------------------------
 
       subroutine nwndir(rjac,ldr,r,fn,n,epsm,jacflg,
      *                  qraux,y,w,wa,scalex,dn,qtf,ierr,rcond,
-     *                  rcdwrk,icdwrk,mu)
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,mu)
 
-      integer ldr,n,ierr,jacflg
+      integer ldr,n,ierr,jacflg,qrwsiz
       double precision  epsm,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
       double precision  wa(*),scalex(*),dn(*),y(*),w(*),qtf(*)
-      double precision  rcdwrk(*)
+      double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
       double precision  rcond,mu
 
@@ -264,6 +266,8 @@ c                                      2 indicating Jacobian completely singular
 c     Out      rcond   Real            inverse condition  matrix  
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwsiz  Integer         size of qrwork
 c     Out      mu      Real            0 if ierr == 0
 c                                      small positive number when ierr > 0
 c                                      to make trans(R)*R+mu*I non singular
@@ -280,7 +284,7 @@ c     check for singularity or ill conditioning
 c     form qtf = trans(Q) * fn
 c     copy upper triangular part of QR to R
 
-      call liqrfa(rjac,ldr,n,qraux,w,ierr)
+      call liqrfa(rjac,ldr,n,qraux,qrwork,qrwsiz,ierr)
 
 c     check for singularity or ill conditioning
 c     and compute a perturbation mu if needed
@@ -290,7 +294,7 @@ c     and compute a perturbation mu if needed
 c     compute qtf = trans(Q)*fn
 
       call dcopy(n,fn,1,qtf,1)
-      call liqrqt(rjac, ldr, n, qraux, qtf, w, info)
+      call liqrqt(rjac, ldr, n, qraux, qtf, qrwork, qrwsiz, info)
 
 c     copy the upper triangular part of a QR decomposition
 c     contained in Rjac into R.
