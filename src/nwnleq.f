@@ -161,7 +161,7 @@ c     for optimal operation of the Lapack QR routines
 c-------------------------------------------------------------------------
 
       double precision A(1), work(1)
-      integer lwork
+      integer lwork, info
       
       lwork = -1
       call dgeqrf(n,n,A,n,work,work,lwork,info)

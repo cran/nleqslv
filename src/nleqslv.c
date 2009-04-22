@@ -244,8 +244,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
      * to execute blocked QR code
      * for largish n (500+) this speeds up significantly
      */
-     
+
     F77_CALL(nwqmem)(&n, &qrwsiz);
+    
     if( qrwsiz <= 0 )
         error("Error in querying amount of workspace for QR routines\n");
   

@@ -174,7 +174,7 @@ c         - get newton step
             call dcopy(n,fc,1,fq,1)
             call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
      *                  wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,rcond,
-     *                  rcdwrk,icdwrk,qrwork,qwsiz,amu)
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,amu)
             call nwsnot(0,ierr,rcond,amu)
 
 c         - choose the next iterate xp by a global strategy
@@ -283,7 +283,7 @@ c     perform a QR factorization of rjac (simple Lapack routine)
 c     check for singularity or ill conditioning
 c     form qtf = trans(Q) * fn
 c     copy upper triangular part of QR to R
-
+      
       call liqrfa(rjac,ldr,n,qraux,qrwork,qrwsiz,ierr)
 
 c     check for singularity or ill conditioning
