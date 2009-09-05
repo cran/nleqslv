@@ -1,3 +1,7 @@
+1.5
+
+o corrected missing/superfluous closing brackets in nleqlsv.Rd
+
 1.4
 
 o correct horrible bug caused by typo in nwnwtn causing dgeqrf to be called 

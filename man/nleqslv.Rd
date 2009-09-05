@@ -138,9 +138,9 @@ A list containing components
          \item{\code{1}}{Function criterion is near zero.
          Convergence of function values has been achieved.}
          \item{\code{2}}{x-values within tolerance. This means that the relative distance between two                    consecutive x-values
-         is smaller than \code{xtol}.
+         is smaller than \code{xtol}.}
          \item{\code{3}}{No better point found.
-         This means that the algorithm has stalled and cannot find an acceptable new point.}
+         This means that the algorithm has stalled and cannot find an acceptable new point.
          This may or may not indicate acceptably small function values.}
          \item{\code{4}}{Iteration limit \code{maxit} exceeded.}
          }
