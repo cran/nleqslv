@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "R.h"
+#include <R.h>
 
 static	int jacsng = -1;
 static  int jacupd = -1;
@@ -11,7 +11,10 @@ static  double jacond = 0.0;
 static  double jacamu = 0.0;
 
 void F77_SUB(nwstrot0)(const char *s, int *slen)
-{
+{   
+    /*
+     * called by Fortran subroutine to output <slen> chars from fortran char*(*)
+     */
 	int k, ns;
 
 	ns = *slen;

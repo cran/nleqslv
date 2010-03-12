@@ -92,51 +92,51 @@ c     parameter lambda ==> lamlo
 
 c     initialization of retcd, mxtake and lambda (linesearch length)
 
-      retcd  = 0
+      retcd  = 2
       mxtake = .false.
       lambda = lamhi
       gcnt   = 0
 
-  50  continue
+      do while( retcd .eq. 2 )
 
-c     compute the next iterate xp
+c        compute the next iterate xp
+     
+         do i=1,n
+            xp(i) = xc(i) + lambda*d(i)
+         enddo
 
-      do 60 i = 1,n
-         xp(i) = xc(i) + lambda*d(i)
-  60  continue
+c        evaluate functions and the objective function at xp
 
-c     evaluate functions and the objective function at xp
+         call nwfvec(xp,n,fvec,fp,fpnorm)
+         gcnt = gcnt + 1
 
-      call nwfvec(xp,n,fvec,fp,fpnorm)
-      gcnt = gcnt + 1
-
-      if( priter .gt. 0) then
-         oarg(1) = lambda
-         oarg(2) = fcnorm + alpha * lambda * slope
-         oarg(3) = fpnorm
-         oarg(4) = abs(fp(idamax(n,fp,1)))
-         call nwlsot(iter,1,oarg)
-      endif
-
-c     test whether the standard step produces enough decrease
-c     the objective function.
-c     If not update lambda and compute a new next iterate
-
-      if( fpnorm .gt. (fcnorm + alpha * lambda * slope) ) then
-         t = ((-lambda**2)*slope/Rtwo)/(fpnorm-fcnorm-lambda*slope)
-         lambda  = max(lambda / Rten , t)
-         if(lambda .lt. lamlo) then
-            retcd = 1
-            goto 100
+         if( priter .gt. 0) then
+            oarg(1) = lambda
+            oarg(2) = fcnorm + alpha * lambda * slope
+            oarg(3) = fpnorm
+            oarg(4) = abs(fp(idamax(n,fp,1)))
+            call nwlsot(iter,1,oarg)
          endif
-         goto 50
-      endif
+
+c        test whether the standard step produces enough decrease
+c        the objective function.
+c        If not update lambda and compute a new next iterate
+
+         if( fpnorm .le. (fcnorm + alpha * lambda * slope) ) then
+            retcd = 0
+         else 
+            t = ((-lambda**2)*slope/Rtwo)/(fpnorm-fcnorm-lambda*slope)
+            lambda  = max(lambda / Rten , t)
+            if(lambda .lt. lamlo) then
+               retcd = 1
+            endif
+         endif
+
+      enddo
 
       if( lambda .eq. lamhi .and. scstep ) then
          mxtake = .true.
       endif
-
- 100  continue
 
       return
       end

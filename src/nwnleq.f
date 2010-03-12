@@ -114,7 +114,9 @@ c     check input parameters
       call nwpchk(n,lrwork,xtol,ftol,btol,maxit,
      *            jacflg,method,global,stepmx,dlt,sigma,
      *            epsm,outopt,scalex,termcd)
-      if(termcd .lt. 0) goto 100
+      if(termcd .lt. 0) then
+         return
+      endif
       
 c     first argument of nwsolv/brsolv is leading dimension of rjac in those routines
 c     should be at least n
@@ -147,7 +149,7 @@ c     should be at least n
 
       endif
 
-  100 return
+      return
       end
 
 c-----------------------------------------------------------------------
@@ -269,10 +271,10 @@ c     set outopt to correct values
       
 c     check scale matrices
 
-      do 10 i = 1,n
+      do i = 1,n
          if(scalex(i) .lt. Rzero) scalex(i) = -scalex(i)
          if(scalex(i) .eq. Rzero) scalex(i) = Rone
- 10   continue
+      enddo
 
 c     check step and function tolerances
 

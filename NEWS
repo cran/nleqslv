@@ -1,3 +1,9 @@
+1.6
+
+o corrected initialization bug
+o corrected parameter error for Cauchy start in examples
+o code cleaning to get rid of fortran statement labels
+
 1.5
 
 o corrected missing/superfluous closing brackets in nleqlsv.Rd

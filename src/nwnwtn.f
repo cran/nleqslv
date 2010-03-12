@@ -132,7 +132,7 @@ c     check stopping criteria for input xc
           call dcopy(n,xc,1,xp,1)
           call dcopy(n,fc,1,fp,1)
           fpnorm = fcnorm
-          goto 200
+          return
       endif
 
       if( priter .gt. 0 ) then
@@ -150,75 +150,69 @@ c     check stopping criteria for input xc
 
       endif
 
-c     iterate
-
- 100  iter = iter+1
-
-c         - evaluate the jacobian at the current iterate xc
-c         - evaluate the gradient at the current iterate xc
-
-            call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
-            njcnt = njcnt + 1
-
-c            - if requested calculate x scale from jacobian column norms a la Minpack
-
-            if( xscalm .eq. 1 ) then
-               call nwcpsx(n,rjac,ldr,scalex,epsm,iter) 
-            endif
-
-c           gp = trans(Rjac) * fc
-            call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
-
-c         - get newton step
-
-            call dcopy(n,fc,1,fq,1)
-            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                  wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,rcond,
-     *                  rcdwrk,icdwrk,qrwork,qrwsiz,amu)
-            call nwsnot(0,ierr,rcond,amu)
-
-c         - choose the next iterate xp by a global strategy
-
-            if(global .eq. 0) then
-                call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
-     *                      scalex,fvec,
-     *                      xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
-            elseif(global .eq. 1) then
-                call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,
-     *                      scalex,fvec,
-     *                      xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
-            elseif(global .eq. 2) then
-                call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
-     *                      btol,mxtake,dlt,qtf,scalex,
-     *                      fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
-     *                      xp,fp,fpnorm,retcd,gcnt,priter,iter)
-            elseif(global .eq. 3) then
-                call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
-     *                      btol,mxtake,dlt,qtf,scalex,
-     *                      fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
-     *                      xp,fp,fpnorm,retcd,gcnt,priter,iter)
-            endif
-
-            nfcnt = nfcnt + gcnt
-
-c         - check stopping criteria for the new iterate xp
-
-            call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *                  termcd)
-
-            if(termcd .gt. 0) goto 200
-
-c         - update xc, fc, and fcnorm
-
+      do while( termcd .eq. 0 )
+         iter = iter + 1
+         
+c        - evaluate the jacobian at the current iterate xc
+c        - evaluate the gradient at the current iterate xc
+         
+         call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
+         njcnt = njcnt + 1
+         
+c        - if requested calculate x scale from jacobian column norms a la Minpack
+         
+         if( xscalm .eq. 1 ) then
+            call nwcpsx(n,rjac,ldr,scalex,epsm,iter) 
+         endif
+         
+c        gp = trans(Rjac) * fc
+         call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
+         
+c        - get newton step
+         
+         call dcopy(n,fc,1,fq,1)
+         call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
+     *               wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,rcond,
+     *               rcdwrk,icdwrk,qrwork,qrwsiz,amu)
+         call nwsnot(0,ierr,rcond,amu)
+         
+c        - choose the next iterate xp by a global strategy
+         
+         if(global .eq. 0) then
+             call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
+     *                   scalex,fvec,
+     *                   xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+         elseif(global .eq. 1) then
+             call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,
+     *                   scalex,fvec,
+     *                   xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+         elseif(global .eq. 2) then
+             call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
+     *                   btol,mxtake,dlt,qtf,scalex,
+     *                   fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
+     *                   xp,fp,fpnorm,retcd,gcnt,priter,iter)
+         elseif(global .eq. 3) then
+             call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
+     *                   btol,mxtake,dlt,qtf,scalex,
+     *                   fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
+     *                   xp,fp,fpnorm,retcd,gcnt,priter,iter)
+         endif
+         
+         nfcnt = nfcnt + gcnt
+         
+c        - check stopping criteria for the new iterate xp
+         
+         call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
+     *               termcd)
+         
+         if(termcd .eq. 0) then        
+c           update xc, fc, and fcnorm
             call dcopy(n,xp,1,xc,1)
             call dcopy(n,fp,1,fc,1)
             fcnorm = fpnorm
-
-      goto 100
-
-c     termination
-
- 200  continue
+         endif
+         
+      enddo
 
       return
       end
@@ -299,9 +293,9 @@ c     compute qtf = trans(Q)*fn
 c     copy the upper triangular part of a QR decomposition
 c     contained in Rjac into R.
 
-      do 10 j=1,n
+      do j=1,n
          call dcopy(j,rjac(1,j),1,r(1,j),1)
-  10  continue
+      enddo
 
       if(ierr .eq. 0) then
 

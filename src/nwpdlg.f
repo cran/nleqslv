@@ -64,7 +64,7 @@ c-------------------------------------------------------------------------
 
       integer i
       double precision  dnlen,ssdlen,alpha,beta,lambda,vlen,vssdag,fpred
-      double precision  fpnsav,oarg(5)
+      double precision  sqalpha,fpnsav,oarg(5)
       double precision  dnrm2, ddot
       logical nwtake
       integer dtype
@@ -88,7 +88,8 @@ c     steepest descent direction and length
       do i=1,n
          wa(i) = g(i) / scalex(i)
       enddo
-      alpha = dnrm2(n,wa,1)**2
+      sqalpha = dnrm2(n,wa,1)
+      alpha   = sqalpha**2
 
       do i=1,n
          d(i) = wa(i) / scalex(i)
@@ -99,7 +100,7 @@ c     steepest descent direction and length
       call dcopy(n, wa, 1, ssd, 1)
       call dscal(n, -(alpha/beta), ssd, 1)
 
-      ssdlen = alpha*sqrt(alpha)/beta
+      ssdlen = alpha*sqalpha/beta
 
 c     set trust radius to ssdlen or dnlen if required
 
@@ -109,9 +110,9 @@ c     set trust radius to ssdlen or dnlen if required
          dlt = min(dnlen, stepmx)
       endif
 
-      do 10 i=1,n
-          v(i) = scalex(i)*dn(i) - ssd(i)
-  10  continue
+      do i=1,n
+         v(i) = scalex(i)*dn(i) - ssd(i)
+      enddo
 
       vssdag = ddot(n,v,1,ssd,1)
       vlen   = dnrm2(n,v,1)**2
@@ -119,44 +120,44 @@ c     set trust radius to ssdlen or dnlen if required
       retcd = 4
       gcnt  = 0
 
-  20  continue
+      do while( retcd .gt. 1 )
 
-c       find new step by double dogleg algorithm
+c        find new step by double dogleg algorithm
 
-        call pwlstp(n,scalex,dn,dnlen,dlt,nwtake,vssdag,vlen,
-     *              ssd,v,ssdlen,d,dtype,lambda)
+         call pwlstp(n,scalex,dn,dnlen,dlt,nwtake,vssdag,vlen,
+     *               ssd,v,ssdlen,d,dtype,lambda)
 
-c       compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
+c        compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
 
-        call dcopy(n,d,1,wa,1)
-        call dtrmv('U','N','N',n,rjac,ldr,wa,1)
-        call daxpy(n, Rone, qtf,1,wa,1)
-        fpred = Rhalf * dnrm2(n,wa,1)**2
+         call dcopy(n,d,1,wa,1)
+         call dtrmv('U','N','N',n,rjac,ldr,wa,1)
+         call daxpy(n, Rone, qtf,1,wa,1)
+         fpred = Rhalf * dnrm2(n,wa,1)**2
 
-c       evaluate function at xp = xc + d
+c        evaluate function at xp = xc + d
 
-        do 30 i = 1,n
-           xp(i) = xc(i) + d(i)
-  30    continue
+         do i=1,n
+            xp(i) = xc(i) + d(i)
+         enddo
 
-        call nwfvec(xp,n,fvec,fp,fpnorm)
-        gcnt = gcnt + 1
+         call nwfvec(xp,n,fvec,fp,fpnorm)
+         gcnt = gcnt + 1
 
-c       check whether the global step is acceptable
+c        check whether the global step is acceptable
 
-        oarg(2) = dlt
-        call nwtrup(n,fcnorm,g,d,scalex,nwtake,stepmx,xtol,dlt,mxtake,
-     *              fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm,wa)
+         oarg(2) = dlt
+         call nwtrup(n,fcnorm,g,d,scalex,nwtake,stepmx,xtol,dlt,mxtake,
+     *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm,wa)
 
-        if( priter .gt. 0 ) then
+         if( priter .gt. 0 ) then
             oarg(1) = lambda
             oarg(3) = dlt                            
             oarg(4) = fpnorm
             oarg(5) = abs(fp(idamax(n,fp,1)))
             call nwpwot(iter,dtype,oarg)
-        endif
-
-      if(retcd .gt. 1) goto 20
+         endif
+      
+      enddo
 
       return
       end
@@ -203,32 +204,32 @@ c-----------------------------------------------------------------------
 
       if(dnlen .le. dlt) then
 
-c         Newton step smaller than trust radius ==> take it
+c        Newton step smaller than trust radius ==> take it
 
-          nwtake = .true.
-          call dcopy(n, dn, 1, d, 1)
-          dlt = dnlen
-          dtype = 2
+         nwtake = .true.
+         call dcopy(n, dn, 1, d, 1)
+         dlt = dnlen
+         dtype = 2
 
       elseif(ssdlen .ge. dlt) then
 
-c         take step in steepest descent direction
+c        take step in steepest descent direction
 
-          call dcopy(n, ssd, 1, d, 1)
-          call dscal(n, dlt / ssdlen, d, 1)
-          call vunsc(n,d,scalex)
-          dtype = 1
+         call dcopy(n, ssd, 1, d, 1)
+         call dscal(n, dlt / ssdlen, d, 1)
+         call vunsc(n,d,scalex)
+         dtype = 1
 
       else
 
-c         calculate convex combination of ssd and eta*p
-c         which has scaled length dlt
+c        calculate convex combination of ssd and eta*p
+c        which has scaled length dlt
 
-          lambda =(-vssdag+sqrt(vssdag**2-vlen*(ssdlen**2-dlt**2)))/vlen
-          call dcopy(n, ssd, 1, d, 1)
-          call daxpy(n, lambda, v, 1, d, 1)
-          call vunsc(n,d,scalex)
-          dtype = 3
+         lambda =(-vssdag+sqrt(vssdag**2-vlen*(ssdlen**2-dlt**2)))/vlen
+         call dcopy(n, ssd, 1, d, 1)
+         call daxpy(n, lambda, v, 1, d, 1)
+         call vunsc(n,d,scalex)
+         dtype = 3
 
       endif
 

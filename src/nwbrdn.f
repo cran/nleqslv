@@ -134,7 +134,7 @@ c     check stopping criteria for input xc
           call dcopy(n,xc,1,xp,1)
           call dcopy(n,fc,1,fp,1)
           fpnorm = fcnorm
-          goto 200
+          return
       endif
 
       if( priter .gt. 0 ) then
@@ -152,121 +152,114 @@ c     check stopping criteria for input xc
 
       endif
 
-c     iterate
-
       jacevl = .true.
 
- 100  iter = iter+1
+      do while( termcd .eq. 0 )
+         iter = iter+1
 
-            if( jacevl ) then
-
-c            - evaluate the jacobian at the current iterate xc
-c            - evaluate the gradient at the current iterate xc
-
-               call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
-               njcnt = njcnt + 1
-
-c            - if requested calculate x scale from jacobian column norms a la Minpack
-
-               if( xscalm .eq. 1 ) then
-                  call nwcpsx(n,rjac,ldr,scalex,epsm,iter) 
-               endif
-
-c              gp = trans(Rjac) * fc
-               call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
-
-c            - get newton step
-c            - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapack routine)
-
-               call dcopy(n,fc,1,fq,1)
-               call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                     wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,cond,
-     *                     rcdwrk,icdwrk,qrwork,qrwsiz,amu)
-               call nwsnot(0,ierr,cond,amu)
-               call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
-
-c              now Rjac(*  ,1..n) holds expanded Q
-c              now Rjac(n+1,1..n) holds full upper triangle R
-
-            else
-
-c            - get broyden step
-c            - calculate approximate gradient
-
-               call dcopy(n,fc,1,fq,1)
-               call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                     wrk1,wrk2,wrk3,scalex,dn,qtf,ierr,cond,
-     *                     rcdwrk,icdwrk,amu)
-               call nwsnot(1,ierr,cond,amu)
-
-               call dcopy(n,qtf,1,gp,1)
-               call dtrmv('U','T','N',n,rjac(1,n+1),ldr,gp,1)
-
+         if( jacevl ) then
+         
+c          - evaluate the jacobian at the current iterate xc
+c          - evaluate the gradient at the current iterate xc
+         
+            call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
+            njcnt = njcnt + 1
+         
+c          - if requested calculate x scale from jacobian column norms a la Minpack
+         
+            if( xscalm .eq. 1 ) then
+               call nwcpsx(n,rjac,ldr,scalex,epsm,iter) 
             endif
+         
+c           gp = trans(Rjac) * fc
+            call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
+         
+c          - get newton step
+c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapack routine)
+         
+            call dcopy(n,fc,1,fq,1)
+            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
+     *                  wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,cond,
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,amu)
+            call nwsnot(0,ierr,cond,amu)
+            call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
+         
+c           now Rjac(*  ,1..n) holds expanded Q
+c           now Rjac(n+1,1..n) holds full upper triangle R
+         
+         else
+         
+c          - get broyden step
+c          - calculate approximate gradient
+         
+            call dcopy(n,fc,1,fq,1)
+            call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
+     *                  wrk1,wrk2,wrk3,scalex,dn,qtf,ierr,cond,
+     *                  rcdwrk,icdwrk,amu)
+            call nwsnot(1,ierr,cond,amu)
+         
+            call dcopy(n,qtf,1,gp,1)
+            call dtrmv('U','T','N',n,rjac(1,n+1),ldr,gp,1)
+         
+         endif
 
-c         - choose the next iterate xp by a global strategy
+c      - choose the next iterate xp by a global strategy
 
-            if(global .eq. 0) then
-                call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
-     *                      scalex,fvec,
-     *                      xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
-            elseif(global .eq. 1) then
-                call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,
-     *                      scalex,fvec,
-     *                      xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
-            elseif(global .eq. 2) then
-                call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
-     *                      btol,mxtake,dlt,qtf,scalex,
-     *                      fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
-     *                      xp,fp,fpnorm,retcd,gcnt,priter,iter)
-            elseif(global .eq. 3) then
-                call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
-     *                      btol,mxtake,dlt,qtf,scalex,
-     *                      fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
-     *                      xp,fp,fpnorm,retcd,gcnt,priter,iter)
-            endif
+         if(global .eq. 0) then
+            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
+     *                  scalex,fvec,
+     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+         elseif(global .eq. 1) then
+            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,
+     *                  scalex,fvec,
+     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+         elseif(global .eq. 2) then
+            call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
+     *                  btol,mxtake,dlt,qtf,scalex,
+     *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
+     *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
+         elseif(global .eq. 3) then
+            call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
+     *                  btol,mxtake,dlt,qtf,scalex,
+     *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
+     *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
+         endif
+         
+         nfcnt = nfcnt + gcnt
 
-            nfcnt = nfcnt + gcnt
+c      - check stopping criteria for the new iterate xp
 
-c         - check stopping criteria for the new iterate xp
+         call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
+     *               termcd)
+         
+         if( termcd .eq. 3 .and. .not. jacevl ) then
+c           global strategy failed but jacobian is out of date
+c           try again with proper jacobian
+c           reset trust region radius
+            
+            jacevl = .true.
+            jacupd = .false.
+            dlt = dlt0
+            termcd = 0
+         
+         elseif(termcd .gt. 0) then
+            jacupd = .false.
+         else
+            jacupd = .true.
+            jacevl = .false.
+         endif
 
-            call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *                  termcd)
+         if( jacupd ) then
+c           perform Broyden update of current jacobian
+c           update xc, fc, and fcnorm
+            call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
+     *                  scalex,wrk1,wrk2,wrk3)
+            call dcopy(n,xp,1,xc,1)
+            call dcopy(n,fp,1,fc,1)
+            fcnorm = fpnorm
+         endif
 
-            if( termcd .eq. 3 .and. .not. jacevl ) then
-c               global strategy failed but jacobian is out of date
-c               try again with proper jacobian
-c               reset trust region radius
-
-                jacevl = .true.
-                jacupd = .false.
-                dlt = dlt0
-                termcd = 0
-
-            elseif(termcd .gt. 0) then
-                goto 200
-            else
-                jacupd = .true.
-                jacevl = .false.
-            endif
-
-c         - perform Broyden update of current jacobian
-c         - update xc, fc, and fcnorm
-c         - update function value tracking for non monotone linesearch
-
-            if( jacupd ) then
-                call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
-     *                      scalex,wrk1,wrk2,wrk3)
-                call dcopy(n,xp,1,xc,1)
-                call dcopy(n,fp,1,fc,1)
-                fcnorm = fpnorm
-            endif
-
-      goto 100
-
-c     termination
-
- 200  continue
+      enddo
 
       return
       end
@@ -314,16 +307,16 @@ c-----------------------------------------------------------------------
       eta    = Rhund * Rtwo * epsm
       doupdt = .false.
 
-      do 10 i=1,n
+      do i=1,n
          dx(i) = xp(i) - xc(i)
          df(i) = fp(i) - fc(i)
-  10  continue
+      enddo
 
 c     clear lower triangle
 
-      do 20 i=1,n-1
-         call nuvset(n-i,Rzero,r(i+1,i),1)
-  20  continue
+      do i=1,n-1
+         call nuzero(n-i,r(i+1,i))
+      enddo
 
 c     calculate df - B*dx = df - Q*R*dx
 c     wa = R*dx
@@ -334,13 +327,13 @@ c     do not update with noise
       call dtrmv('U','N','N',n,r,ldr,wa,1)
       call dgemv('N',n,n,-Rone,q,ldr,wa,1,Rone,df,1)
 
-      do 30 i=1,n
+      do i=1,n
          if( abs(df(i)) .gt. eta*( abs(fp(i)) + abs(fc(i)) ) ) then
             doupdt = .true.
          else
             df(i)  = Rzero
          endif
-  30  continue
+      enddo
 
       if( doupdt ) then
 c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
