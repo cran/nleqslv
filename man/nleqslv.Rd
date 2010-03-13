@@ -227,7 +227,7 @@ fstart
 nleqslv(xstart, dslnex, control=list(btol=.01))
 
 # Cauchy start
-nleqslv(xstart, dslnex, control=list(trace=1,btol=.01))
+nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-1.0))
 
 # Newton start
 nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))

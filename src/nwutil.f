@@ -40,18 +40,20 @@ c-------------------------------------------------------------------------
       integer idamax
 
 c     check whether function values are within tolerance
-
+      
+      termcd = 0
+      
       fmax = abs(fplus(idamax(n,fplus,1)))
       if( fmax .le. ftol) then
          termcd = 1
-         goto 1000
+         return
       endif
 
-      if(iter .eq. 0) goto 1000
+      if(iter .eq. 0) return
 
       if(retcd .eq. 1) then
          termcd = 3
-         goto 1000
+         return
       endif
 
 c     check whether relative step length is within tolerance
@@ -60,7 +62,7 @@ c     Dennis Schnabel Algorithm A7.2.3
       rsx = nuxnrm(n, xplus, xc, scalex)
       if(rsx .le. xtol) then
         termcd = 2
-        goto 1000
+        return
       endif
 
 c     check iteration limit
@@ -69,7 +71,6 @@ c     check iteration limit
          termcd = 4
       endif
 
- 1000 continue
       return
       end
 
@@ -128,37 +129,34 @@ c     the analytic one
 
       errcnt = 0
 
-      do 40 j = 1,n
+      do j=1,n
          stepsz = rnoise*max(abs(xc(j)),Rone)
          xtmpj = xc(j)
          xc(j) = xtmpj+stepsz
          call fvec(xc,fz,n,0)
          xc(j) = xtmpj
 
-         do 10 i = 1,n
+         do i=1,n
             wa(i) = (fz(i)-fc(i))/stepsz
- 10      continue
+         enddo
 
          dinf = abs(wa(idamax(n,wa,1)))
 
-         do 30 i = 1,n
+         do i=1,n
             if(abs(A(i,j)-wa(i)).gt.tol*dinf) then
                errcnt = errcnt + 1
                if( errcnt .gt. MAXERR ) then
-                     goto 50
+                  termcd = -10
+                  return
                endif
                call nwckot(i,j,A(i,j),wa(i))
             endif
- 30      continue
-
- 40   continue
-
- 50   continue
-
+         enddo
+      enddo
+      
       if( errcnt .gt. 0 ) then
          termcd = -10
       endif
-
       return
       end
 
@@ -200,8 +198,8 @@ c-------------------------------------------------------------------------
       ndigit = -log10(epsm)
       p = sqrt(max(Rten**(-ndigit),epsm))
 
-      do 20 j = 1,n
-         h  = p + p * abs(xc(j))
+      do j=1,n
+         h = p + p * abs(xc(j))
 
 c        or as alternative h  = p * max(Rone, abs(xc(j)))
 
@@ -214,10 +212,10 @@ c        h = xcj - xc(j) but not here to avoid clever optimizers
          h = rnudif(xc(j), xcj)
          call fvec(xc,fz,n,j)
          xc(j) = xcj
-         do 10 i = 1,n
+         do i=1,n
             rjac(i,j) = (fz(i)-fc(i)) / h
- 10      continue
- 20   continue
+         enddo
+      enddo
 
       return
       end
@@ -248,10 +246,9 @@ c-------------------------------------------------------------------------
       parameter(Rzero=0.0d0, Rone=1.0d0)
 
       t = Rzero
-      do 10 i=1,n
-         t = max( t, abs(d(i)) / max(abs(x(i)),Rone/scalex(i)) )
-  10  continue
-
+      do i=1,n
+         t = max(t, abs(d(i)) / max(abs(x(i)),Rone/scalex(i)))
+      enddo
       nudnrm = t
 
       return
@@ -283,10 +280,9 @@ c-------------------------------------------------------------------------
       parameter(Rzero=0.0d0, Rone=1.0d0)
 
       t = Rzero
-      do 10 i=1,n
-         t = max( t, abs(xn(i)-xc(i)) / max(abs(xn(i)),Rone/scalex(i)) )
-  10  continue
-
+      do i=1,n
+         t = max(t, abs(xn(i)-xc(i)) / max(abs(xn(i)),Rone/scalex(i)))
+      enddo
       nuxnrm = t
 
       return
@@ -394,11 +390,11 @@ c---------------------------------------------------------------------
       ierr = 0
 
       rsing = .false.
-      do 10 i=1,n
+      do i=1,n
          if( r(i,i) .eq. Rzero ) then
              rsing = .true.
          endif
-   10 continue
+      enddo
 
       if( rsing ) then
          ierr = 2
@@ -490,14 +486,14 @@ c-------------------------------------------------------------------------
       double precision  dnrm2
 
       if( mode .eq. 1 ) then
-          do k=1,n
-              scalex(k) = dnrm2(n,rjac(1,k),1)
-              if( scalex(k) .le. epsm ) scalex(k) = 1
-          enddo
+         do k=1,n
+            scalex(k) = dnrm2(n,rjac(1,k),1)
+            if( scalex(k) .le. epsm ) scalex(k) = 1
+         enddo
       else if( mode .gt. 1 ) then
-          do k=1,n
-              scalex(k) = max(scalex(k),dnrm2(n,rjac(1,k),1))
-          enddo
+         do k=1,n
+            scalex(k) = max(scalex(k),dnrm2(n,rjac(1,k),1))
+         enddo
       endif
       return
       end
@@ -562,9 +558,9 @@ c-------------------------------------------------------------------------
 
       integer i
 
-      do 10 i = 1,n
+      do i = 1,n
          x(i) = sx(i) * x(i)
- 10   continue
+      enddo
 
       return
       end
@@ -590,9 +586,9 @@ c-------------------------------------------------------------------------
 
       integer i
 
-      do 10 i = 1,n
+      do i = 1,n
          x(i) = x(i) / sx(i)
- 10   continue
+      enddo
 
       return
       end
@@ -646,6 +642,43 @@ c     dlamch('e') returns negeps (1-eps)
 c     dlamch('p') returns 1+eps
 
       epsmch = dlamch('p')
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine nwstrot(s)
+      character*(*) s
+
+c     Intermediate output routine
+c     trim string and pass it with trimmed length
+c     to  C routine defined in <nwout.c>
+
+      integer slen
+      slen = len_trim(s)
+      call nwstrot0(s,slen)
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine nwckot(i,j,aij,wi)
+      integer i,j
+      double precision aij,wi
+
+c     output error message for check analytic jacobian
+
+      character*80 s
+
+      write(s,900) i,j
+      call nwstrot(s)
+      write(s,901) aij,wi
+      call nwstrot(s)
+
+ 900  format('Chkjac  possible error in jacobian(',i4,',',i4,')')
+ 901  format('       ', d20.13, ' Estimated = ', d20.13)
 
       return
       end
