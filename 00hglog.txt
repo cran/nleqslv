@@ -1,0 +1,249 @@
+changeset:   29:1fb76472acb9
+tag:         tip
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Apr 04 09:55:13 2010 +0200
+files:       .hgtags
+description:
+Minor version
+
+
+changeset:   28:63687e0a2a71
+tag:         1.6.1
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Apr 04 09:53:08 2010 +0200
+files:       DESCRIPTION NEWS R/nleqslv.R man/nleqslv-package.Rd man/zznleqslv-iterationreport.Rd src/Makevars
+description:
+Fixed incomplete last line in several files.
+
+
+changeset:   27:22b4bf680a82
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Fri Mar 12 15:41:05 2010 +0100
+files:       .hgtags
+description:
+Added tag 1.6 for changeset a7df67a11e90
+
+
+changeset:   26:a7df67a11e90
+tag:         1.6
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Fri Mar 12 15:41:00 2010 +0100
+files:       DESCRIPTION NEWS src/Makevars
+description:
+Prepare for version 1.6
+
+
+changeset:   25:a92d002d6b36
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Fri Mar 12 14:59:24 2010 +0100
+files:       src/nwbrdn.f src/nwnwtn.f src/nwutil.f
+description:
+while loops in newton/broyden. Corrected initialization bug in nwtcvg (nwutil).
+
+
+changeset:   24:29ebac559a8f
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Thu Mar 11 21:18:50 2010 +0100
+files:       src/nwddlg.f src/nwglsh.f src/nwpdlg.f src/nwqlsh.f
+description:
+do while loops instead of goto's.
+
+
+changeset:   23:86155c5afe44
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Thu Mar 11 20:37:32 2010 +0100
+files:       src/nwbrdn.f
+description:
+More code cleaning in nwbrdn.
+
+
+changeset:   22:aff6f202f00f
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Thu Mar 11 20:25:38 2010 +0100
+files:       src/Makevars src/nwbrdn.f src/nwddlg.f src/nwnwtn.f src/nwpdlg.f src/nwutil.f
+description:
+Code cleaning. -fimplicit-non activated for testing.
+
+
+changeset:   21:6ec34ae4b76b
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Wed Mar 10 16:59:07 2010 +0100
+files:       src/nwddlg.f src/nwpdlg.f
+description:
+Avoid redundant calculation of sqrt(alpha).
+
+
+changeset:   20:dd845500dd89
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Wed Mar 10 16:44:26 2010 +0100
+files:       src/lautil.f src/nwout.c
+description:
+Cleanup lautil and add comment in nwout.c for nwstrot0.
+
+
+changeset:   19:4dc86b0d7e56
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Wed Mar 10 16:36:19 2010 +0100
+files:       src/lautil.f src/liqrev.f src/liqrup.f src/lixtra.f src/nuvlib.f src/nwout.c src/nwout.f src/nwoutx.c src/nwutil.f
+description:
+Reorganized and compacted files.
+
+
+changeset:   18:e1a65d33c3a4
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Wed Mar 10 16:12:24 2010 +0100
+files:       DESCRIPTION NEWS src/liqrev.f src/nuvlib.f src/nwbrdn.f
+description:
+Replaced nuvset with nuzero and simplified arguments.
+
+
+changeset:   17:c031d1ec84d1
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Mar 09 20:05:55 2010 +0100
+files:       man/nleqslv.Rd
+description:
+Corrected parameter error for Cauchy start in examples.
+
+
+changeset:   16:195db4ebf555
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Mar 09 19:53:28 2010 +0100
+files:       src/nwddlg.f src/nwglsh.f src/nwpdlg.f src/nwqlsh.f src/nwutil.f
+description:
+Yet again more code cleaning.
+
+
+changeset:   15:068edf10bd3f
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Mar 09 19:37:26 2010 +0100
+files:       src/nwbrdn.f src/nwnleq.f src/nwnwtn.f
+description:
+More removal of statement labels and gotos.
+
+
+changeset:   14:bcb0bba9448c
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Mar 08 20:43:39 2010 +0100
+files:       src/liqrev.f src/liqrup.f src/nwbrdn.f src/nwddlg.f src/nwnwtn.f src/nwoutx.c src/nwpdlg.f tests/brdban.Rout.save tests/chquad.Rout.save tests/dslnex.Rout.save
+description:
+Replaced all numbered do-loops with do/enddo.
+
+
+changeset:   13:d1964395748e
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sat Sep 05 20:25:13 2009 +0200
+files:       .hgtags
+description:
+Added tag 1.5 for changeset 7c50576bea12
+
+
+changeset:   12:7c50576bea12
+tag:         1.5
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sat Sep 05 20:24:59 2009 +0200
+files:       DESCRIPTION NEWS man/nleqslv.Rd
+description:
+Corrected some closing bracksets in Rd documentation.
+
+
+changeset:   11:482fc962f423
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Wed Apr 22 15:59:58 2009 +0200
+files:       .hgtags
+description:
+Added tag 1.4 for changeset 6c34245ef416
+
+
+changeset:   10:6c34245ef416
+tag:         1.4
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Wed Apr 22 15:59:51 2009 +0200
+files:       DESCRIPTION NEWS src/nleqslv.c src/nwnleq.f src/nwnwtn.f
+description:
+Added integer declaration  for info in nwqmem and correct horrible typo in nwnwtn which sometimes caused Lapack illegal argument.
+
+
+changeset:   9:6c28c32b9fcf
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Mar 22 12:03:39 2009 +0100
+files:       .hgtags
+description:
+Added tag 1.3 for changeset d7e91e7cf421
+
+
+changeset:   8:d7e91e7cf421
+tag:         1.3
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Mar 22 12:03:30 2009 +0100
+files:       DESCRIPTION NEWS src/lixtra.f src/nleqslv.c src/nwbrdn.f src/nwnleq.f src/nwnwtn.f
+description:
+Use Lapack blocked QR
+
+
+changeset:   7:c858f2f7f87d
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sat Mar 21 15:01:53 2009 +0100
+files:       .hgtags
+description:
+Added tag 1.2 for changeset 0af2c22270bb
+
+
+changeset:   6:0af2c22270bb
+tag:         1.2
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sat Mar 21 15:00:20 2009 +0100
+files:       DESCRIPTION NEWS R/nleqslv.R man/nleqslv.Rd
+description:
+Corrected error in R source and documentation regarding chkjac control parameter
+
+
+changeset:   5:19924c18f39d
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Feb 16 16:14:26 2009 +0100
+files:       DESCRIPTION
+description:
+Changed date in DESCRIPTON
+
+
+changeset:   4:437b687c0ea1
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Feb 16 16:01:47 2009 +0100
+files:       .hgtags
+description:
+Added tag 1.1 for changeset ab26da7a4dfc
+
+
+changeset:   3:ab26da7a4dfc
+tag:         1.1
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Feb 16 16:00:48 2009 +0100
+files:       .Rbuildignore DESCRIPTION
+description:
+Added .Rbuildignore
+
+
+changeset:   2:5bd0b5155254
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Feb 16 15:46:43 2009 +0100
+files:       NEWS R/nleqslv.R man/nleqslv.Rd tests/dslnex.R tests/dslnex.Rout.save
+description:
+Corrected errors in documentaton (termination codes, names of elements in return list). Made default initial trust region size = length of Newton step. Added NEWS file with version number.
+
+
+changeset:   1:8638e706f55e
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sat Feb 07 15:42:51 2009 +0100
+files:       .hgtags
+description:
+Added tag 1.0 for changeset e7f531ecfdcf
+
+
+changeset:   0:e7f531ecfdcf
+tag:         1.0
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sat Feb 07 15:42:12 2009 +0100
+files:       .hgignore DESCRIPTION R/nleqslv.R man/nleqslv-package.Rd man/nleqslv.Rd man/zznleqslv-iterationreport.Rd src/Makevars src/liqrev.f src/liqrup.f src/lixtra.f src/nleqslv.c src/nuvlib.f src/nwbrdn.f src/nwddlg.f src/nwglsh.f src/nwnleq.f src/nwnwtn.f src/nwout.f src/nwoutx.c src/nwpdlg.f src/nwqlsh.f src/nwtrup.f src/nwutil.f tests/brdban.R tests/brdban.Rout.save tests/chquad.R tests/chquad.Rout.save tests/dslnex.R tests/dslnex.Rout.save
+description:
+First official release
+
+
