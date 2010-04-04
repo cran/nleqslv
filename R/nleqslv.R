@@ -1,7 +1,7 @@
 #
 # Interface to Fortran library for solving a system of non linear equations
 # with either a Broyden or a full Newton method
-# There a four global search methods: 
+# There a four global search methods:
 #   quadratic linesearch, geometric linesearch
 #   double dogleg trust region a la Dennis Schnabel
 #   powell single dogleg a la Minpack
@@ -24,7 +24,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
     method <- match.arg(method)
     global <- match.arg(global)
     xscalm <- match.arg(xscalm)
-    
+
     ## Defaults
     con <- list(ftol=1e-8, xtol=1e-8,
                 btol=1e-3,
@@ -34,17 +34,16 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 trace=0,
                 chkjac=FALSE
                )
-               
+
     nmsC <- names(con)
 
     con[(namc <- names(control))] <- control
     if(length(noNms <- namc[!namc %in% nmsC]) > 0)
         warning("unknown names in control: ", paste(noNms,collapse=", "))
-    
+
     # to reset flag for checking recursive calls (not allowed for now)
     on.exit(.C("deactivatenleq",PACKAGE="nleqslv"))
     out <- .Call("nleqslv", x, fn1, jac1, method, global, xscalm, con, new.env(), PACKAGE = "nleqslv")
 
     out
 }
-                                                                 
