@@ -13,10 +13,8 @@ Common column headers are
 \item{\code{Jac}}{Jacobian type. The jacobian type is indicated by \code{N} for a Newton jacobian
 or \code{B} for a Broyden updated matrix; optionally followed by the letter \code{s} 
 indicating a totally singular matrix or the letter \code{i} indicating an ill-conditioned matrix.
-This is followed by a number in parentheses, indicating the inverse condition number of the matrix or 
-the correction factor \eqn{\mu}{mu} applied to make \eqn{J^T J+\mu S^T S}{J'J+mu S'S}
- not singular, where \eqn{S}{S} is the 
-diagonal scaling matrix consisting of the scaling factor for the \code{x}-values.
+Unless the jacobian is singular, this is followed by a number in parentheses, 
+indicating the inverse condition number of the matrix.
 This column will be blank when backtracking is active.}
 \item{\code{Fnorm}}{euclidean norm of function values / 2}
 \item{\code{Largest |f|}}{infinity norm of \eqn{f(x)}{f(x)} at the current point}

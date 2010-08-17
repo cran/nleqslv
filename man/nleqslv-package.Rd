@@ -20,7 +20,8 @@ Linesearch may be either quadratic or geometric. The trust region methods are ei
 the double dogleg or the Powell single dogleg method.
 
 The algorithms provided in this package are derived from Dennis and Schnabel (1996).
-The code is written in Fortran 77 and uses Lapack and BLAS routines as provided by the R system.
+The code is written in Fortran 77 and Fortran 95
+and uses Lapack and BLAS routines as provided by the R system.
 }
 
 \author{Berend Hasselman \email{bhh@xs4all.nl}}

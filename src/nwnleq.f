@@ -11,7 +11,7 @@
       double precision  xtol,ftol,btol,stepmx,dlt,sigma
       double precision  xp(*),fp(*),gp(*),x0(*)
       double precision  rwork(*),rcdwrk(*),qrwork(*)
-      double precision  scalex(*)         
+      double precision  scalex(*)
       integer           icdwrk(*)
       external fjac,fvec
 
@@ -24,13 +24,13 @@ c     In       x0      Real(*)         starting vector for x
 c     In       n       Integer         dimension of problem
 c     Inout    scalex  Real(*)         scaling factors x()
 c     Inout    maxit   Integer         maximum number iterations
-c     Inout    jacflg  Integer         jacobian flag 
+c     Inout    jacflg  Integer         jacobian flag
 c                                        0 numeric
 c                                        1 analytical (user supplied)
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
 c     Inout    btol    Real            x tolerance for backtracking
-c     Inout    method  Integer         method to use 
+c     Inout    method  Integer         method to use
 c                                        0 Newton
 c                                        1 Broyden
 c     Inout    global  Integer         global strategy to use
@@ -38,11 +38,11 @@ c                                        0 quadratic linesearch
 c                                        1 geometric linesearch
 c                                        2 double dogleg
 c                                        3 powell dogleg
-c     In       xscalm  Integer         scaling method                              
+c     In       xscalm  Integer         scaling method
 c                                        0 scale fixed and supplied by user
 c                                        1 for scale from jac. columns a la Minpack
 c     Inout    stepmx  Real            maximum stepsize
-c     Inout    dlt     Real            trust region radius 
+c     Inout    dlt     Real            trust region radius
 c                                        > 0.0 or special value for initial value
 c                                        -1.0  ==> use min(Cauchy length, stepmx)
 c                                        -2.0  ==> use min(Newton length, stepmx)
@@ -50,7 +50,7 @@ c     Inout    sigma   Real            reduction factor geometric linesearch
 c     Out      rwork   Real(*)         real workspace (9n+2n^2)
 c     In       lrwork  Integer         size real workspace
 c     In       rcdwrk  Real(*)         workspace for Dtrcon (3n)
-c     In       icdwrk  Integer(*)      workspace for Dtrcon (n) 
+c     In       icdwrk  Integer(*)      workspace for Dtrcon (n)
 c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
 c     In       qrwsiz  Integer         size of qrwork
 c     In       fjac    Name            optional name of routine to calculate
@@ -69,11 +69,12 @@ c     Out      gp      Real(*)         gradient of f() at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
 c     Out      nfcnt   Integer         number of function evaluations
 c     Out      termcd  Integer         termination code
-c                                       > 0 process terminated                                  
+c                                       > 0 process terminated
 c                                             1  function criterion near zero
 c                                             2  no better point found
 c                                             3  x-values within tolerance
 c                                             4  iteration limit exceeded
+c                                             5  singular jacobian
 c
 c                                       < 0 invalid input parameters
 c                                            -1  n not positive
@@ -85,22 +86,22 @@ c
 c!        subroutine fvec(x,f,n,flag)
 c         double precision x(*), f(*)
 c         integer  n, flag
-c                   
+c
 c         x() are the x values for which to calculate the function values f(*)
 c         The dimension of these vectors is n
 c         The flag argument is set to
 c            0  for calculation of function values
 c           >0  indicating that jacobian column <flag> is being computed
 c               so that fvec can abort.
-c 
+c
 c    The subroutine fjac must be declared as
 c
-c!        subroutine mkjac(rjac,ldr,x,n)    
+c!        subroutine mkjac(rjac,ldr,x,n)
 c         integer ldr
 c         double precision rjac(ldr,*), x(*)
 c         integer  n
 c
-c         The routine calculates the jacobian in point x(*) of the 
+c         The routine calculates the jacobian in point x(*) of the
 c         function. If any illegal values are encountered during
 c         calculation of the jacobian it is the responsibility of
 c         the routine to quit.
@@ -117,7 +118,7 @@ c     check input parameters
       if(termcd .lt. 0) then
          return
       endif
-      
+
 c     first argument of nwsolv/brsolv is leading dimension of rjac in those routines
 c     should be at least n
 
@@ -164,7 +165,7 @@ c-------------------------------------------------------------------------
 
       double precision A(1), work(1)
       integer lwork, info
-      
+
       lwork = -1
       call dgeqrf(n,n,A,n,work,work,lwork,info)
       if( info .ne. 0 ) then
@@ -172,10 +173,10 @@ c-------------------------------------------------------------------------
       else
           wrksiz = int(work(1))
       endif
-      
+
       return
       end
-      
+
 c-----------------------------------------------------------------------
 
       subroutine nwpchk(n,lrwk,
@@ -184,7 +185,7 @@ c-----------------------------------------------------------------------
      *                  scalex,termcd)
 
       integer n,lrwk,jacflg
-      integer method,global,maxit,termcd            
+      integer method,global,maxit,termcd
       integer outopt(*)
       double precision  xtol,ftol,btol,stepmx,dlt,sigma,epsm
       double precision  scalex(*)
@@ -214,7 +215,7 @@ c
 c-------------------------------------------------------------------------
 
       integer i,len
-      double precision epsmch
+      double precision epsmch, dblhuge, Rhuge
 
       double precision Rzero, Rone, Rtwo, Rthree
       parameter(Rzero=0.0d0, Rone=1.0d0, Rtwo=2.0d0, Rthree=3.0d0)
@@ -235,6 +236,9 @@ c     initialize termcd to all ok
 c     compute machine precision
 
       epsm = epsmch()
+
+c     get largest double precision number
+      Rhuge = dblhuge()
 
 c     check dimensions of the problem
 
@@ -268,7 +272,7 @@ c     set outopt to correct values
       if(outopt(2) .ne. 0 ) then
          outopt(2) = 1
       endif
-      
+
 c     check scale matrices
 
       do i = 1,n
@@ -300,10 +304,11 @@ c     check iteration limit
          maxit = 150
       endif
 
-c     check stepmx and dlt
+c     set stepmx
 
-      if(stepmx .lt. Rzero) stepmx = Rthous
+      if(stepmx .le. Rzero) stepmx = Rhuge
 
+c     check dlt
       if(dlt .le. Rzero) then
          if( dlt .ne. -Rtwo ) then
             dlt = -Rone
