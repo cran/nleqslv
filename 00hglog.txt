@@ -1,5 +1,38 @@
-changeset:   29:1fb76472acb9
+changeset:   33:2275f0edf930
 tag:         tip
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Aug 17 20:15:20 2010 +0200
+files:       .hgtags
+description:
+Added tag 1.7 for changeset 2185c992a2f2
+
+
+changeset:   32:2185c992a2f2
+tag:         1.7
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Aug 17 20:15:10 2010 +0200
+files:       NEWS man/nleqslv-package.Rd man/nleqslv.Rd man/zznleqslv-iterationreport.Rd src/lautil.f src/nleqslv.c src/nwbrdn.f src/nwnleq.f src/nwnwtn.f src/nwout.c src/nwutil.f
+description:
+Removed Levenberg-Marquardt correction completely. Fixed output of Jacobian messages.
+
+
+changeset:   31:17271e34814e
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Aug 16 20:12:07 2010 +0200
+files:       src/nwutil.f
+description:
+Turned back modification of cndjac. Subroutine cndjac now returns ierr=2 for totally singular matrix, ierr=1 for ill-conditioned jacobian. When ierr>0 it also returns a correction mu. Calling routine is responsible for handling the error conditions.
+
+
+changeset:   30:047ec126efeb
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Aug 15 20:44:20 2010 +0200
+files:       DESCRIPTION NEWS R/nleqslv.R man/nleqslv.Rd src/nwnleq.f src/nwutil.f tests/brdban.Rout.save tests/chquad.Rout.save tests/dslnex.Rout.save
+description:
+Negative maximum stepsize now implies a huge max. stepsize. Changed default for maximum stepsize to -1.0, so effectively there is no default maximum stepsize.
+
+
+changeset:   29:1fb76472acb9
 user:        Berend Hasselman <bhh@xs4all.nl>
 date:        Sun Apr 04 09:55:13 2010 +0200
 files:       .hgtags

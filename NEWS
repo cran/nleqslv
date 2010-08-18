@@ -1,4 +1,13 @@
 
+1.7
+
+o negative values for stepmax (maximum stepsize) now imply no maximum stepsize.
+  The default for stepmax (maximum stepsize) -1.0 so there is no maximum stepsize.
+  
+o removed the Levenberg-Marquardt correction for ill-conditioned or singular jacobians.
+  The correction hardly ever gave sensible results. The algorithm now returns
+  an error condition when a Jacobian is singular or ill-conditioned.
+  
 1.6.1
 
 o fixed several incomplete last lines

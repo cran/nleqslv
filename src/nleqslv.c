@@ -77,7 +77,7 @@ static void trace_header(int method, int global, int xscalm, double sigma,
         default: error("Internal: invalid global value in trace_header\n");
     }
 
-	Rprintf("  Maximum stepsize = %g\n", stepmx);
+	Rprintf("  Maximum stepsize = %g\n", stepmx <= 0.0 ? DBL_MAX : stepmx);
     Rprintf("  Scaling: %s\n", xscalm == 0 ? "fixed" : "automatic");
 
 	Rprintf("  ftol = %g xtol = %g btol = %g\n\n", ftol,xtol,btol);
@@ -94,6 +94,10 @@ static char *fcn_message(char *msg, int termcd)
         sprintf(msg, "No better point found (algorithm has stalled)");
     else if (termcd == 4)
         sprintf(msg, "Iteration limit exceeded");
+    else if (termcd == 5)
+        sprintf(msg, "Jacobian is too ill-conditioned");
+    else if (termcd == 6)
+        sprintf(msg, "Jacobian is singular");
     else if (termcd == -10 )
         sprintf(msg, "Analytical Jacobian most likely incorrect");
     else

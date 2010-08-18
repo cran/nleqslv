@@ -8,7 +8,6 @@
 static	int jacsng = -1;
 static  int jacupd = -1;
 static  double jacond = 0.0;
-static  double jacamu = 0.0;
 
 void F77_SUB(nwstrot0)(const char *s, int *slen)
 {   
@@ -23,7 +22,7 @@ void F77_SUB(nwstrot0)(const char *s, int *slen)
 	Rprintf("\n");
 }
 
-void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond, double *mu)
+void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
 {
 	/*
 	 * save for later printing
@@ -32,7 +31,6 @@ void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond, double *mu)
 	jacsng = *ierr;
 	jacupd = *jtype;
 	jacond = *rcond;
-	jacamu = *mu;
 }
 
 static char jcbuf[100];
@@ -56,9 +54,9 @@ static void  jackar()
 	if( jacsng == 0 )
 		sprintf(jcbuf, " %c(%7.1e)", jmethod, jacond);
 	else if( jacsng == 1 )
-		sprintf(jcbuf, "%ci(%7.1e)", jmethod, jacamu);
+		sprintf(jcbuf, "%ci(%7.1e)", jmethod, jacond);
     else
-		sprintf(jcbuf, "%cs(%7.1e)", jmethod, jacamu);
+		sprintf(jcbuf, "%cs", jmethod);
 
 	/*
 	 * avoid output of redundant information on next time called
@@ -66,6 +64,12 @@ static void  jackar()
 
 	jacupd = -1;
 
+}
+
+void F77_SUB(nwjerr)(int *iter)
+{
+    jackar();
+    Rprintf( "  %4d %11s\n", *iter, jcbuf);
 }
 
 static void enumout(double x)

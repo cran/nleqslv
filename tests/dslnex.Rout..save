@@ -1,5 +1,5 @@
 
-R version 2.10.1 Patched (2010-03-03 r51206)
+R version 2.11.1 (2010-05-31)
 Copyright (C) 2010 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
@@ -49,7 +49,7 @@ Type 'q()' to quit R.
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: quadratic linesearch
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -102,7 +102,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: geometric linesearch (reduction = 0.5)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -163,7 +163,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -212,7 +212,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: single dogleg (initial trust region = -1)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -262,7 +262,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -310,7 +310,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: single dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -358,7 +358,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -407,7 +407,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Newton  Global strategy: double dogleg (initial trust region = -1)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -472,7 +472,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -1)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -480,29 +480,24 @@ $njcnt
   ----------------
   Iter         Jac     Lambda    Gamma      Eta     Dlt0     Dltn         Fnorm   Largest |f|
      0                                                             2.250000e+00  1.500000e+00
-     1 Ns(4.2e-07) N            1.0000   1.0000   1.0607   2.1213  7.910156e-02  2.812500e-01
-     2 Bi(3.4e-07) N            1.0000   1.0000   0.2448   0.4895  6.381079e-03  7.988166e-02
-     3 Bi(2.5e-07) N            1.0000   1.0000   0.0971   0.1942  6.886699e-05  8.298613e-03
-     4 Bi(2.2e-07) N            1.0000   1.0000   0.0113   0.0225  9.297897e-08  3.049245e-04
-     5 Bi(2.1e-07) N            1.0000   1.0000   0.0004   0.0009  1.573651e-12  1.254453e-06
-     6 Bi(2.1e-07) N            1.0000   1.0000   0.0000   0.0000  3.655673e-20  1.911984e-10
+     1          Ns
 $x
-[1] 1.911979e-10 1.911984e-10
+[1] 1 1
 
 $fvec
-[1] 1.911984e-10 1.911979e-10
+[1] 1.5 1.5
 
 $termcd
-[1] 1
+[1] 6
 
 $message
-[1] "Function criterion near zero"
+[1] "Jacobian is singular"
 
 $scalex
 [1] 1 1
 
 $nfcnt
-[1] 6
+[1] 0
 
 $njcnt
 [1] 1

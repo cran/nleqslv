@@ -1,5 +1,5 @@
 
-R version 2.10.1 Patched (2010-03-03 r51206)
+R version 2.11.1 (2010-05-31)
 Copyright (C) 2010 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
@@ -66,7 +66,7 @@ Type 'q()' to quit R.
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -96,7 +96,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -134,7 +134,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -173,7 +173,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -217,7 +217,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -259,7 +259,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -303,7 +303,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 
@@ -350,7 +350,7 @@ $njcnt
   Algorithm parameters
   --------------------
   Method: Broyden  Global strategy: double dogleg (initial trust region = -2)
-  Maximum stepsize = 1000
+  Maximum stepsize = 1.79769e+308
   Scaling: fixed
   ftol = 1e-08 xtol = 1e-08 btol = 0.01
 

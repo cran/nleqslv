@@ -1,6 +1,6 @@
 
       subroutine nwtcvg(xplus,fplus,xc,scalex,xtol,retcd,ftol,iter,
-     *                  maxit,n,termcd)
+     *                  maxit,n,ierr,termcd)
 
       integer n,iter,maxit,termcd,retcd
       double precision  xtol,ftol
@@ -22,6 +22,7 @@ c     In       ftol    Real            function tolerance
 c     In       iter    Integer         iteration number
 c     In       maxit   Integer         maximum number of iterations allowed
 c     In       n       Integer         size of x and f
+c     In       ierr    Integer         return code of cndjac (condition estimation)
 c
 c     Out      termcd  Integer         termination code
 c                                        0 no termination criterion satisfied
@@ -33,6 +34,8 @@ c                                          two steps less than xtol
 c                                        3 unsuccessful global strategy
 c                                          ==> cannot find a better point
 c                                        4 iteration limit exceeded
+c                                        5 Jacobian too ill-conditioned
+c                                        6 Jacobian singular
 c
 c-------------------------------------------------------------------------
 
@@ -43,6 +46,11 @@ c     check whether function values are within tolerance
       
       termcd = 0
       
+      if( ierr .ne. 0 ) then
+         termcd = 4 + ierr
+         return
+      endif
+          
       fmax = abs(fplus(idamax(n,fplus,1)))
       if( fmax .le. ftol) then
          termcd = 1
@@ -310,53 +318,9 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      subroutine compmu(r,ldr,n,epsm,mu,y)
-
-      integer ldr,n
-      double precision r(ldr,*),epsm,mu,y(*)
-
-c-------------------------------------------------------------------------
-c
-c     Compute a small perturbation mu for the (almost) singular matrix R.
-c     mu is used in the computation of the levenberg-marquardt step.
-c
-c     Arguments
-c
-c     In       R       Real(ldr,*)     upper triangular matrix from QR
-c     In       ldr     Integer         leading dimension of R
-c     In       n       Integer         column dimension of R
-c     In       epsm    Real            machine precision
-c     Out      mu      Real            sqrt(l1 norm of R * infinity norm of R
-c                                      * n * epsm * 100) designed to make
-c                                        trans(R)*R + mu * I not singular
-c     Wk       y       Real(*)         workspace for dlange
-c
-c-------------------------------------------------------------------------
-
-      double precision  aifnrm,al1nrm
-      double precision dlantr
-
-      double precision Rhund
-      parameter(Rhund=100d0)
-
-c     get the infinity norm of R
-c     get the l1 norm of R
-
-      aifnrm = dlantr('I','U','N',n,n,r,ldr,y)
-      al1nrm = dlantr('1','U','N',n,n,r,ldr,y)
-
-c     compute mu
-
-      mu = sqrt(aifnrm*al1nrm*n*epsm*Rhund)
-
-      return
-      end
-
-c-----------------------------------------------------------------------
-
-      subroutine cndjac(n,r,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr,mu)
+      subroutine cndjac(n,r,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr)
       integer n,ldr,icdwrk(*),ierr
-      double precision epsm,rcond,mu,r(ldr,*),y(*),rcdwrk(*)
+      double precision epsm,rcond,r(ldr,*),y(*),rcdwrk(*)
 
 c---------------------------------------------------------------------
 c
@@ -373,11 +337,8 @@ c     Wk       y       Real(*)         workspace
 c     Wk       rcdwrk  Real(*)         workspace (for dtrcon)
 c     Wk       icdwrk  Integer(*)      workspace (fordtrcon)
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
-c                                      1 indicating Jacobian ill-conditioned
+c                                      1 indicating Jacobian too ill-conditioned
 c                                      2 indicating Jacobian completely singular
-c     Out      mu      Real            0 if ierr == 0
-c                                      small positive number when ierr > 0
-c                                      to make trans(R)*R+mu*I non singular
 c
 c---------------------------------------------------------------------
 
@@ -385,8 +346,7 @@ c---------------------------------------------------------------------
       logical rsing
       double precision Rzero,R2d3
       parameter(Rzero=0.0d0, R2d3=2.0d0/3.0d0)
-
-      mu = Rzero
+      
       ierr = 0
 
       rsing = .false.
@@ -401,13 +361,11 @@ c---------------------------------------------------------------------
          rcond = Rzero
       else
          call dtrcon('1','U','N',n,r,ldr,rcond,rcdwrk,icdwrk,info)
-         if( rcond .lt. epsm**R2d3 ) then
+         if( rcond .eq. Rzero ) then
+             ierr = 2
+         elseif( rcond .le. epsm ) then
              ierr = 1
          endif
-      endif
-
-      if( ierr .gt. 0 ) then
-         call compmu(r,ldr,n,epsm,mu,y)
       endif
 
       return
@@ -642,6 +600,24 @@ c     dlamch('e') returns negeps (1-eps)
 c     dlamch('p') returns 1+eps
 
       epsmch = dlamch('p')
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      function dblhuge()
+
+c     Return largest double precision number
+c     Use Lapack routine
+
+      double precision dblhuge
+      double precision dlamch
+      external dlamch
+
+c     dlamch('o') returns max double precision
+
+      dblhuge = dlamch('o')
 
       return
       end

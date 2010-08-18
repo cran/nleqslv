@@ -82,11 +82,11 @@ c
 c-----------------------------------------------------------------------
 
       integer iter,gcnt,retcd,ierr
-      double precision  dum(2),dlt0,fcnorm,cond,amu
+      double precision  dum(2),dlt0,fcnorm,cond
       logical mxtake
       logical jacevl,jacupd
       integer priter
-      
+
       integer idamax
 
       double precision Rzero, Rone
@@ -98,6 +98,7 @@ c     initialization
       iter  = 0
       njcnt = 0
       nfcnt = 0
+      ierr  = 0
 
       dum(1) = 0
       dlt0 = dlt
@@ -128,7 +129,8 @@ c     jacobian, if requested
 
 c     check stopping criteria for input xc
 
-      call nwtcvg(xc,fc,xc,scalex,xtol,retcd,ftol,iter,maxit,n,termcd)
+      call nwtcvg(xc,fc,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
+     *            ierr, termcd)
 
       if(termcd .gt. 0) then
           call dcopy(n,xc,1,xp,1)
@@ -158,54 +160,65 @@ c     check stopping criteria for input xc
          iter = iter+1
 
          if( jacevl ) then
-         
+
 c          - evaluate the jacobian at the current iterate xc
 c          - evaluate the gradient at the current iterate xc
-         
+
             call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
             njcnt = njcnt + 1
-         
+
 c          - if requested calculate x scale from jacobian column norms a la Minpack
-         
+
             if( xscalm .eq. 1 ) then
-               call nwcpsx(n,rjac,ldr,scalex,epsm,iter) 
+               call nwcpsx(n,rjac,ldr,scalex,epsm,iter)
             endif
-         
+
 c           gp = trans(Rjac) * fc
             call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
-         
+
 c          - get newton step
 c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapack routine)
-         
+
             call dcopy(n,fc,1,fq,1)
             call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
      *                  wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,cond,
-     *                  rcdwrk,icdwrk,qrwork,qrwsiz,amu)
-            call nwsnot(0,ierr,cond,amu)
-            call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
-         
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz)
+            call nwsnot(0,ierr,cond)
+            if( ierr .eq. 0 ) then
+               call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
+            endif
+            
 c           now Rjac(*  ,1..n) holds expanded Q
 c           now Rjac(n+1,1..n) holds full upper triangle R
-         
+
          else
-         
+
 c          - get broyden step
 c          - calculate approximate gradient
-         
+
             call dcopy(n,fc,1,fq,1)
             call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
      *                  wrk1,wrk2,wrk3,scalex,dn,qtf,ierr,cond,
-     *                  rcdwrk,icdwrk,amu)
-            call nwsnot(1,ierr,cond,amu)
-         
-            call dcopy(n,qtf,1,gp,1)
-            call dtrmv('U','T','N',n,rjac(1,n+1),ldr,gp,1)
-         
+     *                  rcdwrk,icdwrk)
+            call nwsnot(1,ierr,cond)
+            if( ierr .eq. 0 ) then
+               call dcopy(n,qtf,1,gp,1)
+               call dtrmv('U','T','N',n,rjac(1,n+1),ldr,gp,1)
+            endif
          endif
 
 c      - choose the next iterate xp by a global strategy
 
-         if(global .eq. 0) then
+         if( ierr .gt. 0 ) then
+c           jacobian singular or too ill-conditioned
+            call dcopy(n,xc,1,xp,1)
+            call dcopy(n,fc,1,fp,1)
+            fpnorm = fcnorm
+            gcnt   = 0 
+            if( priter .gt. 0 ) then
+               call nwjerr(iter)
+            endif
+         elseif(global .eq. 0) then
             call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
      *                  scalex,fvec,
      *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
@@ -224,24 +237,24 @@ c      - choose the next iterate xp by a global strategy
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          endif
-         
+
          nfcnt = nfcnt + gcnt
 
 c      - check stopping criteria for the new iterate xp
 
          call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *               termcd)
-         
+     *               ierr, termcd)
+
          if( termcd .eq. 3 .and. .not. jacevl ) then
 c           global strategy failed but jacobian is out of date
 c           try again with proper jacobian
 c           reset trust region radius
-            
+
             jacevl = .true.
             jacupd = .false.
             dlt = dlt0
             termcd = 0
-         
+
          elseif(termcd .gt. 0) then
             jacupd = .false.
          else
@@ -303,7 +316,7 @@ c-----------------------------------------------------------------------
 
       double precision Rzero, Rone, Rtwo, Rhund
       parameter(Rzero=0.0d0, Rone=1.0d0, Rtwo=2.0d0, Rhund=100d0)
-      
+
       eta    = Rhund * Rtwo * epsm
       doupdt = .false.
 
@@ -351,14 +364,14 @@ c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
 c-----------------------------------------------------------------------
 
       subroutine brodir(q,ldr,r,fn,n,epsm,jacflg,y,w,wa,scalex,dn,qtf,
-     *                  ierr,rcond,rcdwrk,icdwrk,mu)
+     *                  ierr,rcond,rcdwrk,icdwrk)
 
       integer ldr,n,ierr,jacflg
       double precision  epsm,q(ldr,*),r(ldr,*),fn(*)
       double precision  wa(*),scalex(*),dn(*),y(*),w(*),qtf(*)
       double precision  rcdwrk(*)
       integer           icdwrk(*)
-      double precision  rcond,mu
+      double precision  rcond
 
 c-----------------------------------------------------------------------
 c
@@ -377,7 +390,7 @@ c                                        1 for analytic
 c                                        0 for numeric
 c                                        used for condition estimate
 c     Wk       y       Real(*)         workspace
-c     Wk       w       Real(*)         workspace 
+c     Wk       w       Real(*)         workspace
 c     Wk       wa      Real(*)         workspace
 c     Out      dn      Real(*)         Newton direction
 c     Out      qtf     Real(*)         trans(Q)*f()
@@ -387,9 +400,6 @@ c                                      2 indicating Jacobian completely singular
 c     Out      rcond   Real            inverse condition matrix
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
-c     Out      mu      Real            0 if ierr == 0
-c                                      small positive number when ierr > 0
-c                                      to make trans(R)*R+mu*I non singular
 c
 c     QR decomposition with no pivoting.
 c
@@ -397,36 +407,23 @@ c-----------------------------------------------------------------------
 
       double precision Rzero, Rone
       parameter(Rzero=0.0d0, Rone=1.0d0)
-      
-c     check for singularity or ill conditioning
-c     and compute a perturbation mu if needed
 
-      call cndjac(n,r,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr,mu) 
+c     check for singularity or ill conditioning
+
+      call cndjac(n,r,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr)
+      if( ierr .ne. 0 ) then
+          return
+      endif
 
 c     form qtf = trans(Q) * fn
 
       call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
 
-      if(ierr .eq. 0) then
+c     solve rjac*dn  =  -fn
+c       ==> R*dn = - qtf
 
-c        solve rjac*dn  =  -fn
-c          ==> R*dn = - qtf
-
-         call dcopy(n,qtf,1,dn,1)
-         call dtrsv('U','N','N',n,r,ldr,dn,1)
-         mu = Rzero
-
-      else
-
-c        use mu to solve (trans(R)*R + mu*D*mu*D) * x = - trans(R) * fn
-c        directly from the QR decomposition of R stacked with mu*D
-
-         call dcopy(n,scalex,1,wa,1)
-         call dscal(n,mu,wa,1)
-         call liqrev(n,r,ldr,wa,qtf,dn,y,w)
-
-      endif
-
+      call dcopy(n,qtf,1,dn,1)
+      call dtrsv('U','N','N',n,r,ldr,dn,1)
       call dscal(n, -Rone, dn, 1)
 
       return

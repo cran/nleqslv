@@ -28,7 +28,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
     ## Defaults
     con <- list(ftol=1e-8, xtol=1e-8,
                 btol=1e-3,
-                stepmax=1000.0, delta=-2.0, sigma=0.5,
+                stepmax=-1.0, delta=-2.0, sigma=0.5,
                 scalex = rep(1, length(x)),
                 maxit=150,
                 trace=0,

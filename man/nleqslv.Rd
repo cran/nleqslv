@@ -76,13 +76,10 @@ This is the method described in \enc{Moré}{More} (1978).
 Usually manual scaling is preferable.}
 }
 
-When an ill-conditioned or singular Jacobian is detected, a Levenberg-Marquardt correction 
-is applied to the Jacobian to ensure that the algorithm can proceed in a sensible manner
-(see Dennis and Schnabel, 1996, page 149, equation 6.5.5
-and Nocedal (2006) and \enc{Moré}{More} (1978) for an efficient procedure for performing the correction).
-In this implementation a Jacobian is considered to be ill-conditioned
-when the inverse condition of the Jacobian is less than
-\code{(.Machine\$double.eps)^(2/3)}.
+The algorithm cannot cope with a ill-conditioned or singular Jacobian, in contrast
+to previous versions of this package. When a Jacobian becomes singular or very ill-conditioned
+the algorithm will return an error.  A Jacobian is considered to be very ill-conditioned
+when the estimated inverse condition is less than  or equal to the machine precision.
 
 When the function to be solved returns non-finite values for a parameter vector \code{x}
 and the algorithm is \emph{not} evaluating a numerical jacobian, then the non finite
@@ -125,7 +122,9 @@ Any value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced 
 the algorithm will thus start with the length of the Cauchy step in the initial point.
 If it is positive it will be set to the smaller of the value supplied or the maximum stepsize.
 The default is \eqn{-2.0}.}
-\item{\code{stepmax}}{Maximum scaled stepsize. The default is 1000.}
+\item{\code{stepmax}}{Maximum scaled stepsize. 
+If this is negative then the maximum stepsize is set to the largest positive representable number.
+The default is -1.0, so there is no default maximum stepsize.}
 }
 }
 \value{
@@ -143,6 +142,8 @@ A list containing components
          This means that the algorithm has stalled and cannot find an acceptable new point.
          This may or may not indicate acceptably small function values.}
          \item{\code{4}}{Iteration limit \code{maxit} exceeded.}
+         \item{\code{5}}{Jacobian is too ill-conditioned.}
+         \item{\code{6}}{Jacobian is singular.}
          }
    }
   \item{message}{a string describing the termination code} 
@@ -155,7 +156,7 @@ A list containing components
 %\note{
 %}
 %
-\section{Warning}{You cannnot use this function recursively.
+\section{Warning}{You cannot use this function recursively.
 Thus function \code{fn} should not in its turn call \code{nleqslv}.
 }
 \references{
@@ -172,7 +173,7 @@ and Nonlinear Equations}, Siam.
 In \emph{Numerical Analysis}, G.A. Watson (Ed.),
 Lecture Notes in Mathematics 630, Springer-Verlag, pp. 105--116.
 
-Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
+%%Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
 
 Powell, M.J.D. (1970), A hybrid method for nonlinear algebraic equations,
 In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon \& Breach.
