@@ -31,7 +31,7 @@ The algorithms implemented in \code{nleqslv} are based on Dennis and Schnabel (1
 
 Method \code{Broyden} starts with a computed Jacobian of the function and
 then updates this Jacobian after each successful iteration using the so-called Broyden update.
-This method often shows super linear convergence to a solution.
+This method often shows super linear convergence towards a solution.
 When \code{nleqslv} determines that it cannot
 continue with the current Broyden matrix it will compute a new Jacobian.
 
@@ -53,7 +53,7 @@ The four global strategies that may be specified in the \code{global} argument, 
         \item{\code{gline}}{a geometric linesearch}
         \item{\code{dbldog}}{a trust region method using the double dogleg method as described in
                              Dennis and Schnabel (1996)}
-        \item{\code{powell}}{a trust region method using the Powell dogleg method
+        \item{\code{pwldog}}{a trust region method using the Powell dogleg method
                              as developed by Powell (1970).}
 }
 The double dogleg method is the default global strategy employed by this package.
@@ -63,7 +63,7 @@ The  \code{xscalm} argument provides two possibilities for scaling
 \describe{
 \item{\code{fixed}}{the scaling factors are set to the values supplied in
 the \code{control} argument and remain unchanged during the iterations.
-The scaling factor of any element of \code{x}  may be set
+The scaling factor of any element of \code{x}  should be set
 to the inverse of the typical value of that element of \code{x},
 ensuring that all elements of \code{x} are approximately equal in size.}
 
@@ -92,7 +92,7 @@ The \code{control} argument is a list that can supply any of the
 following components:
 \describe{
 \item{\code{xtol}}{The relative steplength tolerance.
-When the relative  steplength of all x values is smaller than this value
+When the relative  steplength of all scaled x values is smaller than this value
 convergence is declared. The default value is \eqn{10^{-8}}{\code{1e-8}}.
 }
 \item{\code{ftol}}{The function value tolerance.
@@ -115,14 +115,14 @@ progress of the iteration.}
 \item{\code{chkjac}}{A logical value indicating whether to check an analytical jacobian, if
 supplied. The default value is \code{FALSE}. The first 10 errors are printed.
 The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
-\item{\code{delta}}{Initial trust region size.
+\item{\code{delta}}{Initial (scaled) trust region size.
 A value of \eqn{-1.0} is replaced by the length of the Cauchy step in the initial point.
 A value of \eqn{-2.0} is replaced by the length of the Newton step in the initial point.
 Any value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
 the algorithm will thus start with the length of the Cauchy step in the initial point.
 If it is positive it will be set to the smaller of the value supplied or the maximum stepsize.
 The default is \eqn{-2.0}.}
-\item{\code{stepmax}}{Maximum scaled stepsize. 
+\item{\code{stepmax}}{Maximum scaled stepsize.
 If this is negative then the maximum stepsize is set to the largest positive representable number.
 The default is -1.0, so there is no default maximum stepsize.}
 }
@@ -146,8 +146,8 @@ A list containing components
          \item{\code{6}}{Jacobian is singular.}
          }
    }
-  \item{message}{a string describing the termination code} 
-  \item{scalex}{a vector containing the scaling factors, 
+  \item{message}{a string describing the termination code}
+  \item{scalex}{a vector containing the scaling factors,
                 which will be the final values when automatic scaling was selected}
   \item{njcnt}{number of jacobian evaluations}
   \item{nfcnt}{number of function evaluations, excluding those required for calculating a jacobian}
@@ -235,7 +235,7 @@ nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
 
 # example for error message in case of an error in analytical jacobian
 
-nleqslv(xstart, dslnex, BADjacdsln, method="Newton", 
+nleqslv(xstart, dslnex, BADjacdsln, method="Newton",
                     control=list(btol=.01,chkjac=TRUE))
 
 # singular function with a singular start

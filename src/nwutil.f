@@ -1,10 +1,10 @@
 
-      subroutine nwtcvg(xplus,fplus,xc,scalex,xtol,retcd,ftol,iter,
+      subroutine nwtcvg(xplus,fplus,xc,xtol,retcd,ftol,iter,
      *                  maxit,n,ierr,termcd)
 
-      integer n,iter,maxit,termcd,retcd
+      integer n,iter,maxit,ierr,termcd,retcd
       double precision  xtol,ftol
-      double precision  xplus(*),fplus(*),xc(*), scalex(*)
+      double precision  xplus(*),fplus(*),xc(*)
 
 c-------------------------------------------------------------------------
 c
@@ -15,7 +15,6 @@ c
 c     In       xplus   Real(*)         new x values
 c     In       fplus   Real(*)         new f values
 c     In       xc      Real(*)         current x values
-c     In       scalex  Real(*)         scaling factors x
 c     In       xtol    Real            stepsize tolerance
 c     In       retcd   Integer         return code from global search routines
 c     In       ftol    Real            function tolerance
@@ -67,7 +66,7 @@ c     check whether function values are within tolerance
 c     check whether relative step length is within tolerance
 c     Dennis Schnabel Algorithm A7.2.3
 
-      rsx = nuxnrm(n, xplus, xc, scalex)
+      rsx = nuxnrm(n, xplus, xc)
       if(rsx .le. xtol) then
         termcd = 2
         return
@@ -136,6 +135,7 @@ c     the analytic one
       tol    = epsm**Rquart
 
       errcnt = 0
+      call vunsc(n,xc,scalex)
 
       do j=1,n
          stepsz = rnoise*max(abs(xc(j)),Rone)
@@ -146,6 +146,9 @@ c     the analytic one
 
          do i=1,n
             wa(i) = (fz(i)-fc(i))/stepsz
+         enddo
+         do i=1,n
+            wa(i) = wa(i)/scalex(j)
          enddo
 
          dinf = abs(wa(idamax(n,wa,1)))
@@ -161,6 +164,8 @@ c     the analytic one
             endif
          enddo
       enddo
+
+      call vscal(n,xc,scalex)
       
       if( errcnt .gt. 0 ) then
          termcd = -10
@@ -230,20 +235,19 @@ c        h = xcj - xc(j) but not here to avoid clever optimizers
 
 c-----------------------------------------------------------------------
 
-      double precision function nudnrm(n, d, x, scalex)
+      double precision function nudnrm(n, d, x)
       integer n
-      double precision  d(*), x(*), scalex(*)
+      double precision  d(*), x(*)
 
 c-------------------------------------------------------------------------
 c
-c     calculate  max( abs(d[*]) / max(x[*],1/scalex[*]) )
+c     calculate  max( abs(d[*]) / max(x[*],1) )
 c
 c     Arguments
 c
 c     In   n        Integer       number of elements in d() and x()
 c     In   d        Real(*)       vector d
 c     In   x        Real(*)       vector x
-c     In   scalex   Real(*)       scaling vector sx
 c
 c-------------------------------------------------------------------------
 
@@ -255,7 +259,7 @@ c-------------------------------------------------------------------------
 
       t = Rzero
       do i=1,n
-         t = max(t, abs(d(i)) / max(abs(x(i)),Rone/scalex(i)))
+         t = max(t, abs(d(i)) / max(abs(x(i)),Rone))
       enddo
       nudnrm = t
 
@@ -264,20 +268,19 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      double precision function nuxnrm(n, xn, xc, scalex)
+      double precision function nuxnrm(n, xn, xc)
       integer n
-      double precision  xn(*), xc(*), scalex(*)
+      double precision  xn(*), xc(*)
 
 c-------------------------------------------------------------------------
 c
-c     calculate  max( abs(xn[*]-xc[*]) / max(xn[*],1/scalex[*]) )
+c     calculate  max( abs(xn[*]-xc[*]) / max(xn[*],1) )
 c
 c     Arguments
 c
 c     In   n        Integer       number of elements in xn() and xc()
 c     In   xn       Real(*)       vector xn
 c     In   xc       Real(*)       vector xc
-c     In   scalex   Real(*)       scaling factors x(*)
 c
 c-------------------------------------------------------------------------
 
@@ -289,7 +292,7 @@ c-------------------------------------------------------------------------
 
       t = Rzero
       do i=1,n
-         t = max(t, abs(xn(i)-xc(i)) / max(abs(xn(i)),Rone/scalex(i)))
+         t = max(t, abs(xn(i)-xc(i)) / max(abs(xn(i)),Rone))
       enddo
       nuxnrm = t
 
@@ -373,11 +376,12 @@ c---------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      subroutine nwfjac(x,f,fq,n,epsm,jacflg,fvec,mkjac,rjac,ldr)
+      subroutine nwfjac(x,scalex,f,fq,n,epsm,jacflg,fvec,mkjac,rjac,
+     *                  ldr,xw)
 
       integer ldr,n,jacflg
       double precision  epsm
-      double precision  x(*),f(*)
+      double precision  x(*),f(*),scalex(*),xw(*)
       double precision  rjac(ldr,*),fq(*)
       external fvec,mkjac
 
@@ -388,6 +392,7 @@ c
 c     Arguments
 c
 c     In       x       Real(*)         (scaled) current x values
+c     In       scalex  Real(*)         scaling factors x
 c     In       f       Real(*)         function values f(x)
 c     Wk       fq      Real(*)         (internal) workspace
 c     In       n       Integer         size of x and f
@@ -399,6 +404,7 @@ c     In       fvec    Name            name of routine to evaluate f()
 c     In       mkjac   Name            name of routine to evaluate jacobian
 c     Out      rjac    Real(ldr,*)     jacobian matrix
 c     In       ldr     Integer         leading dimension of rjac
+c     Internal xw      Real(*)         used for storing unscaled x
 c
 c-------------------------------------------------------------------------
 
@@ -408,12 +414,46 @@ c-------------------------------------------------------------------------
 
 c     compute the finite difference or analytic jacobian at x
 
+      call dcopy(n,x,1,xw,1)
+      call vunsc(n,xw,scalex)
       if(jacflg .eq. 0) then
-         call fdjac(x,f,n,epsm,fvec,fq,rjac,ldr)
+         call fdjac(xw,f,n,epsm,fvec,fq,rjac,ldr)
       else
-         call mkjac(rjac,ldr,x,n)
+         call mkjac(rjac,ldr,xw,n)
       endif
 
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine nwscjac(n,rjac,ldr,scalex)
+      integer n, ldr
+      double precision rjac(ldr,*), scalex(*)
+
+c-------------------------------------------------------------------------
+c
+c     Scale jacobian
+c
+c     Arguments
+c
+c     In       n       Integer         size of x and f
+c     In       rjac    Real(ldr,*)     jacobian matrix
+c     In       ldr     Integer         leading dimension of rjac
+c     Out      scalex  Real(*)         scaling factors for x
+c
+c-------------------------------------------------------------------------
+
+      integer i,j
+      double precision t
+      
+      do j = 1,n
+         t = scalex(j)
+         do i = 1,n
+            rjac(i,j) = rjac(i,j) / t
+         enddo
+      enddo
+   
       return
       end
 
@@ -553,10 +593,10 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      subroutine nwfvec(x,n,fvec,f,fnorm)
+      subroutine nwfvec(x,n,scalex,fvec,f,fnorm,xw)
 
       integer n
-      double precision  x(*),f(*),fnorm
+      double precision  x(*),xw(*),scalex(*),f(*),fnorm
       external fvec
 
 c-------------------------------------------------------------------------
@@ -567,9 +607,11 @@ c     Arguments
 c
 c     In       x       Real(*)         x
 c     In       n       Integer         size of x
+c     In       scalex  Real(*)         scaling vector for x
 c     In       fvec    Name            name of routine to calculate f(x)
 c     Out      f       Real(*)         f(x)
 c     Out      fnorm   Real            .5*||f(x)||**2
+c     Internal xw      Real(*)         used for storing unscaled xc 
 c
 c-------------------------------------------------------------------------
 
@@ -578,7 +620,9 @@ c-------------------------------------------------------------------------
       double precision Rhalf
       parameter(Rhalf=0.5d0)
 
-      call fvec(x,f,n,0)
+      call dcopy(n,x,1,xw,1)
+      call vunsc(n,xw,scalex)
+      call fvec(xw,f,n,0)
 
       fnorm = Rhalf * dnrm2(n,f,1)**2
 

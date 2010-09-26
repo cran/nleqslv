@@ -1,11 +1,11 @@
 
       subroutine nwglsh(n,xc,fcnorm,d,g,sigma,stepmx,xtol,scalex,fvec,
-     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+     *                  xp,fp,fpnorm,xw,mxtake,retcd,gcnt,priter,iter)
 
       integer n,retcd,gcnt
       double precision  sigma,stepmx,xtol,fcnorm,fpnorm
       double precision  xc(*)
-      double precision  d(*),g(*),xp(*),fp(*)
+      double precision  d(*),g(*),xp(*),fp(*),xw(*)
       double precision  scalex(*)
       logical mxtake
       external fvec
@@ -34,6 +34,7 @@ c     In       fvec    Name             name of routine to calculate f()
 c     In       xp      Real(*)          new x()
 c     In       fp      Real(*)          new f(x)
 c     In       fpnorm  Real             .5*||fp||**2
+c     Out      xw      Real(*)          workspace for unscaling x
 c
 c     Out      mxtake  Logical          .true. if maximum step taken
 c                                       else .false.
@@ -64,11 +65,8 @@ c-------------------------------------------------------------------------
       parameter(Rone=1.0d0)
 
 c     safeguard initial step size
-c     use xp temporarily
 
-      call dcopy(n,d,1,xp,1)
-      call vscal(n,xp,scalex)
-      dlen = dnrm2(n,xp,1)
+      dlen = dnrm2(n,d,1)
       if( dlen .gt. stepmx ) then
           lamhi  = stepmx / dlen
           scstep = .true.
@@ -88,7 +86,7 @@ c     destroys this equality. So calculate slope from its definition
 c     compute the smallest value allowable for the damping
 c     parameter lambda ==> lamlo
 
-      rsclen = nudnrm(n,d,xc,scalex)
+      rsclen = nudnrm(n,d,xc)
       lamlo  = xtol / rsclen
 
 c     initialization of retcd, mxtake and lambda (linesearch length)
@@ -108,7 +106,7 @@ c        compute the next iterate xp
 
 c        evaluate functions and the objective function at xp
 
-         call nwfvec(xp,n,fvec,fp,fpnorm)
+         call nwfvec(xp,n,scalex,fvec,fp,fpnorm,xw)
          gcnt = gcnt + 1
 
          if( priter .gt. 0) then

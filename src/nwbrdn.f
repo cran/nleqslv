@@ -111,7 +111,8 @@ c     initialization
 
 c     evaluate function
 
-      call nwfvec(xc,n,fvec,fc,fcnorm)
+      call vscal(n,xc,scalex)
+      call nwfvec(xc,n,scalex,fvec,fc,fcnorm,wrk1)
 
 c     evaluate analytic or finite difference jacobian and check analytic
 c     jacobian, if requested
@@ -119,7 +120,8 @@ c     jacobian, if requested
       if(jacflg .eq. 1) then
 
         if( outopt(2) .eq. 1 ) then
-           call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
+           call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *                 ldr,wrk1)
            call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
      *                 fq,wrk1,fvec,termcd)
            if(termcd .lt. 0) return
@@ -129,8 +131,7 @@ c     jacobian, if requested
 
 c     check stopping criteria for input xc
 
-      call nwtcvg(xc,fc,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *            ierr, termcd)
+      call nwtcvg(xc,fc,xc,xtol,retcd,ftol,iter,maxit,n,ierr,termcd)
 
       if(termcd .gt. 0) then
           call dcopy(n,xc,1,xp,1)
@@ -164,14 +165,19 @@ c     check stopping criteria for input xc
 c          - evaluate the jacobian at the current iterate xc
 c          - evaluate the gradient at the current iterate xc
 
-            call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
+            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *                 ldr,wrk1)
             njcnt = njcnt + 1
 
 c          - if requested calculate x scale from jacobian column norms a la Minpack
 
             if( xscalm .eq. 1 ) then
+               call vunsc(n,xc,scalex)
                call nwcpsx(n,rjac,ldr,scalex,epsm,iter)
+               call vscal(n,xc,scalex) 
             endif
+
+            call nwscjac(n,rjac,ldr,scalex)
 
 c           gp = trans(Rjac) * fc
             call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
@@ -181,7 +187,7 @@ c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapac
 
             call dcopy(n,fc,1,fq,1)
             call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                  wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,cond,
+     *                  wrk1,wrk2,wrk3,wrk4,dn,qtf,ierr,cond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
             call nwsnot(0,ierr,cond)
             if( ierr .eq. 0 ) then
@@ -198,7 +204,7 @@ c          - calculate approximate gradient
 
             call dcopy(n,fc,1,fq,1)
             call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                  wrk1,wrk2,wrk3,scalex,dn,qtf,ierr,cond,
+     *                  wrk1,wrk2,wrk3,dn,qtf,ierr,cond,
      *                  rcdwrk,icdwrk)
             call nwsnot(1,ierr,cond)
             if( ierr .eq. 0 ) then
@@ -219,13 +225,13 @@ c           jacobian singular or too ill-conditioned
                call nwjerr(iter)
             endif
          elseif(global .eq. 0) then
-            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
-     *                  scalex,fvec,
-     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
+     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  priter,iter)
          elseif(global .eq. 1) then
-            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,
-     *                  scalex,fvec,
-     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
+     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  priter,iter)
          elseif(global .eq. 2) then
             call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
      *                  btol,mxtake,dlt,qtf,scalex,
@@ -242,8 +248,7 @@ c           jacobian singular or too ill-conditioned
 
 c      - check stopping criteria for the new iterate xp
 
-         call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *               ierr, termcd)
+         call nwtcvg(xp,fp,xc,xtol,retcd,ftol,iter,maxit,n,ierr,termcd)
 
          if( termcd .eq. 3 .and. .not. jacevl ) then
 c           global strategy failed but jacobian is out of date
@@ -274,6 +279,8 @@ c           update xc, fc, and fcnorm
 
       enddo
 
+      call vunsc(n,xp,scalex)
+
       return
       end
 
@@ -282,7 +289,8 @@ c-----------------------------------------------------------------------
       subroutine brupdt(n,q,r,ldr,xc,xp,fc,fp,epsm,scalex,dx,df,wa)
       integer n,ldr
       double precision  q(ldr,*),r(ldr,*)
-      double precision  xc(*),xp(*),fc(*),fp(*),dx(*),df(*),wa(*),scalex(*)
+      double precision  xc(*),xp(*),fc(*),fp(*),dx(*),df(*),wa(*)
+      double precision scalex(*)
       double precision  epsm
 
 c-----------------------------------------------------------------------
@@ -350,9 +358,7 @@ c     do not update with noise
 
       if( doupdt ) then
 c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
-         call vscal(n,dx,scalex)
          sts = dnrm2(n,dx,1)
-         call vscal(n,dx,scalex)
          call dscal(n,Rone/sts,dx,1)
          call dscal(n,Rone/sts,df,1)
          call liqrup(q,ldr,n,r,ldr,df,dx,wa)
@@ -363,12 +369,12 @@ c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
 
 c-----------------------------------------------------------------------
 
-      subroutine brodir(q,ldr,r,fn,n,epsm,jacflg,y,w,wa,scalex,dn,qtf,
+      subroutine brodir(q,ldr,r,fn,n,epsm,jacflg,y,w,wa,dn,qtf,
      *                  ierr,rcond,rcdwrk,icdwrk)
 
       integer ldr,n,ierr,jacflg
       double precision  epsm,q(ldr,*),r(ldr,*),fn(*)
-      double precision  wa(*),scalex(*),dn(*),y(*),w(*),qtf(*)
+      double precision  wa(*),dn(*),y(*),w(*),qtf(*)
       double precision  rcdwrk(*)
       integer           icdwrk(*)
       double precision  rcond

@@ -109,7 +109,8 @@ c     initialization
 
 c     evaluate function
 
-      call nwfvec(xc,n,fvec,fc,fcnorm)
+      call vscal(n,xc,scalex)
+      call nwfvec(xc,n,scalex,fvec,fc,fcnorm,wrk1)
 
 c     evaluate analytic or finite difference jacobian and check analytic
 c     jacobian, if requested
@@ -117,7 +118,8 @@ c     jacobian, if requested
       if(jacflg .eq. 1) then
 
         if( outopt(2) .eq. 1 ) then
-           call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
+           call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *                 ldr,wrk1)
            call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
      *                 fq,wrk1,fvec,termcd)
            if(termcd .lt. 0) return
@@ -127,8 +129,7 @@ c     jacobian, if requested
 
 c     check stopping criteria for input xc
 
-      call nwtcvg(xc,fc,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *            ierr, termcd)
+      call nwtcvg(xc,fc,xc,xtol,retcd,ftol,iter,maxit,n,ierr, termcd)
 
       if(termcd .gt. 0) then
           call dcopy(n,xc,1,xp,1)
@@ -158,14 +159,19 @@ c     check stopping criteria for input xc
 c        - evaluate the jacobian at the current iterate xc
 c        - evaluate the gradient at the current iterate xc
 
-         call nwfjac(xc,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,ldr)
+         call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *               ldr,wrk1)
          njcnt = njcnt + 1
 
 c        - if requested calculate x scale from jacobian column norms a la Minpack
 
          if( xscalm .eq. 1 ) then
+            call vunsc(n,xc,scalex)
             call nwcpsx(n,rjac,ldr,scalex,epsm,iter)
+            call vscal(n,xc,scalex)
          endif
+
+         call nwscjac(n,rjac,ldr,scalex)
 
 c        gp = trans(Rjac) * fc
          call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
@@ -174,7 +180,7 @@ c        - get newton step
 
          call dcopy(n,fc,1,fq,1)
          call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *               wrk1,wrk2,wrk3,wrk4,scalex,dn,qtf,ierr,rcond,
+     *               wrk1,wrk2,wrk3,wrk4,dn,qtf,ierr,rcond,
      *               rcdwrk,icdwrk,qrwork,qrwsiz)
          call nwsnot(0,ierr,rcond)
 
@@ -190,13 +196,13 @@ c           jacobian singular or too ill-conditioned
                call nwjerr(iter)
             endif
          elseif(global .eq. 0) then
-            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,
-     *                  scalex,fvec,
-     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
+     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  priter,iter)
          elseif(global .eq. 1) then
-            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,
-     *                  scalex,fvec,
-     *                  xp,fp,fpnorm,mxtake,retcd,gcnt,priter,iter)
+            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
+     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  priter,iter)
          elseif(global .eq. 2) then
             call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
      *                  btol,mxtake,dlt,qtf,scalex,
@@ -213,8 +219,7 @@ c           jacobian singular or too ill-conditioned
 
 c        - check stopping criteria for the new iterate xp
 
-         call nwtcvg(xp,fp,xc,scalex,xtol,retcd,ftol,iter,maxit,n,
-     *               ierr, termcd)
+         call nwtcvg(xp,fp,xc,xtol,retcd,ftol,iter,maxit,n,ierr,termcd)
 
          if(termcd .eq. 0) then
 c           update xc, fc, and fcnorm
@@ -225,18 +230,20 @@ c           update xc, fc, and fcnorm
 
       enddo
 
+      call vunsc(n,xp,scalex)
+
       return
       end
 
 c-----------------------------------------------------------------------
 
       subroutine nwndir(rjac,ldr,r,fn,n,epsm,jacflg,
-     *                  qraux,y,w,wa,scalex,dn,qtf,ierr,rcond,
+     *                  qraux,y,w,wa,dn,qtf,ierr,rcond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
 
       integer ldr,n,ierr,jacflg,qrwsiz
       double precision  epsm,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
-      double precision  wa(*),scalex(*),dn(*),y(*),w(*),qtf(*)
+      double precision  wa(*),dn(*),y(*),w(*),qtf(*)
       double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
       double precision  rcond
@@ -259,7 +266,6 @@ c                                        1 for analytic
 c                                        0 for numeric
 c                                        used for condition estimate
 c     Inout    qraux   Real(*)         QR info from liqrdc
-c     In       scalex  Real(*)         x scaling vector
 c     Wk       y       Real(*)         workspace
 c     Wk       w       Real(*)         workspace
 c     Wk       wa      Real(*)         workspace

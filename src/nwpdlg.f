@@ -77,27 +77,18 @@ c-------------------------------------------------------------------------
 
 c     length scaled newton direction
 
-      do i=1,n
-         wa(i) = dn(i) * scalex(i)
-      enddo
-
-      dnlen = dnrm2(n, wa, 1)
+      dnlen = dnrm2(n, dn, 1)
 
 c     steepest descent direction and length
 
-      do i=1,n
-         wa(i) = g(i) / scalex(i)
-      enddo
-      sqalpha = dnrm2(n,wa,1)
+      sqalpha = dnrm2(n,g,1)
       alpha   = sqalpha**2
 
-      do i=1,n
-         d(i) = wa(i) / scalex(i)
-      enddo
+      call dcopy(n, g, 1, d, 1)
       call dtrmv('U','N','N',n,rjac,ldr,d,1)
       beta = dnrm2(n,d,1)**2
 
-      call dcopy(n, wa, 1, ssd, 1)
+      call dcopy(n, g, 1, ssd, 1)
       call dscal(n, -(alpha/beta), ssd, 1)
 
       ssdlen = alpha*sqalpha/beta
@@ -111,7 +102,7 @@ c     set trust radius to ssdlen or dnlen if required
       endif
 
       do i=1,n
-         v(i) = scalex(i)*dn(i) - ssd(i)
+         v(i) = dn(i) - ssd(i)
       enddo
 
       vssdag = ddot(n,v,1,ssd,1)
@@ -124,7 +115,7 @@ c     set trust radius to ssdlen or dnlen if required
 
 c        find new step by double dogleg algorithm
 
-         call pwlstp(n,scalex,dn,dnlen,dlt,nwtake,vssdag,vlen,
+         call pwlstp(n,dn,dnlen,dlt,nwtake,vssdag,vlen,
      *               ssd,v,ssdlen,d,dtype,lambda)
 
 c        compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
@@ -140,13 +131,13 @@ c        evaluate function at xp = xc + d
             xp(i) = xc(i) + d(i)
          enddo
 
-         call nwfvec(xp,n,fvec,fp,fpnorm)
+         call nwfvec(xp,n,scalex,fvec,fp,fpnorm,wa)
          gcnt = gcnt + 1
 
 c        check whether the global step is acceptable
 
          oarg(2) = dlt
-         call nwtrup(n,fcnorm,g,d,scalex,nwtake,stepmx,xtol,dlt,mxtake,
+         call nwtrup(n,fcnorm,g,d,nwtake,stepmx,xtol,dlt,mxtake,
      *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm,wa)
 
          if( priter .gt. 0 ) then
@@ -164,10 +155,10 @@ c        check whether the global step is acceptable
 
 c-----------------------------------------------------------------------
 
-      subroutine pwlstp(n,scalex,dn,dnlen,dlt,nwtake,vssdag,vlen,
+      subroutine pwlstp(n,dn,dnlen,dlt,nwtake,vssdag,vlen,
      *                  ssd,v,ssdlen,d,dtype,lambda)
       integer n
-      double precision  scalex(*), dn(*), ssd(*), v(*), d(*)
+      double precision  dn(*), ssd(*), v(*), d(*)
       double precision  dnlen, dlt, vssdag, vlen, ssdlen, lambda
       logical nwtake
       integer dtype
@@ -180,7 +171,6 @@ c
 c     Arguments
 c
 c     In       n       Integer         size of problem
-c     In       scalex  Real(*)         scalig factors x()
 c     In       dn      Real(*)         current newton step
 c     Out      dnlen   Real            length dn()
 c     In       dlt     Real            current trust region radius
@@ -217,7 +207,6 @@ c        take step in steepest descent direction
 
          call dcopy(n, ssd, 1, d, 1)
          call dscal(n, dlt / ssdlen, d, 1)
-         call vunsc(n,d,scalex)
          dtype = 1
 
       else
@@ -228,7 +217,6 @@ c        which has scaled length dlt
          lambda =(-vssdag+sqrt(vssdag**2-vlen*(ssdlen**2-dlt**2)))/vlen
          call dcopy(n, ssd, 1, d, 1)
          call daxpy(n, lambda, v, 1, d, 1)
-         call vunsc(n,d,scalex)
          dtype = 3
 
       endif
