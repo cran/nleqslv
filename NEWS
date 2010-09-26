@@ -1,13 +1,24 @@
+1.8
+
+o internally scaled x-values are now used instead of scaling/unscaling of various
+  vectors whenever/wherever required.
+  This makes the code much cleaner and easier to maintain.
+  Therefore the jacobian matrix used in the code is now scaled.
+  The reported condition number will be different.
+
+o added forgotten integer declaration in nwtcvg (nwutil.for)
+
+o corrected documentation errors
 
 1.7
 
 o negative values for stepmax (maximum stepsize) now imply no maximum stepsize.
   The default for stepmax (maximum stepsize) -1.0 so there is no maximum stepsize.
-  
+
 o removed the Levenberg-Marquardt correction for ill-conditioned or singular jacobians.
   The correction hardly ever gave sensible results. The algorithm now returns
   an error condition when a Jacobian is singular or ill-conditioned.
-  
+
 1.6.1
 
 o fixed several incomplete last lines
@@ -24,7 +35,7 @@ o corrected missing/superfluous closing brackets in nleqlsv.Rd
 
 1.4
 
-o correct horrible bug caused by typo in nwnwtn causing dgeqrf to be called 
+o correct horrible bug caused by typo in nwnwtn causing dgeqrf to be called
   with an absurd value for the lwork argument. Typical fortran problem.
 
 1.3

@@ -114,7 +114,7 @@ c     check input parameters
 
       call nwpchk(n,lrwork,xtol,ftol,btol,maxit,
      *            jacflg,method,global,stepmx,dlt,sigma,
-     *            epsm,outopt,scalex,termcd)
+     *            epsm,outopt,scalex,xscalm,termcd)
       if(termcd .lt. 0) then
          return
       endif
@@ -182,10 +182,10 @@ c-----------------------------------------------------------------------
       subroutine nwpchk(n,lrwk,
      *                  xtol,ftol,btol,maxit,jacflg,method,global,
      *                  stepmx,dlt,sigma,epsm,outopt,
-     *                  scalex,termcd)
+     *                  scalex,xscalm,termcd)
 
       integer n,lrwk,jacflg
-      integer method,global,maxit,termcd
+      integer method,global,maxit,xscalm,termcd
       integer outopt(*)
       double precision  xtol,ftol,btol,stepmx,dlt,sigma,epsm
       double precision  scalex(*)
@@ -210,6 +210,7 @@ c     Inout    dlt     Real            trust region radius
 c     Inout    sigma   Real            reduction factor geometric linesearch
 c     Out      epsm                    machine precision
 c     Inout    scalex  Real(*)         scaling factors x()
+c     Inout    xscalm  integer         0 for fixed scaling, 1 for automatic scaling
 c     Out      termcd  Integer         termination code (<0 on errors)
 c
 c-------------------------------------------------------------------------
@@ -273,13 +274,19 @@ c     set outopt to correct values
          outopt(2) = 1
       endif
 
-c     check scale matrices
-
-      do i = 1,n
-         if(scalex(i) .lt. Rzero) scalex(i) = -scalex(i)
-         if(scalex(i) .eq. Rzero) scalex(i) = Rone
-      enddo
-
+c     check scaling scale matrices
+      
+      if(xscalm .eq. 0) then
+         do i = 1,n
+            if(scalex(i) .lt. Rzero) scalex(i) = -scalex(i)
+            if(scalex(i) .eq. Rzero) scalex(i) = Rone
+         enddo
+      else
+         xscalm = 1     
+         do i = 1,n
+            scalex(i) = Rone
+         enddo
+      endif
 c     check step and function tolerances
 
       if(xtol .lt. Rzero) then

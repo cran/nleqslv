@@ -1,11 +1,11 @@
 
-      subroutine nwtrup(n,fcnorm,g,sc,scalex,nwtake,stepmx,xtol,dlt,
+      subroutine nwtrup(n,fcnorm,g,sc,nwtake,stepmx,xtol,dlt,
      *                  mxtake, fpred,retcd,xprev,fpnsav,fprev,xp,fp,
      *                  fpnorm,wrk)
 
       integer n,retcd
       double precision  fcnorm,stepmx,xtol,dlt,fpred,fpnsav,fpnorm
-      double precision  xp(*),g(*),scalex(*)
+      double precision  xp(*),g(*)
       double precision  sc(*),xprev(*),fprev(*),fp(*),wrk(*)
       logical nwtake,mxtake
 
@@ -20,7 +20,6 @@ c     In       n       Integer         size of xc()
 c     In       fcnorm  Real            .5*||f(xc)||**2
 c     In       g       Real(*)         gradient at xc()
 c     In       sc      Real(*)         current step
-c     In       scalex  Real(*)         scaling factors x(*)
 c     In       nwtake  Logical         true if sc is newton direction
 c     In       stepmx  Real            maximum step size
 c     In       xtol    Real            minimum step tolerance
@@ -104,7 +103,7 @@ c        reset xp to xprev and terminate global step
 
 c        fpnorm too large (decrease not sufficient)
 
-         rln = nudnrm(n,sc,xp, scalex)
+         rln = nudnrm(n,sc,xp)
          if(rln .lt. xtol) then
 
 c           cannot find satisfactory xp sufficiently distinct from xc
@@ -116,9 +115,7 @@ c           cannot find satisfactory xp sufficiently distinct from xc
 c           reduce trust region and continue global step
 
             retcd = 2
-            call dcopy(n,sc,1,wrk,1)
-            call vscal(n,wrk,scalex)
-            sclen = dnrm2(n,wrk,1)
+            sclen = dnrm2(n,sc,1)
             dltmp = -slope*sclen/(Rtwo*(ared-slope))
 
             if(dltmp .lt. Rpten*dlt) then
