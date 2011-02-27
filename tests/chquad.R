@@ -42,7 +42,7 @@ for (k in 1:9) {
 		fstart <- chebyquad(xstart)
 
 		zz <- nleqslv(xstart, chebyquad, global="dbldog",
-		               control=list(ftol=1e-8,xtol=1e-8,trace=1,btol=.01,delta=-2))
-		print(zz)
+		               control=list(ftol=1e-8,xtol=1e-8,trace=0,btol=.01,delta=-2))
+		print(all(abs(zz$fvec)<=1e-8))
 	}
 }
