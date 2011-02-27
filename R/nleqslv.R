@@ -17,7 +17,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                     global = c("dbldog", "pwldog", "qline", "gline"),
                     xscalm = c("fixed","auto"),
                     control = list())
-{
+{   
     fn1  <- function(par) fn(par, ...)
     jac1 <- if (!is.null(jac)) function(par) jac(par, ...)
 
@@ -33,13 +33,13 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 maxit=150,
                 trace=0,
                 chkjac=FALSE
-               )
-
-    nmsC <- names(con)
-
-    con[(namc <- names(control))] <- control
-    if(length(noNms <- namc[!namc %in% nmsC]) > 0)
-        warning("unknown names in control: ", paste(noNms,collapse=", "))
+               )                     
+               
+    # check names of control argument
+    namc <- names(control)
+    if (!all(namc %in% names(con))) 
+        stop("unknown names in control: ", namc[!(namc %in% names(con))])
+    con[namc] <- control
 
     # to reset flag for checking recursive calls (not allowed for now)
     on.exit(.C("deactivatenleq",PACKAGE="nleqslv"))

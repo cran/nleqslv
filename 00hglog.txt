@@ -1,5 +1,30 @@
-changeset:   33:2275f0edf930
+changeset:   36:193f28c3bb2c
 tag:         tip
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Sep 26 12:36:10 2010 +0200
+files:       .hgtags
+description:
+Added tag 1.8 for changeset e575c9a8dc36
+
+
+changeset:   35:e575c9a8dc36
+tag:         1.8
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Sep 26 12:35:37 2010 +0200
+files:       DESCRIPTION NEWS man/nleqslv.Rd src/Makevars src/nwbrdn.f src/nwddlg.f src/nwglsh.f src/nwnleq.f src/nwnwtn.f src/nwpdlg.f src/nwqlsh.f src/nwtrup.f src/nwutil.f
+description:
+Algorithm now works with scaled x-values; code is simplified and easier to maintain. Corrected some documentation errors.
+
+
+changeset:   34:5cc0f29c4eb3
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Mon Sep 20 20:42:42 2010 +0200
+files:       tests/brdban.Rout.save tests/chquad.Rout.save tests/dslnex.Rout.save
+description:
+Corrected extension on test result (it was ..save but should have been .save)
+
+
+changeset:   33:2275f0edf930
 user:        Berend Hasselman <bhh@xs4all.nl>
 date:        Tue Aug 17 20:15:20 2010 +0200
 files:       .hgtags

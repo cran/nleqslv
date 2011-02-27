@@ -1,3 +1,8 @@
+1.8.1
+
+o cleanup checking of control argument 
+o modified tests/brdban.R and tests/chquad.R to be more robust against small rounding differences
+
 1.8
 
 o internally scaled x-values are now used instead of scaling/unscaling of various
