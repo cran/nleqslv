@@ -1,3 +1,7 @@
+1.8.2 
+
+o Added code to copy initial values to final values in case of bad jacobian.
+
 1.8.1
 
 o cleanup checking of control argument 

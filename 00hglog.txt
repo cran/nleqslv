@@ -1,5 +1,39 @@
-changeset:   36:193f28c3bb2c
+changeset:   40:96d799378ba7
 tag:         tip
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Mar 01 21:03:31 2011 +0100
+files:       .hgtags
+description:
+Added tag 1.8.2 for changeset 4b24701b95b5
+
+
+changeset:   39:4b24701b95b5
+tag:         1.8.2
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Tue Mar 01 21:02:05 2011 +0100
+files:       src/nwbrdn.f src/nwnwtn.f
+description:
+Added code to copy initial values to final values in case of bad jacobian.
+
+
+changeset:   38:921e0c5bd383
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Feb 27 16:25:15 2011 +0100
+files:       .hgtags
+description:
+Added tag 1.8.1 for changeset 8eb282755d2c
+
+
+changeset:   37:8eb282755d2c
+tag:         1.8.1
+user:        Berend Hasselman <bhh@xs4all.nl>
+date:        Sun Feb 27 16:25:05 2011 +0100
+files:       DESCRIPTION NEWS R/nleqslv.R tests/brdban.R tests/brdban.Rout.save tests/chquad.R tests/chquad.Rout.save
+description:
+Checked againt R2.12.2. Changed tests/brdban.R and tests/chquad.R to be more robust againt rounding differences.
+
+
+changeset:   36:193f28c3bb2c
 user:        Berend Hasselman <bhh@xs4all.nl>
 date:        Sun Sep 26 12:36:10 2010 +0200
 files:       .hgtags

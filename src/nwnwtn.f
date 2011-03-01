@@ -122,7 +122,13 @@ c     jacobian, if requested
      *                 ldr,wrk1)
            call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
      *                 fq,wrk1,fvec,termcd)
-           if(termcd .lt. 0) return
+           if(termcd .lt. 0) then
+c              copy initial values     
+               call dcopy(n,xc,1,xp,1)
+               call dcopy(n,fc,1,fp,1)
+               fpnorm = fcnorm   
+               return
+           endif
         endif
 
       endif
