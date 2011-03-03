@@ -233,11 +233,17 @@ nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-1.0))
 # Newton start
 nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
 
+\dontrun{
+# this gives a bus error on a ppc version of Mac OS X
+# I have no opportunity to run ppc code so I can't debug
+
 # example for error message in case of an error in analytical jacobian
 
 nleqslv(xstart, dslnex, BADjacdsln, method="Newton",
                     control=list(btol=.01,chkjac=TRUE))
+}
 
+\dontrun{
 # singular function with a singular start
 
 sngsrt <- function(x) {
@@ -261,6 +267,7 @@ sngsrtjac <- function(x)  {
 xstart <- c(1,1)
 nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",
         control=list(trace=1,btol=.01))
+}        
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -38,7 +38,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
     # check names of control argument
     namc <- names(control)
     if (!all(namc %in% names(con))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(con))])
+        stop("unknown names in control: ", paste(namc[!(namc %in% names(con))], collapse=", "))
     con[namc] <- control
 
     # to reset flag for checking recursive calls (not allowed for now)
