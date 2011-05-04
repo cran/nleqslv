@@ -1,6 +1,8 @@
-# Dennis Schnabel example
 
 library("nleqslv")
+
+# Dennis & Schnabel,1996,"Numerical methods for unconstrained optimization and nonlinear equations", SIAM
+# example 6.5.1 page 149
     
 dslnex <- function(x) {
     y <- numeric(2)
@@ -25,56 +27,45 @@ fstart <- dslnex(xstart)
 xstart
 fstart
 
-# a solution is c(1,1)
-znleqa <- nleqslv(xstart, dslnex, global="qline",control=list(trace=1,btol=.01))
-znleqa
+# a solution is c(1,1) 
 
-znleqb <- nleqslv(xstart, dslnex, global="gline",control=list(trace=1,btol=.01))
-znleqb
+do.print.xf <- FALSE
 
-znleqc <- nleqslv(xstart, dslnex, global="dbldog",
-                    control=list(trace=1,btol=.01,delta=-1.0))
-znleqc
+print.result <- function(z) {
+    if( do.print.xf ) {
+        print(z$x)
+        print(z$fvec)
+    }                           
+    print(z$message)
+    print(all(abs(z$fvec)<=1e-8))
+}
 
-znleqd <- nleqslv(xstart, dslnex, global="pwldog",
-                    control=list(trace=1,btol=.01,delta=-1.0))
-znleqd
+# Broyden numerical Jacobian
+for( z in c("qline", "gline") ) {  # quadratic, geometric linesearch
+    znlq <- nleqslv(xstart, dslnex, global=z,control=list(btol=.01)) 
+    print.result(znlq)
+}
 
-znleqe <- nleqslv(xstart, dslnex, global="dbldog",
-                    control=list(trace=1,btol=.01,delta=-2.0))
-znleqe
+# Broyden numerical Jacobian
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+    for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
+        znlq <- nleqslv(xstart, dslnex, global=z, control=list(btol=.01,delta=delta))
+        print.result(znlq)
+    }
+}
 
-znleqf <- nleqslv(xstart, dslnex, global="pwldog",
-                    control=list(trace=1,btol=.01,delta=-2.0))
-znleqf
+# Broyden analytical jacobian
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+    for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
+        znlq <- nleqslv(xstart, dslnex, jacdsln, global=z, control=list(btol=.01,delta=delta))
+        print.result(znlq)
+    }
+}
 
-znlejc <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
-                    control=list(trace=1,btol=.01,delta=-1.0))
-znlejc
-
-znlejd <- nleqslv(xstart, dslnex, jacdsln, global="dbldog",
-                    method="Newton", control=list(trace=1,btol=.01,delta=-1.0))
-znlejd
-
-# singular function with a singular start
-
-sngsrt <- function(x) {
-    y <- numeric(length(x))
-    y[1] <- x[1]^2/2 + x[2]
-    y[2] <- x[1] + x[2]^2/2
-    
-    y
-}    
-
-sngsrtjac <- function(x)  {
-    n <- length(x)
-    Df <- matrix(numeric(n*n),n,n)
-    Df[1,1] <- x[1]
-    Df[1,2] <- 1
-    Df[2,1] <- 1
-    Df[2,2] <- x[2]
-
-    Df  
-}                    
-xstart <- c(1,1)
-nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",control=list(trace=1,btol=.01,delta=-1.0))
+# Newton analytical jacobian
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+    for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
+        znlq <- nleqslv(xstart, dslnex, jacdsln, method="Newton", global=z, control=list(btol=.01,delta=delta))
+        print.result(znlq)
+    }
+}

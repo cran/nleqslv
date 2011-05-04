@@ -1,16 +1,24 @@
+
+1.8.4
+
+o remove unused variables in C function nleqslv.
+o tests now only check if a solution has been found with a specified tolerance and avoid
+  explicit floating point output.
+o corrected small errors in manual.
+
 1.8.3
 
-o nicer output when control argument contains invalid names
+o nicer output when control argument contains invalid names.
 o some examples are now not run by default to avoid problems (bus error) on PowerPC Mac OS X; I cannot test.
 
-1.8.2 
+1.8.2
 
 o Added code to copy initial values to final values in case of bad jacobian.
 
 1.8.1
 
-o cleanup checking of control argument 
-o modified tests/brdban.R and tests/chquad.R to be more robust against small rounding differences
+o cleanup checking of control argument.
+o modified tests/brdban.R and tests/chquad.R to be more robust against small rounding differences.
 
 1.8
 
@@ -20,9 +28,9 @@ o internally scaled x-values are now used instead of scaling/unscaling of variou
   Therefore the jacobian matrix used in the code is now scaled.
   The reported condition number will be different.
 
-o added forgotten integer declaration in nwtcvg (nwutil.for)
+o added forgotten integer declaration in nwtcvg (nwutil.for).
 
-o corrected documentation errors
+o corrected documentation errors.
 
 1.7
 
@@ -35,17 +43,17 @@ o removed the Levenberg-Marquardt correction for ill-conditioned or singular jac
 
 1.6.1
 
-o fixed several incomplete last lines
+o fixed several incomplete last lines.
 
 1.6
 
-o corrected initialization bug
-o corrected parameter error for Cauchy start in examples
-o code cleaning to get rid of fortran statement labels
+o corrected initialization bug.
+o corrected parameter error for Cauchy start in examples.
+o code cleaning to get rid of fortran statement labels.
 
 1.5
 
-o corrected missing/superfluous closing brackets in nleqlsv.Rd
+o corrected missing/superfluous closing brackets in nleqlsv.Rd.
 
 1.4
 
@@ -60,15 +68,15 @@ o use blocked Lapack QR routines.
 1.2
 
 o corrected wrong name for the flag for checking an analytical jacobian in  nleqslv.R
-  and the documentation
+  and the documentation.
 
 1.1
 
-o the default initial trust region size is now set to the length of the Newton step
+o the default initial trust region size is now set to the length of the Newton step.
 
 o corrected various errors in the documentation
-	* the termination codes were a muddle
-	* several elements of the return list were incorrectly named in the documentation
+  * the termination codes were a muddle.
+  * several elements of the return list were incorrectly named in the documentation.
 
 1.0
 
