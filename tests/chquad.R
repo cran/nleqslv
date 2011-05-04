@@ -35,14 +35,11 @@ chebyinit <- function(n) {
     x <- (1:n) / (n + 1)
 }
 
-for (k in 1:9) {
-	n <- k
-	if( k != 8 ) {
-		xstart <- chebyinit(n)
-		fstart <- chebyquad(xstart)
-
-		zz <- nleqslv(xstart, chebyquad, global="dbldog",
-		               control=list(ftol=1e-8,xtol=1e-8,trace=0,btol=.01,delta=-2))
-		print(all(abs(zz$fvec)<=1e-8))
-	}
+for (n in c(1:7,9)) {  # exclude n=8 since there is no solution
+	xstart <- chebyinit(n)
+	fstart <- chebyquad(xstart)
+    
+	zz <- nleqslv(xstart, chebyquad, global="dbldog",
+	               control=list(ftol=1e-8,xtol=1e-8,trace=0,btol=.01,delta=-2))
+	print(all(abs(zz$fvec)<=1e-8))
 }

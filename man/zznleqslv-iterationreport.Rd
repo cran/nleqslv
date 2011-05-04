@@ -50,8 +50,8 @@ Iter         Jac   Lambda  Gamma    Eta   Dlt0   Dltn        Fnorm
 
 After the column for the jacobian the letters indicate the following
 \describe{
-\item{\code{C}}{a Cauchy or steepest descent is taken}
-\item{\code{W}}{a convex combination of the Cauchy and \code{eta}*Newton step is taken.
+\item{\code{C}}{a Cauchy or steepest descent step is taken}
+\item{\code{W}}{a convex combination of the Cauchy and \code{eta}*(Newton step) is taken.
 The number in the column headed by \code{Lambda} is the weight of the partial
 Newton step.}
 \item{\code{P}}{a fraction of the full Newton step is taken. The number in the column
@@ -59,7 +59,7 @@ headed by \code{Eta} is the fraction and is calculated as \code{0.8*gamma+0.2}.}
 \item{\code{N}}{a normal full Newton step is taken}
 }
 The number in the  column headed by \code{Gamma} is an upper limit on the ratio
-of the length the steepest descent direction and the length of the Newton step.
+of the length of the steepest descent direction and the length of the Newton step.
 See Dennis and Schnabel (1996) pp.139ff for the details.
 
 The column headed by \code{Dlt0} gives the size of the trust region at the start of the current

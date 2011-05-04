@@ -183,10 +183,6 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rxscalm,
              SEXP control, SEXP rho)
 {
-    int     i, j;
-    int     n, ldfjac, lr;
-    int     info, nfev, njev;
-
     double  *x, *rwork, *rcdwrk, *qrwork;
 	double  *xp, *fp, *gp, *scalex;
 	int     *icdwrk, *outopt;
@@ -198,7 +194,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     char    message[256];
 
-	int     njcnt, nfcnt, termcd, lrwork, qrwsiz;
+	int     i, n, njcnt, nfcnt, termcd, lrwork, qrwsiz;
     int     maxit, jacflg, method, global, xscalm;
 	double  xtol, ftol, btol, stepmx, dlt, sigma;
 

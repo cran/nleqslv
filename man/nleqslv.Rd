@@ -82,7 +82,7 @@ the algorithm will return an error.  A Jacobian is considered to be very ill-con
 when the estimated inverse condition is less than  or equal to the machine precision.
 
 When the function to be solved returns non-finite values for a parameter vector \code{x}
-and the algorithm is \emph{not} evaluating a numerical jacobian, then the non finite
+and the algorithm is \emph{not} evaluating a numerical jacobian, then the non-finite
 value will be replaced by a large number forcing the algorithm to backtrack,
 i.e. decrease the linesearch factor or decrease the trust region size.
 When the algorithm is evaluating a numerical jacobian, it will stop with an error message
@@ -93,17 +93,17 @@ following components:
 \describe{
 \item{\code{xtol}}{The relative steplength tolerance.
 When the relative  steplength of all scaled x values is smaller than this value
-convergence is declared. The default value is \eqn{10^{-8}}{\code{1e-8}}.
+convergence is declared. The default value is \eqn{10^{-8}}{1e-8}.
 }
 \item{\code{ftol}}{The function value tolerance.
 Convergence is declared when the largest absolute function value is smaller than \code{ftol}.
-The default value is \eqn{10^{-8}}{\code{1e-8}}.
+The default value is \eqn{10^{-8}}{1e-8}.
 }
 \item{\code{btol}}{The backtracking tolerance.
 When the relative steplength in a backtracking step to find an acceptable point is smaller
 than the backtracking tolerance, the backtracking is terminated.
 In the \code{Broyden} method a new Jacobian will be calculated if the Jacobian is outdated.
-The default value is \eqn{10^{-3}}{\code{1e-3}}.
+The default value is \eqn{10^{-3}}{1e-3}.
 }
 \item{\code{sigma}}{Reduction factor for the geometric linesearch. The default value is 0.5.}
 \item{\code{scalex}}{a vector of scaling values for the parameters.
@@ -124,7 +124,7 @@ If it is positive it will be set to the smaller of the value supplied or the max
 The default is \eqn{-2.0}.}
 \item{\code{stepmax}}{Maximum scaled stepsize.
 If this is negative then the maximum stepsize is set to the largest positive representable number.
-The default is -1.0, so there is no default maximum stepsize.}
+The default is \eqn{-1.0}, so there is no default maximum stepsize.}
 }
 }
 \value{
@@ -136,8 +136,8 @@ A list containing components
          \describe{
          \item{\code{1}}{Function criterion is near zero.
          Convergence of function values has been achieved.}
-         \item{\code{2}}{x-values within tolerance. This means that the relative distance between two                    consecutive x-values
-         is smaller than \code{xtol}.}
+         \item{\code{2}}{x-values within tolerance. This means that the relative distance between two
+         consecutive x-values is smaller than \code{xtol}.}
          \item{\code{3}}{No better point found.
          This means that the algorithm has stalled and cannot find an acceptable new point.
          This may or may not indicate acceptably small function values.}
