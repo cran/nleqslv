@@ -138,7 +138,7 @@ c        check whether the global step is acceptable
 
          oarg(2) = dlt
          call nwtrup(n,fcnorm,g,d,nwtake,stepmx,xtol,dlt,mxtake,
-     *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm,wa)
+     *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm)
 
          if( priter .gt. 0 ) then
             oarg(1) = lambda

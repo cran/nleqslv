@@ -1,12 +1,12 @@
 
       subroutine nwtrup(n,fcnorm,g,sc,nwtake,stepmx,xtol,dlt,
      *                  mxtake, fpred,retcd,xprev,fpnsav,fprev,xp,fp,
-     *                  fpnorm,wrk)
+     *                  fpnorm)
 
       integer n,retcd
       double precision  fcnorm,stepmx,xtol,dlt,fpred,fpnsav,fpnorm
       double precision  xp(*),g(*)
-      double precision  sc(*),xprev(*),fprev(*),fp(*),wrk(*)
+      double precision  sc(*),xprev(*),fprev(*),fp(*)
       logical nwtake,mxtake
 
 c-------------------------------------------------------------------------
@@ -53,7 +53,6 @@ c     Wk       fprev   Real(*)         (internal) work
 c     Inout    xp      Real(*)         new iterate x()
 c     Inout    fp      Real(*)         new f(xp)
 c     Inout    fpnorm  Real            new .5*||f(xp)||**2
-c     Wk       wrk     Real(*)         (internal) work
 c
 c-------------------------------------------------------------------------
 
@@ -62,7 +61,7 @@ c-------------------------------------------------------------------------
       logical ret3ok
 
       double precision Rone, Rtwo, Rthree, Rfour, Rten 
-      double precision Rhalf, Rpten, Rphund
+      double precision Rhalf, Rpten
       parameter(Rpten = 0.1d0)
       parameter(Rhalf=0.5d0)    
       parameter(Rone=1.0d0, Rtwo=2.0d0, Rthree=3.0d0, Rfour=4.0d0)

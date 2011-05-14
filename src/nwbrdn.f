@@ -192,8 +192,8 @@ c          - get newton step
 c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapack routine)
 
             call dcopy(n,fc,1,fq,1)
-            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                  wrk1,wrk2,wrk3,wrk4,dn,qtf,ierr,cond,
+            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,
+     *                  wrk1,dn,qtf,ierr,cond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
             call nwsnot(0,ierr,cond)
             if( ierr .eq. 0 ) then
@@ -209,8 +209,8 @@ c          - get broyden step
 c          - calculate approximate gradient
 
             call dcopy(n,fc,1,fq,1)
-            call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *                  wrk1,wrk2,wrk3,dn,qtf,ierr,cond,
+            call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,
+     *                  dn,qtf,ierr,cond,
      *                  rcdwrk,icdwrk)
             call nwsnot(1,ierr,cond)
             if( ierr .eq. 0 ) then
@@ -277,7 +277,7 @@ c           reset trust region radius
 c           perform Broyden update of current jacobian
 c           update xc, fc, and fcnorm
             call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
-     *                  scalex,wrk1,wrk2,wrk3)
+     *                  wrk1,wrk2,wrk3)
             call dcopy(n,xp,1,xc,1)
             call dcopy(n,fp,1,fc,1)
             fcnorm = fpnorm
@@ -292,11 +292,10 @@ c           update xc, fc, and fcnorm
 
 c-----------------------------------------------------------------------
 
-      subroutine brupdt(n,q,r,ldr,xc,xp,fc,fp,epsm,scalex,dx,df,wa)
+      subroutine brupdt(n,q,r,ldr,xc,xp,fc,fp,epsm,dx,df,wa)
       integer n,ldr
       double precision  q(ldr,*),r(ldr,*)
       double precision  xc(*),xp(*),fc(*),fp(*),dx(*),df(*),wa(*)
-      double precision scalex(*)
       double precision  epsm
 
 c-----------------------------------------------------------------------
@@ -375,12 +374,12 @@ c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
 
 c-----------------------------------------------------------------------
 
-      subroutine brodir(q,ldr,r,fn,n,epsm,jacflg,y,w,wa,dn,qtf,
+      subroutine brodir(q,ldr,r,fn,n,epsm,dn,qtf,
      *                  ierr,rcond,rcdwrk,icdwrk)
 
-      integer ldr,n,ierr,jacflg
+      integer ldr,n,ierr
       double precision  epsm,q(ldr,*),r(ldr,*),fn(*)
-      double precision  wa(*),dn(*),y(*),w(*),qtf(*)
+      double precision  dn(*),qtf(*)
       double precision  rcdwrk(*)
       integer           icdwrk(*)
       double precision  rcond
@@ -397,13 +396,6 @@ c     In       R       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       fn      Real(*)         function values at current iterate
 c     In       n       Integer         dimension of problem
 c     In       epsm    Real            machine precision
-c     In       jacflg  Integer         jacobian flag
-c                                        1 for analytic
-c                                        0 for numeric
-c                                        used for condition estimate
-c     Wk       y       Real(*)         workspace
-c     Wk       w       Real(*)         workspace
-c     Wk       wa      Real(*)         workspace
 c     Out      dn      Real(*)         Newton direction
 c     Out      qtf     Real(*)         trans(Q)*f()
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
@@ -422,7 +414,7 @@ c-----------------------------------------------------------------------
 
 c     check for singularity or ill conditioning
 
-      call cndjac(n,r,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr)
+      call cndjac(n,r,ldr,epsm,rcond,rcdwrk,icdwrk,ierr)
       if( ierr .ne. 0 ) then
           return
       endif

@@ -321,9 +321,9 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      subroutine cndjac(n,r,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr)
+      subroutine cndjac(n,r,ldr,epsm,rcond,rcdwrk,icdwrk,ierr)
       integer n,ldr,icdwrk(*),ierr
-      double precision epsm,rcond,r(ldr,*),y(*),rcdwrk(*)
+      double precision epsm,rcond,r(ldr,*),rcdwrk(*)
 
 c---------------------------------------------------------------------
 c
@@ -336,7 +336,6 @@ c     In       r       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       ldr     Integer         leading dimension of rjac
 c     In       epsm    Real            machine precision
 c     Out      rcond   Real            inverse condition  of r
-c     Wk       y       Real(*)         workspace
 c     Wk       rcdwrk  Real(*)         workspace (for dtrcon)
 c     Wk       icdwrk  Integer(*)      workspace (fordtrcon)
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
@@ -407,10 +406,6 @@ c     In       ldr     Integer         leading dimension of rjac
 c     Internal xw      Real(*)         used for storing unscaled x
 c
 c-------------------------------------------------------------------------
-
-      integer i,j
-      double precision  t
-      double precision  dnrm2
 
 c     compute the finite difference or analytic jacobian at x
 
