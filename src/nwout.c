@@ -33,43 +33,56 @@ void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
 	jacond = *rcond;
 }
 
-static char jcbuf[100];
+/*
+ * output a compact description of the type of the jacobian used 
+ *    Newton/Broyden followed by lowercase letter for ill-conditioned/singular
+ *    estimated inverse condition number
+ *
+ * sprintf on Windows seems to use 3 digits for the exponent by default (msvcrt.dll?)
+ * and doesn't obey the %7.1e format (uses 8.1)
+ * that messes up a nice layout
+ */
 
-static void  jackar()
+static void  nwrowhdr(int *iter)
 {
 	char jmethod;
 
-	jcbuf[0] = 0;
+    Rprintf( "  %4d ", *iter);
+	if( jacupd < 0) { 
+	    /* output padding */
+        Rprintf("%11s","");
+    }
+    else {
+    	jmethod = (jacupd == 0) ? 'N' : 'B';
 
-	if( jacupd < 0) return;
+        /* 
+         * meaning jacsng
+         *   0   jacobian is ok (not singular or ill-conditioned)
+         *   1   jacobian is ill-conditioned
+         *   2   jacobian is singular
+         * 
+         * Indicate this after output of <jmethod>
+         */
 
-	jmethod = (jacupd == 0) ? 'N' : 'B';
+    	if( jacsng == 0 )
+    		Rprintf(" %c(%7.1e)", jmethod, jacond);
+    	else if( jacsng == 1 )
+    		Rprintf("%ci(%7.1e)", jmethod, jacond);
+        else
+    		Rprintf("%cs%9s", jmethod,"");
 
-    /*
-     * output inverse condition if jacobian is not singular
-     * else output correction mu with an indication
-     * of ill conditioning or singularity
-     */
+    	/*
+    	 * avoid output of redundant information on next time called
+    	 */
 
-	if( jacsng == 0 )
-		sprintf(jcbuf, " %c(%7.1e)", jmethod, jacond);
-	else if( jacsng == 1 )
-		sprintf(jcbuf, "%ci(%7.1e)", jmethod, jacond);
-    else
-		sprintf(jcbuf, "%cs", jmethod);
-
-	/*
-	 * avoid output of redundant information on next time called
-	 */
-
-	jacupd = -1;
-
+    	jacupd = -1;
+	}
 }
 
 void F77_SUB(nwjerr)(int *iter)
 {
-    jackar();
-    Rprintf( "  %4d %11s\n", *iter, jcbuf);
+    nwrowhdr(iter);
+    Rprintf("\n");
 }
 
 static void enumout(double x)
@@ -89,9 +102,8 @@ void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
 		Rprintf("  %4d%36s %13.6e %13.6e\n" , *iter, "", oarg[0],oarg[1]);
 	}
 	else {
-		jackar();
+		nwrowhdr(iter);
 		v = *oarg;
-		Rprintf( "  %4d %11s", *iter, jcbuf);
 		if( fabs(v) > 0.0001 )
 			Rprintf( " %8.4f ",v);
 		else
@@ -126,9 +138,9 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
             Rprintf("\n");
 	}
 	else {
-		jackar();
+		nwrowhdr(iter);
 		step = "CNPW"[*lstep-1];
-		Rprintf( "  %4d %11s %c ", *iter, jcbuf, step);
+		Rprintf( " %c ", step);
 
 		if( *lstep == 4 )
 			Rprintf( "%8.4f", oarg[0]);
@@ -164,9 +176,9 @@ void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
             Rprintf("\n");
 	}
 	else {
-		jackar();
+		nwrowhdr(iter);
 		step = "CNW"[*lstep-1];
-		Rprintf( "  %4d %11s %c ", *iter, jcbuf, step);
+		Rprintf( " %c ", step);
 
 		if( *lstep == 3 )
 			Rprintf( "%8.4f",oarg[0]);

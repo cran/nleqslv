@@ -39,7 +39,7 @@ c-----------------------------------------------------------------------------
 c     Local variables and functions
 
       integer k,i
-      double precision  c,s,tmp
+      double precision  c,s
       double precision  ddot
 
 c     calculate wk = trans(Q)*u

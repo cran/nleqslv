@@ -185,8 +185,8 @@ c        gp = trans(Rjac) * fc
 c        - get newton step
 
          call dcopy(n,fc,1,fq,1)
-         call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,jacflg,
-     *               wrk1,wrk2,wrk3,wrk4,dn,qtf,ierr,rcond,
+         call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,
+     *               wrk1,dn,qtf,ierr,rcond,
      *               rcdwrk,icdwrk,qrwork,qrwsiz)
          call nwsnot(0,ierr,rcond)
 
@@ -243,13 +243,13 @@ c           update xc, fc, and fcnorm
 
 c-----------------------------------------------------------------------
 
-      subroutine nwndir(rjac,ldr,r,fn,n,epsm,jacflg,
-     *                  qraux,y,w,wa,dn,qtf,ierr,rcond,
+      subroutine nwndir(rjac,ldr,r,fn,n,epsm,
+     *                  qraux,dn,qtf,ierr,rcond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
 
-      integer ldr,n,ierr,jacflg,qrwsiz
+      integer ldr,n,ierr,qrwsiz
       double precision  epsm,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
-      double precision  wa(*),dn(*),y(*),w(*),qtf(*)
+      double precision  dn(*),qtf(*)
       double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
       double precision  rcond
@@ -267,14 +267,7 @@ c     Out      r       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       fn      Real(*)         function values at current iterate
 c     In       n       Integer         dimension of problem
 c     In       epsm    Real            machine precision
-c     In       jacflg  Integer         jacobian flag
-c                                        1 for analytic
-c                                        0 for numeric
-c                                        used for condition estimate
 c     Inout    qraux   Real(*)         QR info from liqrdc
-c     Wk       y       Real(*)         workspace
-c     Wk       w       Real(*)         workspace
-c     Wk       wa      Real(*)         workspace
 c     Out      dn      Real(*)         Newton direction
 c     Out      qtf     Real(*)         trans(Q)*f()
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
@@ -302,7 +295,7 @@ c     copy upper triangular part of QR to R
 
 c     check for singularity or ill conditioning
 
-      call cndjac(n,rjac,ldr,epsm,rcond,y,rcdwrk,icdwrk,ierr)
+      call cndjac(n,rjac,ldr,epsm,rcond,rcdwrk,icdwrk,ierr)
       if( ierr .ne. 0 ) then
           return
       endif
