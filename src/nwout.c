@@ -129,28 +129,28 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
 
 	if( *lstep <= 0 ) {
 		if( *lstep == -1)
-			Rprintf("  %4s %11s   %8s %8s %8s %8s %8s %13s %13s\n",
- 				       "Iter","Jac","Lambda","Gamma", "Eta", "Dlt0", "Dltn", "Fnorm","Largest |f|");
+			Rprintf("  %4s %11s   %8s %8s %8s %8s %13s %13s\n",
+ 				       "Iter","Jac","Lambda", "Eta", "Dlt0", "Dltn", "Fnorm","Largest |f|");
 
-            Rprintf("  %4d%59s" , *iter, "");
+            Rprintf("  %4d%50s" , *iter, "");
             enumout(oarg[0]);
             enumout(oarg[1]); 
             Rprintf("\n");
 	}
 	else {
 		nwrowhdr(iter);
-		step = "CNPW"[*lstep-1];
+		step = "CWPN"[*lstep-1];
 		Rprintf( " %c ", step);
 
-		if( *lstep == 4 )
+		if( *lstep == 2 )
 			Rprintf( "%8.4f", oarg[0]);
 		else
 			Rprintf( "%8s", "");
 
-		Rprintf( " %8.4f %8.4f %8.4f %8.4f",
-                    oarg[3], oarg[4],oarg[1],oarg[2]);
+		Rprintf( " %8.4f %8.4f %8.4f",
+                    oarg[3],oarg[1],oarg[2]);
+        enumout(oarg[4]);
         enumout(oarg[5]);
-        enumout(oarg[6]);
         Rprintf("\n");
  	}
 }
@@ -177,10 +177,10 @@ void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
 	}
 	else {
 		nwrowhdr(iter);
-		step = "CNW"[*lstep-1];
+		step = "CWN"[*lstep-1];
 		Rprintf( " %c ", step);
 
-		if( *lstep == 3 )
+		if( *lstep == 2 )
 			Rprintf( "%8.4f",oarg[0]);
 		else
 			Rprintf( "%8s", "");

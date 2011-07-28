@@ -183,8 +183,8 @@ c     In       ssdlen  Real            (internal) length ssd
 c     Out      d       Real(*)         new step for x()
 c     Out      dtype   Integer         steptype
 c                                       1 steepest descent
-c                                       2 full newton direction
-c                                       3 combination of dn and ssd
+c                                       2 combination of dn and ssd
+c                                       3 full newton direction
 c     Out      lambda  Real            weight of dn() in d()
 c                                      closer to 1 ==> more of dn()
 c
@@ -199,7 +199,7 @@ c        Newton step smaller than trust radius ==> take it
          nwtake = .true.
          call dcopy(n, dn, 1, d, 1)
          dlt = dnlen
-         dtype = 2
+         dtype = 3
 
       elseif(ssdlen .ge. dlt) then
 
@@ -217,7 +217,7 @@ c        which has scaled length dlt
          lambda =(-vssdag+sqrt(vssdag**2-vlen*(ssdlen**2-dlt**2)))/vlen
          call dcopy(n, ssd, 1, d, 1)
          call daxpy(n, lambda, v, 1, d, 1)
-         dtype = 3
+         dtype = 2
 
       endif
 

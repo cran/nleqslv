@@ -8,9 +8,9 @@
 #
 #
 
-.First.lib <- function(lib, pkg)
-    library.dynam("nleqslv", pkg, lib)
-
+.onLoad <- function(lib,pkg) {
+    library.dynam("nleqslv","nleqslv")
+}
 
 nleqslv <- function(x, fn, jac = NULL, ...,
                     method = c("Broyden", "Newton"),
