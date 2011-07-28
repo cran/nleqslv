@@ -1,4 +1,11 @@
 
+1.8.6
+
+o added NAMESPACE and changed to use .onLoad function
+o removed gamma from iteration report (doesn't provide useful info; eta is sufficient)
+o minor internal reorganization of code
+o improved documentation of the iteration report
+
 1.8.5
 
 o remove unused variables from Fortran code (thanks to Kurt Hornik for pointing this out).

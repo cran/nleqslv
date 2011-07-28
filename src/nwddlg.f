@@ -148,10 +148,9 @@ c        check whether the global step is acceptable
          if( priter .gt. 0 ) then
             oarg(1) = lambda
             oarg(3) = dlt
-            oarg(4) = gamma
-            oarg(5) = eta
-            oarg(6) = fpnorm
-            oarg(7) = abs(fp(idamax(n,fp,1)))
+            oarg(4) = eta
+            oarg(5) = fpnorm
+            oarg(6) = abs(fp(idamax(n,fp,1)))
             call nwdgot(iter,dtype,oarg)
          endif
 
@@ -191,9 +190,9 @@ c     In       eta     Real            (internal) double dogleg parameter
 c     Out      d       Real(*)         new step for x()
 c     Out      dtype   Integer         steptype
 c                                       1 steepest descent
-c                                       2 full newton direction
+c                                       2 combination of dn and ssd
 c                                       3 partial newton step
-c                                       4 combination of dn and ssd
+c                                       4 full newton direction
 c     Out      lambda  Real            weight of eta*dn() in d()
 c                                      closer to 1 ==> more of eta*dn()
 c
@@ -208,7 +207,7 @@ c        Newton step smaller than trust radius ==> take it
          nwtake = .true.
          call dcopy(n, dn, 1, d, 1)
          dlt = dnlen
-         dtype = 2
+         dtype = 4
 
       elseif(eta*dnlen .le. dlt) then
 
@@ -234,7 +233,7 @@ c        which has scaled length dlt
          lambda =(-vssdag+sqrt(vssdag**2-vlen*(ssdlen**2-dlt**2)))/vlen
          call dcopy(n, ssd, 1, d, 1)
          call daxpy(n, lambda, v, 1, d, 1)
-         dtype = 4
+         dtype = 2
 
       endif
 

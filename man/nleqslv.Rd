@@ -84,7 +84,7 @@ when the estimated inverse condition is less than  or equal to the machine preci
 When the function to be solved returns non-finite values for a parameter vector \code{x}
 and the algorithm is \emph{not} evaluating a numerical jacobian, then the non-finite
 value will be replaced by a large number forcing the algorithm to backtrack,
-i.e. decrease the linesearch factor or decrease the trust region size.
+i.e. decrease the linesearch factor or decrease the trust region radius.
 When the algorithm is evaluating a numerical jacobian, it will stop with an error message
 on detecting non-finite function values.
 
@@ -115,7 +115,7 @@ progress of the iteration.}
 \item{\code{chkjac}}{A logical value indicating whether to check an analytical jacobian, if
 supplied. The default value is \code{FALSE}. The first 10 errors are printed.
 The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
-\item{\code{delta}}{Initial (scaled) trust region size.
+\item{\code{delta}}{Initial (scaled) trust region radius.
 A value of \eqn{-1.0} is replaced by the length of the Cauchy step in the initial point.
 A value of \eqn{-2.0} is replaced by the length of the Newton step in the initial point.
 Any value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
