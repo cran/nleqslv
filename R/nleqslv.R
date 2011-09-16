@@ -8,13 +8,9 @@
 #
 #
 
-.onLoad <- function(lib,pkg) {
-    library.dynam("nleqslv","nleqslv")
-}
-
 nleqslv <- function(x, fn, jac = NULL, ...,
                     method = c("Broyden", "Newton"),
-                    global = c("dbldog", "pwldog", "qline", "gline"),
+                    global = c("dbldog", "pwldog", "qline", "gline", "none"),
                     xscalm = c("fixed","auto"),
                     control = list())
 {   
@@ -33,8 +29,11 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 maxit=150,
                 trace=0,
                 chkjac=FALSE
-               )                     
-               
+               )                       
+
+    # limit maximum number of iterations for pure local strategy
+    if( global == "none" ) con$maxit=20
+           
     # check names of control argument
     namc <- names(control)
     if (!all(namc %in% names(con))) 

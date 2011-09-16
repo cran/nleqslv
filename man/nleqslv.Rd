@@ -10,7 +10,7 @@ for difficult systems.
 \usage{
 nleqslv(x, fn, jac=NULL,...,
                method = c("Broyden", "Newton"),
-               global = c("dbldog", "pwldog", "qline", "gline"),
+               global = c("dbldog", "pwldog", "qline", "gline", "none"),
                xscalm = c("fixed","auto"),
                control = list()
 	)
@@ -47,7 +47,7 @@ Both methods apply a QR-decomposition to the Jacobian as implemented in Lapack.
 The Broyden method applies a rank 1 update to the Jacobian at the end of each iteration
 and uses the methods implemented in Reichel and Gragg (1990).
 
-The four global strategies that may be specified in the \code{global} argument,  are
+The \code{global} argument indicates which global strategy to use or to use no global strategy
 \describe{
         \item{\code{qline}}{a quadratic linesearch}
         \item{\code{gline}}{a geometric linesearch}
@@ -55,8 +55,13 @@ The four global strategies that may be specified in the \code{global} argument, 
                              Dennis and Schnabel (1996)}
         \item{\code{pwldog}}{a trust region method using the Powell dogleg method
                              as developed by Powell (1970).}
+        \item{\code{none}}{no global strategy is applied.
+                           Only a pure local Newton or Broyden iteration is used.
+                           For safety's sake the maximum number of iterations is set to 20.
+                           The maximum stepsize (see below) is taken into account.}
 }
 The double dogleg method is the default global strategy employed by this package.
+
 
 The parameters \code{x} may be scaled during the search for a zero of \code{fn}.
 The  \code{xscalm} argument provides two possibilities for scaling
@@ -109,7 +114,7 @@ The default value is \eqn{10^{-3}}{1e-3}.
 \item{\code{scalex}}{a vector of scaling values for the parameters.
 The inverse of a scale value is an indication of the size of a parameter.
 The default value is 1.0 for all scale values.}
-\item{\code{maxit}}{The maximum number of major iterations. The default value is 150.}
+\item{\code{maxit}}{The maximum number of major iterations. The default value is 150 if a global strategy has been specified.}
 \item{\code{trace}}{Non-negative integer. A value of 1 will give a detailed report of the
 progress of the iteration.}
 \item{\code{chkjac}}{A logical value indicating whether to check an analytical jacobian, if
@@ -234,41 +239,17 @@ nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-1.0))
 nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
 
 \dontrun{
-# this gives a bus error on a ppc version of Mac OS X
-# I have no opportunity to run ppc code so I can't debug
+# no global strategy but limit stepsize 
+# but look carefully: a different solution is found
+nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,stepmax=5))  
 
-# example for error message in case of an error in analytical jacobian
+# but if the stepsize is limited even more the c(1,1) solution is found
+nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,stepmax=2))  
 
-nleqslv(xstart, dslnex, BADjacdsln, method="Newton",
-                    control=list(btol=.01,chkjac=TRUE))
-}
+# Broyden also finds the c(1,1) solution when the stepsize is limited
+nleqslv(xstart, dslnex, jacdsln, method="Broyden", global="none", control=list(trace=1,stepmax=2))
+}}
 
-\dontrun{
-# singular function with a singular start
-
-sngsrt <- function(x) {
-    y <- numeric(length(x))
-    y[1] <- x[1]^2/2 + x[2]
-    y[2] <- x[1] + x[2]^2/2
-
-    y
-}
-
-sngsrtjac <- function(x)  {
-    n <- length(x)
-    Df <- matrix(numeric(n*n),n,n)
-    Df[1,1] <- x[1]
-    Df[1,2] <- 1
-    Df[2,1] <- 1
-    Df[2,2] <- x[2]
-
-    Df
-}
-xstart <- c(1,1)
-nleqslv(xstart, sngsrt, sngsrtjac, global="dbldog",
-        control=list(trace=1,btol=.01))
-}        
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{nonlinear}

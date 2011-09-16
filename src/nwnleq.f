@@ -33,11 +33,11 @@ c     Inout    btol    Real            x tolerance for backtracking
 c     Inout    method  Integer         method to use
 c                                        0 Newton
 c                                        1 Broyden
-c     Inout    global  Integer         global strategy to use
-c                                        0 quadratic linesearch
-c                                        1 geometric linesearch
-c                                        2 double dogleg
-c                                        3 powell dogleg
+c     In       global  Integer         global strategy to use
+c                                        1 quadratic linesearch
+c                                        2 geometric linesearch
+c                                        3 double dogleg
+c                                        4 powell dogleg
 c     In       xscalm  Integer         scaling method
 c                                        0 scale fixed and supplied by user
 c                                        1 for scale from jac. columns a la Minpack
@@ -262,7 +262,7 @@ c     check jacflg, method, and global
 
       if(method .lt. 0 .or. method .gt. 1) method = 0
 
-      if(global .lt. 0 .or. global .gt. 3) global = 0
+      if(global .lt. 0 .or. global .gt. 4) global = 1
 
 c     set outopt to correct values
 

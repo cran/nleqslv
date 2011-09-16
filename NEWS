@@ -1,4 +1,9 @@
 
+1.9.0
+
+o added a pure Newton or Broyden without global strategy
+o use useDynLib in NAMESPACE instead of .onLoad
+
 1.8.6
 
 o added NAMESPACE and changed to use .onLoad function
