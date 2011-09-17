@@ -69,11 +69,12 @@ static void trace_header(int method, int global, int xscalm, double sigma,
 	Rprintf("  Method: %s", method == 1 ? "Broyden" : "Newton");
 	Rprintf("  Global strategy: ");
 	switch(global)
-	{
-        case 0: Rprintf("quadratic linesearch\n"); break;
-	    case 1: Rprintf("geometric linesearch (reduction = %g)\n", sigma); break;
-	    case 2: Rprintf("double dogleg (initial trust region = %g)\n", dlt); break;
-	    case 3: Rprintf("single dogleg (initial trust region = %g)\n", dlt); break;
+	{   
+        case 0: Rprintf("none\n"); break;
+        case 1: Rprintf("quadratic linesearch\n"); break;
+	    case 2: Rprintf("geometric linesearch (reduction = %g)\n", sigma); break;
+	    case 3: Rprintf("double dogleg (initial trust region = %g)\n", dlt); break;
+	    case 4: Rprintf("single dogleg (initial trust region = %g)\n", dlt); break;
         default: error("Internal: invalid global value in trace_header\n");
     }
 
@@ -282,14 +283,16 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 		method = 0;
 
 	z = CHAR(STRING_ELT(rglobal, 0));
-	if( strcmp(z,"qline") == 0 )
-		global = 0;
-	else if( strcmp(z,"gline") == 0 )
+   	if( strcmp(z,"none") == 0 )
+        global = 0;
+    else if( strcmp(z,"qline") == 0 )
 		global = 1;
-	else if( strcmp(z,"dbldog") == 0 )
+	else if( strcmp(z,"gline") == 0 )
 		global = 2;
-	else if( strcmp(z,"pwldog") == 0 )
+	else if( strcmp(z,"dbldog") == 0 )
 		global = 3;
+	else if( strcmp(z,"pwldog") == 0 )
+		global = 4;
 
 	z = CHAR(STRING_ELT(rxscalm, 0));
 	if( strcmp(z,"fixed") == 0 )

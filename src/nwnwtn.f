@@ -42,10 +42,10 @@ c     In       ftol    Real            tolerance at which function values f()
 c                                      are considered close enough to zero
 c     Inout    btol    Real            x tolerance for backtracking
 c     In       global  Integer         global strategy to use
-c                                        0 quadratic line search
-c                                        1 geometric line search
-c                                        2 double dogleg
-c                                        3 single dogleg
+c                                        1 quadratic line search
+c                                        2 geometric line search
+c                                        3 double dogleg
+c                                        4 single dogleg
 c     In       xscalm  Integer         x scaling method
 c                                        1 from column norms of first jacobian
 c                                          increased if needed after first iteration
@@ -148,12 +148,14 @@ c     check stopping criteria for input xc
 
          dum(1) = fcnorm
          dum(2) = abs(fc(idamax(n,fc,1)))
-
-         if( global .le. 1 ) then
+         
+         if( global .eq. 0 ) then
+            call nwprot(iter, -1, dum) 
+         elseif( global .le. 2 ) then
             call nwlsot(iter,-1,dum)
-         elseif( global .eq. 2 ) then
-            call nwdgot(iter,-1,dum)
          elseif( global .eq. 3 ) then
+            call nwdgot(iter,-1,dum)
+         elseif( global .eq. 4 ) then
             call nwpwot(iter,-1,dum)
          endif
 
@@ -202,19 +204,23 @@ c           jacobian singular or too ill-conditioned
                call nwjerr(iter)
             endif
          elseif(global .eq. 0) then
-            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
+            call nwpure(n,xc,dn,stepmx,scalex,
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 1) then
-            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
+            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 2) then
+            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
+     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  priter,iter)
+         elseif(global .eq. 3) then
             call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
      *                  btol,mxtake,dlt,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
-         elseif(global .eq. 3) then
+         elseif(global .eq. 4) then
             call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
      *                  btol,mxtake,dlt,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,

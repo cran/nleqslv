@@ -90,6 +90,31 @@ static void enumout(double x)
     Rprintf(" %13.*e", fabs(x) >= 1E100? 5 : 6, x);
 }
 
+void F77_SUB(nwprot)(int *iter, int *lstep, double *oarg)
+{
+	double v;
+
+	if( *lstep <= 0 ) {
+		if( *lstep == -1)
+			Rprintf("  %4s %11s %8s  %13s %13s\n",
+						"Iter","Jac","Lambda","Fnorm","Largest |f|");
+
+		Rprintf("  %4d%22s %13.6e %13.6e\n" , *iter, "", oarg[0],oarg[1]);
+	}
+	else {
+		nwrowhdr(iter);
+		v = *oarg;
+		if( fabs(v) > 0.0001 )
+			Rprintf( " %8.4f ",v);
+		else
+			Rprintf( " %8.1e ",v);
+
+        enumout(oarg[1]);
+        enumout(oarg[2]);
+        Rprintf("\n");
+	}
+}
+
 void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
 {
 	double v;

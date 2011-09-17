@@ -33,6 +33,11 @@ The column headed by \code{Lambda} shows the value of the linesearch parameter.
 The column headed by \code{Ftarg} follows from a sufficient decrease requirement and
 is the value below which \code{Fnorm} must drop if the current step is to be accepted.
 
+The iteration report for \code{none} is almost the same as the above report, except that the column
+labelled  \code{Ftarg} is omitted. The column \code{Lambda} gives the ratio of
+the maximum stepsize and the length of the step taken by the algorithm.
+It is either 1.0 exactly or smaller.
+
 A sample iteration report for \code{dbldog} is 
 (some intercolumn space has been removed to make the table fit)
 \preformatted{
