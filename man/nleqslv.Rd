@@ -149,6 +149,7 @@ A list containing components
          \item{\code{4}}{Iteration limit \code{maxit} exceeded.}
          \item{\code{5}}{Jacobian is too ill-conditioned.}
          \item{\code{6}}{Jacobian is singular.}
+         \item{\code{-10}}{Analytical Jacobian is most likely incorrect.}
          }
    }
   \item{message}{a string describing the termination code}

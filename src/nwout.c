@@ -9,17 +9,14 @@ static	int jacsng = -1;
 static  int jacupd = -1;
 static  double jacond = 0.0;
 
-void F77_SUB(nwstrot0)(const char *s, int *slen)
-{   
-    /*
-     * called by Fortran subroutine to output <slen> chars from fortran char*(*)
-     */
-	int k, ns;
-
-	ns = *slen;
-	for(k=0; k < ns; k++)
-		Rprintf("%c", s[k]);
-	Rprintf("\n");
+/*
+ * output for a single incorrect jacobian entry
+ */
+ 
+void F77_SUB(nwckot)(int *i, int *j, double *aij, double *wi)
+{
+    Rprintf("Chkjac  possible error in jacobian[%d,%d] = %20.13e\n"
+            "                         Estimated[%d,%d] = %20.13e\n", *i, *j, *aij, *i, *j, *wi);
 }
 
 void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)

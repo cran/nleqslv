@@ -1,4 +1,11 @@
 
+1.9.1
+
+o removed all Fortran internal write statements to avoid R check warnings
+o improved output of possible errors by check jacobian
+o added error message for jacobian error in manual
+o mention Lapack condition estimator in documentation of iteration report
+
 1.9.0
 
 o added a pure Newton or Broyden without global strategy

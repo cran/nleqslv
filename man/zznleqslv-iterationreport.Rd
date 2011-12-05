@@ -14,7 +14,7 @@ Common column headers are
 or \code{B} for a Broyden updated matrix; optionally followed by the letter \code{s} 
 indicating a totally singular matrix or the letter \code{i} indicating an ill-conditioned matrix.
 Unless the jacobian is singular, this is followed by a number in parentheses, 
-indicating the inverse condition number of the matrix.
+indicating the inverse condition number of the matrix, as computed by Lapack.
 This column will be blank when backtracking is active.}
 \item{\code{Fnorm}}{euclidean norm of function values / 2}
 \item{\code{Largest |f|}}{infinity norm of \eqn{f(x)}{f(x)} at the current point}
