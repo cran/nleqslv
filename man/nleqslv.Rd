@@ -55,10 +55,9 @@ The \code{global} argument indicates which global strategy to use or to use no g
                              Dennis and Schnabel (1996)}
         \item{\code{pwldog}}{a trust region method using the Powell dogleg method
                              as developed by Powell (1970).}
-        \item{\code{none}}{no global strategy is applied.
-                           Only a pure local Newton or Broyden iteration is used.
-                           For safety's sake the maximum number of iterations is set to 20.
-                           The maximum stepsize (see below) is taken into account.}
+        \item{\code{none}}{Only a pure local Newton or Broyden iteration is used.
+                           The maximum stepsize (see below) is taken into account.
+                           The default maximum number of iterations (see below) is set to 20.}
 }
 The double dogleg method is the default global strategy employed by this package.
 
@@ -81,10 +80,10 @@ This is the method described in \enc{Moré}{More} (1978).
 Usually manual scaling is preferable.}
 }
 
-The algorithm cannot cope with a ill-conditioned or singular Jacobian, in contrast
+The algorithm cannot cope with a singular or ill-conditioned Jacobian, in contrast
 to previous versions of this package. When a Jacobian becomes singular or very ill-conditioned
 the algorithm will return an error.  A Jacobian is considered to be very ill-conditioned
-when the estimated inverse condition is less than  or equal to the machine precision.
+when the estimated inverse condition is less than or equal to the machine precision.
 
 When the function to be solved returns non-finite values for a parameter vector \code{x}
 and the algorithm is \emph{not} evaluating a numerical jacobian, then the non-finite
@@ -114,9 +113,10 @@ The default value is \eqn{10^{-3}}{1e-3}.
 \item{\code{scalex}}{a vector of scaling values for the parameters.
 The inverse of a scale value is an indication of the size of a parameter.
 The default value is 1.0 for all scale values.}
-\item{\code{maxit}}{The maximum number of major iterations. The default value is 150 if a global strategy has been specified.}
+\item{\code{maxit}}{The maximum number of major iterations. The default value is 150 if a global strategy has been specified.
+If no global strategy has been specified the default is 20.}
 \item{\code{trace}}{Non-negative integer. A value of 1 will give a detailed report of the
-progress of the iteration.}
+progress of the iteration. For a description see \code{\link{Iteration report}}.}
 \item{\code{chkjac}}{A logical value indicating whether to check an analytical jacobian, if
 supplied. The default value is \code{FALSE}. The first 10 errors are printed.
 The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
@@ -240,12 +240,12 @@ nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-1.0))
 nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
 
 \dontrun{
-# no global strategy but limit stepsize 
+# no global strategy but limit stepsize
 # but look carefully: a different solution is found
-nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,stepmax=5))  
+nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,stepmax=5))
 
 # but if the stepsize is limited even more the c(1,1) solution is found
-nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,stepmax=2))  
+nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,stepmax=2))
 
 # Broyden also finds the c(1,1) solution when the stepsize is limited
 nleqslv(xstart, dslnex, jacdsln, method="Broyden", global="none", control=list(trace=1,stepmax=2))

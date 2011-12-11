@@ -27,7 +27,7 @@ and uses Lapack and BLAS routines as provided by the R system.
 \author{Berend Hasselman \email{bhh@xs4all.nl}}
 
 \references{
-Dennis, J.E. Jr  and Schnabel, R.B. (1996),\emph{Numerical Methods for Unconstrained Optimization
+Dennis, J.E. Jr  and Schnabel, R.B. (1996), \emph{Numerical Methods for Unconstrained Optimization
 and Nonlinear Equations}, Siam.
 }
 \keyword{package}
