@@ -114,8 +114,9 @@ c
 c-------------------------------------------------------------------------
 
       integer i,j,errcnt
-      double precision  ndigit,rnoise,stepsz,xtmpj,dinf
+      double precision  ndigit,p,h,xcj,dinf
       double precision  tol
+      double precision  rnudif
       integer idamax
 
       integer MAXERR
@@ -130,22 +131,27 @@ c     compute the finite difference jacobian and check it against
 c     the analytic one
 
       ndigit = -log10(epsm)
-      rnoise = max(Rten**(-ndigit),epsm)
-      rnoise = sqrt(rnoise)
+      p = sqrt(max(Rten**(-ndigit),epsm))
       tol    = epsm**Rquart
 
       errcnt = 0
       call vunsc(n,xc,scalex)
 
       do j=1,n
-         stepsz = rnoise*max(abs(xc(j)),Rone)
-         xtmpj = xc(j)
-         xc(j) = xtmpj+stepsz
-         call fvec(xc,fz,n,0)
-         xc(j) = xtmpj
+         h = p + p * abs(xc(j))
+         xcj   = xc(j)
+         xc(j) = xcj + h   
+         
+c        avoid (small) rounding errors
+c        h = xc(j) - xcj but not here to avoid clever optimizers
+
+         h = rnudif(xc(j), xcj) 
+         
+         call fvec(xc,fz,n,j)
+         xc(j) = xcj
 
          do i=1,n
-            wa(i) = (fz(i)-fc(i))/stepsz
+            wa(i) = (fz(i)-fc(i))/h
          enddo
          do i=1,n
             wa(i) = wa(i)/scalex(j)
@@ -220,7 +226,7 @@ c        or as alternative h  = p * max(Rone, abs(xc(j)))
          xc(j) = xcj + h
 
 c        avoid (small) rounding errors
-c        h = xcj - xc(j) but not here to avoid clever optimizers
+c        h = xc(j) - xcj  but not here to avoid clever optimizers
 
          h = rnudif(xc(j), xcj)
          call fvec(xc,fz,n,j)
