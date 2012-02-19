@@ -44,8 +44,10 @@ sum of squares of the function values and \dQuote{acceptable} means sufficient d
 of the current function criterion value compared to that of the previous iteration.
 A comprehensive discussion of these issues can be found in Dennis and Schnabel (1996).
 Both methods apply a QR-decomposition to the Jacobian as implemented in Lapack.
-The Broyden method applies a rank 1 update to the Jacobian at the end of each iteration
-and uses the methods implemented in Reichel and Gragg (1990).
+The Broyden method applies a rank-1 update to the Jacobian at the end of each iteration
+and uses an algorithm described for example in Golub and Van Loan (1996)
+and in Reichel and Gragg (1990).
+The code used in the package is taken from the opensource package \code{QRupdate}.
 
 The \code{global} argument indicates which global strategy to use or to use no global strategy
 \describe{
@@ -179,6 +181,8 @@ and Nonlinear Equations}, Siam.
 In \emph{Numerical Analysis}, G.A. Watson (Ed.),
 Lecture Notes in Mathematics 630, Springer-Verlag, pp. 105--116.
 
+Golub, G.H and C.F. Van Loan (1996), Matrix Computations (3rd edition), The John Hopkins University Press.
+
 %%Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
 
 Powell, M.J.D. (1970), A hybrid method for nonlinear algebraic equations,
@@ -186,6 +190,9 @@ In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed
 
 Powell, M.J.D. (1970), A Fortran subroutine for solving systems nonlinear equations,
 In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon \& Breach.
+
+QRupdate: a Fortran library for fast updating of QR and Cholesky decompositions,
+\url{http://sourceforge.net/projects/qrupdate/}.
 
 Reichel, L. and W.B. Gragg (1990), Algorithm 686: FORTRAN subroutines for updating the QR decomposition,
 \emph{ACM Trans. Math. Softw.}, \bold{16}, 4, pp. 369--377.
