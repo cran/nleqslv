@@ -51,7 +51,7 @@ c     Out      rwork   Real(*)         real workspace (9n+2n^2)
 c     In       lrwork  Integer         size real workspace
 c     In       rcdwrk  Real(*)         workspace for Dtrcon (3n)
 c     In       icdwrk  Integer(*)      workspace for Dtrcon (n)
-c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
 c     In       qrwsiz  Integer         size of qrwork
 c     In       fjac    Name            optional name of routine to calculate
 c                                      analytic jacobian
@@ -148,30 +148,6 @@ c     should be at least n
      *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,
      *               epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,termcd)
 
-      endif
-
-      return
-      end
-
-c-----------------------------------------------------------------------
-
-      subroutine nwqmem(n,wrksiz)
-      integer n, wrksiz
-
-c-------------------------------------------------------------------------
-c     Query the size of the double precision work array required
-c     for optimal operation of the Lapack QR routines
-c-------------------------------------------------------------------------
-
-      double precision A(1), work(1)
-      integer lwork, info
-
-      lwork = -1
-      call dgeqrf(n,n,A,n,work,work,lwork,info)
-      if( info .ne. 0 ) then
-          wrksiz = -1
-      else
-          wrksiz = int(work(1))
       endif
 
       return

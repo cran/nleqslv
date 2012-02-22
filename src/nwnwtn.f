@@ -65,7 +65,7 @@ c     Wk       d       Real(*)         workspace
 c     Wk       qtf     Real(*)         workspace
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
-c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
 c     In       qrwsiz  Integer         size of qrwork
 c     In       epsm    Real            machine precision
 c     In       fjac    Name            name of routine to calculate jacobian
@@ -282,7 +282,7 @@ c                                      2 indicating Jacobian completely singular
 c     Out      rcond   Real            inverse condition  matrix
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
-c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
 c     In       qrwsiz  Integer         size of qrwork
 c
 c-----------------------------------------------------------------------

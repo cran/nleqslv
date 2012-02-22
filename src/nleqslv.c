@@ -30,7 +30,7 @@ void F77_NAME(nwnleq)(double *x, int *n, double *scalex, int *maxit, int *jacflg
                       void (*fcnval)(double *xc, double *fc, int *n, int *flag),
    			          int *outopt, double *xp, double *fp, double *gp, int *njcnt, int *nfcnt, int *termcd);
 
-void F77_NAME(nwqmem)(int *n, int *wrksiz); /* returns size of optimal QR work memory */
+void F77_NAME(liqsiz)(int *n, int *wrksiz); /* returns size of optimal QR work memory */
 
 void deactivatenleq(void)
 {
@@ -246,7 +246,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
      * for largish n (500+) this speeds up significantly
      */
 
-    F77_CALL(nwqmem)(&n, &qrwsiz);
+    F77_CALL(liqsiz)(&n, &qrwsiz);
     
     if( qrwsiz <= 0 )
         error("Error in querying amount of workspace for QR routines\n");

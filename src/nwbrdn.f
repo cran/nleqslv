@@ -65,7 +65,7 @@ c     Wk       d       Real(*)         workspace
 c     Wk       qtf     Real(*)         workspace
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
-c     In       qrwork  Real(*)         workspace for Lapack QR routines (call nwqmem)
+c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
 c     In       qrwsiz  Integer         size of qrwork
 c     In       epsm    Real            machine precision
 c     In       fjac    Name            name of routine to calculate jacobian
@@ -125,10 +125,10 @@ c     jacobian, if requested
            call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
      *                 fq,wrk1,fvec,termcd)
            if(termcd .lt. 0) then
-c              copy initial values     
+c              copy initial values
                call dcopy(n,xc,1,xp,1)
                call dcopy(n,fc,1,fp,1)
-               fpnorm = fcnorm 
+               fpnorm = fcnorm
                return
            endif
         endif
@@ -152,7 +152,7 @@ c     check stopping criteria for input xc
          dum(2) = abs(fc(idamax(n,fc,1)))
 
          if( global .eq. 0 ) then
-            call nwprot(iter, -1, dum) 
+            call nwprot(iter, -1, dum)
          elseif( global .le. 2 ) then
             call nwlsot(iter,-1,dum)
          elseif( global .eq. 3 ) then
@@ -182,7 +182,7 @@ c          - if requested calculate x scale from jacobian column norms a la Minp
             if( xscalm .eq. 1 ) then
                call vunsc(n,xc,scalex)
                call nwcpsx(n,rjac,ldr,scalex,epsm,iter)
-               call vscal(n,xc,scalex) 
+               call vscal(n,xc,scalex)
             endif
 
             call nwscjac(n,rjac,ldr,scalex)
@@ -201,7 +201,7 @@ c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapac
             if( ierr .eq. 0 ) then
                call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
             endif
-            
+
 c           now Rjac(*  ,1..n) holds expanded Q
 c           now Rjac(n+1,1..n) holds full upper triangle R
 
@@ -228,7 +228,7 @@ c           jacobian singular or too ill-conditioned
             call dcopy(n,xc,1,xp,1)
             call dcopy(n,fc,1,fp,1)
             fpnorm = fcnorm
-            gcnt   = 0 
+            gcnt   = 0
             if( priter .gt. 0 ) then
                call nwjerr(iter)
             endif
@@ -283,7 +283,8 @@ c           reset trust region radius
 c           perform Broyden update of current jacobian
 c           update xc, fc, and fcnorm
             call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
-     *                  wrk1,wrk2,wrk3)
+     *                  wrk1,wrk2,rcdwrk)
+c     *                  wrk1,wrk2,wrk3)
             call dcopy(n,xp,1,xc,1)
             call dcopy(n,fp,1,fc,1)
             fcnorm = fpnorm

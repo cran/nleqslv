@@ -1,4 +1,13 @@
 
+1.9.3
+
+o use QR update routines from opensource library qrupdate.
+  The changes should have no effect on results.
+o internal change in brsolv: use a different larger workspace for brupdt
+  to accomodate different QR updating routines which need a larger workspace
+o moved subroutine for query of Lapack dgeqrf of optimal size of work array
+  to lautil.f (where it belongs). Changed name to liqsiz.
+
 1.9.2
 
 o made calculation of jacobian when checking user supplied jacobian identical to
