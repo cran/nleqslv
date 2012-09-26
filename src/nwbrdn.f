@@ -1,16 +1,17 @@
 
       subroutine brsolv(ldr,xc,n,scalex,maxit,
-     *                  jacflg,xtol,ftol,btol,global,xscalm,
+     *                  jacflg,xtol,ftol,btol,cndtol,global,xscalm,
      *                  stepmx,dlt,sigma,
      *                  rjac,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
-     *                  rcdwrk,icdwrk,qrwork,qrwsiz,
-     *                  epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
+     *                  fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,
      *                  termcd)
 
-      integer ldr,n,termcd,njcnt,nfcnt
+      integer ldr,n,termcd,njcnt,nfcnt,iter
       integer maxit,jacflg,global,xscalm,qrwsiz
       integer outopt(*)
-      double precision  xtol,ftol,btol,stepmx,dlt,sigma,fpnorm,epsm
+      double precision  xtol,ftol,btol,cndtol
+      double precision  stepmx,dlt,sigma,fpnorm,epsm
       double precision  rjac(ldr,*)
       double precision  xc(*),fc(*),xp(*),fp(*),dn(*),d(*)
       double precision  wrk1(*),wrk2(*),wrk3(*),wrk4(*)
@@ -41,6 +42,7 @@ c                                      terminate algorithm
 c     In       ftol    Real            tolerance at which function values f()
 c                                      are considered close enough to zero
 c     Inout    btol    Real            x tolerance for backtracking
+c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     In       global  Integer         global strategy to use
 c                                        1 quadratic line search
 c                                        2 geometric line search
@@ -77,11 +79,12 @@ c     Out      fp      Real(*)         final f(xp)
 c     Out      gp      Real(*)         gradient at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
 c     Out      nfcnt   Integer         number of function evaluations
+c     Out      iter    Integer         number of (uter) iterations
 c     Out      termcd  Integer         termination code
 c
 c-----------------------------------------------------------------------
 
-      integer iter,gcnt,retcd,ierr
+      integer gcnt,retcd,ierr
       double precision  dum(2),dlt0,fcnorm,cond
       logical mxtake
       logical jacevl,jacupd
@@ -194,7 +197,7 @@ c          - get newton step
 c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapack routine)
 
             call dcopy(n,fc,1,fq,1)
-            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,
+            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
      *                  wrk1,dn,qtf,ierr,cond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
             call nwsnot(0,ierr,cond)
@@ -211,7 +214,7 @@ c          - get broyden step
 c          - calculate approximate gradient
 
             call dcopy(n,fc,1,fq,1)
-            call brodir(rjac,ldr,rjac(1,n+1),fq,n,epsm,
+            call brodir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
      *                  dn,qtf,ierr,cond,
      *                  rcdwrk,icdwrk)
             call nwsnot(1,ierr,cond)
@@ -284,7 +287,6 @@ c           perform Broyden update of current jacobian
 c           update xc, fc, and fcnorm
             call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
      *                  wrk1,wrk2,rcdwrk)
-c     *                  wrk1,wrk2,wrk3)
             call dcopy(n,xp,1,xc,1)
             call dcopy(n,fp,1,fc,1)
             fcnorm = fpnorm
@@ -381,11 +383,11 @@ c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
 
 c-----------------------------------------------------------------------
 
-      subroutine brodir(q,ldr,r,fn,n,epsm,dn,qtf,
+      subroutine brodir(q,ldr,r,fn,n,cndtol,dn,qtf,
      *                  ierr,rcond,rcdwrk,icdwrk)
 
       integer ldr,n,ierr
-      double precision  epsm,q(ldr,*),r(ldr,*),fn(*)
+      double precision  cndtol,q(ldr,*),r(ldr,*),fn(*)
       double precision  dn(*),qtf(*)
       double precision  rcdwrk(*)
       integer           icdwrk(*)
@@ -402,13 +404,13 @@ c     In       ldr     Integer         leading dimension of Q and R
 c     In       R       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       fn      Real(*)         function values at current iterate
 c     In       n       Integer         dimension of problem
-c     In       epsm    Real            machine precision
+c     In       cndtol  Real            tolerance of test for ill conditioning
 c     Out      dn      Real(*)         Newton direction
 c     Out      qtf     Real(*)         trans(Q)*f()
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
 c                                      1 indicating Jacobian ill-conditioned
 c                                      2 indicating Jacobian completely singular
-c     Out      rcond   Real            inverse condition matrix
+c     Out      rcond   Real            inverse condition of matrix
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
 c
@@ -421,7 +423,7 @@ c-----------------------------------------------------------------------
 
 c     check for singularity or ill conditioning
 
-      call cndjac(n,r,ldr,epsm,rcond,rcdwrk,icdwrk,ierr)
+      call cndjac(n,r,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
       if( ierr .ne. 0 ) then
           return
       endif

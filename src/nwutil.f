@@ -327,9 +327,9 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      subroutine cndjac(n,r,ldr,epsm,rcond,rcdwrk,icdwrk,ierr)
+      subroutine cndjac(n,r,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
       integer n,ldr,icdwrk(*),ierr
-      double precision epsm,rcond,r(ldr,*),rcdwrk(*)
+      double precision cndtol,rcond,r(ldr,*),rcdwrk(*)
 
 c---------------------------------------------------------------------
 c
@@ -340,7 +340,9 @@ c
 c     In       n       Integer         dimension of problem
 c     In       r       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       ldr     Integer         leading dimension of rjac
-c     In       epsm    Real            machine precision
+c     In       cndtol  Real            tolerance of test for ill conditioning
+c                                       when rcond <= cndtol then ierr is set to 1
+c                                       cndtol should be >= machine precision
 c     Out      rcond   Real            inverse condition  of r
 c     Wk       rcdwrk  Real(*)         workspace (for dtrcon)
 c     Wk       icdwrk  Integer(*)      workspace (fordtrcon)
@@ -371,7 +373,7 @@ c---------------------------------------------------------------------
          call dtrcon('1','U','N',n,r,ldr,rcond,rcdwrk,icdwrk,info)
          if( rcond .eq. Rzero ) then
              ierr = 2
-         elseif( rcond .le. epsm ) then
+         elseif( rcond .le. cndtol ) then
              ierr = 1
          endif
       endif

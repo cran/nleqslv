@@ -103,7 +103,7 @@ Iter        Jac   Lambda   Dlt0   Dltn        Fnorm  Largest |f|
    5 B(1.9e-01) N        0.1375 0.2750 8.014508e-04 3.681498e-02
 }
 This is much simpler than the double dogleg report, since the (single) dogleg takes
-either a steepest descent step, a convex combination of the steepest descent and Newton directions
+either a steepest descent step, a convex combination of the steepest descent and Newton steps
 or a full Newton step. The number in the column \code{Lambda} is the weight of the Newton step.
 It is a special case of the double dogleg method with \code{eta} equal to 1.
 }

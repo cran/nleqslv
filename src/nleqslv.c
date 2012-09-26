@@ -23,12 +23,13 @@ void fcnval(double *xc, double *fc, int *n, int *flag);
 void fcnjac(double *rjac, int *ldr, double *x, int *n);
 
 void F77_NAME(nwnleq)(double *x, int *n, double *scalex, int *maxit, int *jacflg, double *xtol,
-                      double *ftol, double *btol,
+                      double *ftol, double *btol, double *cndtol,
                       int *method, int *global, int *xscalm, double *stepmx, double *dlt, double *sigma,
                       double *rwork, int *lrwork, double *rcdwrk, int *icdwrk, double *qrwork, int *qrwsiz,
                       void (*fcnjac)(double *rjac, int *ldr, double *x, int *n),
                       void (*fcnval)(double *xc, double *fc, int *n, int *flag),
-   			          int *outopt, double *xp, double *fp, double *gp, int *njcnt, int *nfcnt, int *termcd);
+   			          int *outopt, double *xp, double *fp, double *gp, int *njcnt, int *nfcnt, int *iter,
+   			          int *termcd);
 
 void F77_NAME(liqsiz)(int *n, int *wrksiz); /* returns size of optimal QR work memory */
 
@@ -61,7 +62,7 @@ static int *int_vector(int n)
 }
 
 static void trace_header(int method, int global, int xscalm, double sigma,
-                         double dlt, double stepmx, double ftol, double xtol, double btol)
+                         double dlt, double stepmx, double ftol, double xtol, double btol, double cndtol)
 {	/* print header for iteration tracing output for documentation purposes
 	 */
 
@@ -81,7 +82,7 @@ static void trace_header(int method, int global, int xscalm, double sigma,
 	Rprintf("  Maximum stepsize = %g\n", stepmx <= 0.0 ? DBL_MAX : stepmx);
     Rprintf("  Scaling: %s\n", xscalm == 0 ? "fixed" : "automatic");
 
-	Rprintf("  ftol = %g xtol = %g btol = %g\n\n", ftol,xtol,btol);
+	Rprintf("  ftol = %g xtol = %g btol = %g cndtol = %g\n\n", ftol,xtol,btol,cndtol);
     Rprintf("  Iteration report\n  ----------------\n");
 }
 
@@ -169,7 +170,16 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
         }
 
     SETCADR(OS->jcall, OS->x);
-    PROTECT(sexp_fjac = eval(OS->jcall, OS->env));
+    PROTECT(sexp_fjac = eval(OS->jcall, OS->env));  
+    
+    /* test for numerical object and correct length */
+    if (!IS_NUMERIC(sexp_fjac))
+        error("evaluation of jac function returns non-numeric vector!");
+    if (length(sexp_fjac) != (*n)*(*n))
+        error("jac function must return numeric vector with length"
+              " == length(x) * length(x). Your function"
+              " returns one with length %d while %d expected.",
+              length(sexp_fjac), (*n)*(*n));
 
     for (j = 0; j < *n; j++)
         for (i = 0; i < *n; i++) {
@@ -190,14 +200,14 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 	const char *z;
 
     SEXP    eval_test;
-    SEXP    sexp_x, sexp_diag, sexp_fvec, sexp_info, sexp_message, sexp_nfcnt, sexp_njcnt;
+    SEXP    sexp_x, sexp_diag, sexp_fvec, sexp_info, sexp_message, sexp_nfcnt, sexp_njcnt, sexp_iter;
     SEXP    out, out_names;
 
     char    message[256];
 
-	int     i, n, njcnt, nfcnt, termcd, lrwork, qrwsiz;
+	int     i, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz;
     int     maxit, jacflg, method, global, xscalm;
-	double  xtol, ftol, btol, stepmx, dlt, sigma;
+	double  xtol, ftol, btol, stepmx, dlt, sigma, cndtol;
 
     PROTECT_INDEX ipx;
 
@@ -272,7 +282,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     stepmx  = NUMERIC_VALUE(getListElement(control, "stepmax"));
     dlt     = NUMERIC_VALUE(getListElement(control, "delta"));
     maxit   = INTEGER_VALUE(getListElement(control, "maxit"));
-
+    cndtol  = NUMERIC_VALUE(getListElement(control, "cndtol"));
+    
     outopt[0] = INTEGER_VALUE(getListElement(control, "trace"));
 	outopt[1] = LOGICAL_VALUE(getListElement(control, "chkjac"));
 
@@ -342,34 +353,34 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 /*========================================================================*/
 
     if( outopt[0] == 1)
-        trace_header(method, global, xscalm, sigma, dlt, stepmx, ftol, xtol, btol);
+        trace_header(method, global, xscalm, sigma, dlt, stepmx, ftol, xtol, btol, cndtol);
 
     if (isNull(jac)) {
 		jacflg = 0;
-        F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol,
+        F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol, &cndtol,
                          &method, &global, &xscalm, &stepmx, &dlt, &sigma,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
-                         FCNJACDUM, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &termcd);
+                         FCNJACDUM, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
     }
     else {
         if (!isFunction(jac))
             error("jac is not a function!");
         PROTECT(OS->jcall = lang2(jac, OS->x));
-        PROTECT(eval_test = eval(OS->jcall, OS->env));
-        if (!IS_NUMERIC(eval_test))
-            error("evaluation of jac function returns non-numeric vector!");
-        if (length(eval_test) != n*n)
-            error("jac function must return numeric vector with length"
-                  " == length(x) * length(x). Your function"
-                  " returns one with length %d while %d expected.",
-                  length(eval_test), n*n);
-        UNPROTECT(1);
+        // PROTECT(eval_test = eval(OS->jcall, OS->env));
+        // if (!IS_NUMERIC(eval_test))
+        //     error("evaluation of jac function returns non-numeric vector!");
+        // if (length(eval_test) != n*n)
+        //     error("jac function must return numeric vector with length"
+        //           " == length(x) * length(x). Your function"
+        //           " returns one with length %d while %d expected.",
+        //           length(eval_test), n*n);
+        // UNPROTECT(1);
 
 		jacflg = 1;
-        F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol,
+        F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol, &cndtol,
                          &method, &global, &xscalm, &stepmx, &dlt, &sigma,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
-                         &fcnjac, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &termcd);
+                         &fcnjac, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
         UNPROTECT(1);
     }
 
@@ -394,6 +405,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     PROTECT(sexp_njcnt = NEW_INTEGER(1));
     INTEGER_POINTER(sexp_njcnt)[0] = njcnt;
 
+    PROTECT(sexp_iter = NEW_INTEGER(1));
+    INTEGER_POINTER(sexp_iter)[0] = iter;
+
     PROTECT(sexp_message = NEW_STRING(1));
     SET_STRING_ELT(sexp_message, 0, mkChar(message));
 
@@ -406,7 +420,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
             NUMERIC_POINTER(VECTOR_ELT(sexp_diag, i))[0] = scalex[i];
     }
 
-    PROTECT(out = NEW_LIST(7));
+    PROTECT(out = NEW_LIST(8));
     SET_VECTOR_ELT(out, 0, sexp_x);
     SET_VECTOR_ELT(out, 1, sexp_fvec);
     SET_VECTOR_ELT(out, 2, sexp_info);
@@ -414,8 +428,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     SET_VECTOR_ELT(out, 4, sexp_diag);
     SET_VECTOR_ELT(out, 5, sexp_nfcnt);
     SET_VECTOR_ELT(out, 6, sexp_njcnt);
+    SET_VECTOR_ELT(out, 7, sexp_iter);
 
-    PROTECT(out_names = NEW_STRING(7));
+    PROTECT(out_names = NEW_STRING(8));
     SET_STRING_ELT(out_names, 0, mkChar("x"));
     SET_STRING_ELT(out_names, 1, mkChar("fvec"));
     SET_STRING_ELT(out_names, 2, mkChar("termcd"));
@@ -423,10 +438,11 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     SET_STRING_ELT(out_names, 4, mkChar("scalex"));
     SET_STRING_ELT(out_names, 5, mkChar("nfcnt"));
     SET_STRING_ELT(out_names, 6, mkChar("njcnt"));
+    SET_STRING_ELT(out_names, 7, mkChar("iter"));
 
     SET_NAMES(out, out_names);
 
-    UNPROTECT(11);
+    UNPROTECT(12);
 
     return out;
 }
