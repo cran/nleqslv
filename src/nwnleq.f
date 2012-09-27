@@ -1,14 +1,14 @@
 
       subroutine nwnleq(x0,n,scalex,maxit,
-     *                  jacflg,xtol,ftol,btol,method,global,xscalm,
-     *                  stepmx,dlt,sigma,rwork,lrwork,
+     *                  jacflg,xtol,ftol,btol,cndtol,method,global,
+     *                  xscalm,stepmx,dlt,sigma,rwork,lrwork,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz,fjac,fvec,outopt,xp,
-     *                  fp,gp,njcnt,nfcnt,termcd)
+     *                  fp,gp,njcnt,nfcnt,iter,termcd)
 
-      integer n,jacflg,maxit,njcnt,nfcnt,termcd,method
+      integer n,jacflg,maxit,njcnt,nfcnt,iter,termcd,method
       integer global,xscalm,lrwork,qrwsiz
       integer outopt(*)
-      double precision  xtol,ftol,btol,stepmx,dlt,sigma
+      double precision  xtol,ftol,btol,cndtol,stepmx,dlt,sigma
       double precision  xp(*),fp(*),gp(*),x0(*)
       double precision  rwork(*),rcdwrk(*),qrwork(*)
       double precision  scalex(*)
@@ -29,7 +29,8 @@ c                                        0 numeric
 c                                        1 analytical (user supplied)
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
-c     Inout    btol    Real            x tolerance for backtracking
+c     Inout    btol    Real            x tolerance for backtracking 
+c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     Inout    method  Integer         method to use
 c                                        0 Newton
 c                                        1 Broyden
@@ -67,7 +68,8 @@ c     Out      xp      Real(*)         final values for x()
 c     Out      fp      Real(*)         final values for f(x)
 c     Out      gp      Real(*)         gradient of f() at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
-c     Out      nfcnt   Integer         number of function evaluations
+c     Out      nfcnt   Integer         number of function evaluations 
+c     Out      iter    Integer         number of (uter) iterations
 c     Out      termcd  Integer         termination code
 c                                       > 0 process terminated
 c                                             1  function criterion near zero
@@ -112,7 +114,7 @@ c-------------------------------------------------------------------------
 
 c     check input parameters
 
-      call nwpchk(n,lrwork,xtol,ftol,btol,maxit,
+      call nwpchk(n,lrwork,xtol,ftol,btol,cndtol,maxit,
      *            jacflg,method,global,stepmx,dlt,sigma,
      *            epsm,outopt,scalex,xscalm,termcd)
       if(termcd .lt. 0) then
@@ -125,28 +127,28 @@ c     should be at least n
       if( method .eq. 0 ) then
 
          call nwsolv(n,x0,n,scalex,maxit,jacflg,
-     *               xtol,ftol,btol,global,xscalm,
+     *               xtol,ftol,btol,cndtol,global,xscalm,
      *               stepmx,dlt,sigma,
      *               rwork(1+9*n),
      *               rwork(1    ),rwork(1+  n),
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
      *               rwork(1+6*n),rwork(1+7*n),
-     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,
-     *               epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,termcd)
+     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
+     *               fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,termcd)
 
       elseif( method .eq. 1 ) then
 
          call brsolv(n,x0,n,scalex,maxit,jacflg,
-     *               xtol,ftol,btol,global,xscalm,
+     *               xtol,ftol,btol,cndtol,global,xscalm,
      *               stepmx,dlt,sigma,
      *               rwork(1+9*n),
      *               rwork(1    ),rwork(1+  n),
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
      *               rwork(1+6*n),rwork(1+7*n),
-     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,
-     *               epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,termcd)
+     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
+     *               fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,termcd)
 
       endif
 
@@ -156,14 +158,14 @@ c     should be at least n
 c-----------------------------------------------------------------------
 
       subroutine nwpchk(n,lrwk,
-     *                  xtol,ftol,btol,maxit,jacflg,method,global,
-     *                  stepmx,dlt,sigma,epsm,outopt,
+     *                  xtol,ftol,btol,cndtol,maxit,jacflg,method,
+     *                  global,stepmx,dlt,sigma,epsm,outopt,
      *                  scalex,xscalm,termcd)
 
       integer n,lrwk,jacflg
       integer method,global,maxit,xscalm,termcd
       integer outopt(*)
-      double precision  xtol,ftol,btol,stepmx,dlt,sigma,epsm
+      double precision  xtol,ftol,btol,cndtol,stepmx,dlt,sigma,epsm
       double precision  scalex(*)
 
 c-------------------------------------------------------------------------
@@ -176,7 +178,8 @@ c     In       n       Integer         dimension of problem
 c     In       lrwk    Integer         size real workspace
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
-c     Inout    btol    Real            x tolerance for backtracking
+c     Inout    btol    Real            x tolerance for backtracking 
+c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     Inout    maxit   Integer         maximum number iterations
 c     Inout    jacflg  Integer         jacobian flag
 c     Inout    method  Integer         method to use (Newton/Broyden)
@@ -274,7 +277,9 @@ c     check step and function tolerances
       endif
 
       if( btol .lt. xtol ) btol = xtol
-
+      
+      cndtol = max(cndtol, epsm)
+      
 c     check reduction in geometric linesearch
 
       if( sigma .le. Rzero .or. sigma .ge. Rone ) then

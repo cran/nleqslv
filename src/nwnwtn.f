@@ -1,16 +1,17 @@
 
       subroutine nwsolv(ldr,xc,n,scalex,maxit,
-     *                  jacflg,xtol,ftol,btol,global,xscalm,
+     *                  jacflg,xtol,ftol,btol,cndtol,global,xscalm,
      *                  stepmx,dlt,sigma,
      *                  rjac,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
-     *                  rcdwrk,icdwrk,qrwork,qrwsiz,
-     *                  epsm,fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,
+     *                  rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
+     *                  fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,
      *                  termcd)
 
-      integer ldr,n,termcd,njcnt,nfcnt
+      integer ldr,n,termcd,njcnt,nfcnt,iter
       integer maxit,jacflg,global,xscalm,qrwsiz
       integer outopt(*)
-      double precision  xtol,ftol,btol,stepmx,dlt,sigma,fpnorm,epsm
+      double precision  xtol,ftol,btol,cndtol
+      double precision  stepmx,dlt,sigma,fpnorm,epsm
       double precision  rjac(ldr,*)
       double precision  xc(*),fc(*),xp(*),fp(*),dn(*),d(*)
       double precision  wrk1(*),wrk2(*),wrk3(*),wrk4(*)
@@ -41,6 +42,7 @@ c                                      terminate algorithm
 c     In       ftol    Real            tolerance at which function values f()
 c                                      are considered close enough to zero
 c     Inout    btol    Real            x tolerance for backtracking
+c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     In       global  Integer         global strategy to use
 c                                        1 quadratic line search
 c                                        2 geometric line search
@@ -77,11 +79,12 @@ c     Out      fp      Real(*)         final f(xp)
 c     Out      gp      Real(*)         gradient at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
 c     Out      nfcnt   Integer         number of function evaluations
+c     Out      iter    Integer         number of (uter) iterations
 c     Out      termcd  Integer         termination code
 c
 c-----------------------------------------------------------------------
 
-      integer iter,gcnt,retcd,ierr
+      integer gcnt,retcd,ierr
       double precision  dum(2),fcnorm,rcond
       logical mxtake
       integer priter
@@ -187,7 +190,7 @@ c        gp = trans(Rjac) * fc
 c        - get newton step
 
          call dcopy(n,fc,1,fq,1)
-         call nwndir(rjac,ldr,rjac(1,n+1),fq,n,epsm,
+         call nwndir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
      *               wrk1,dn,qtf,ierr,rcond,
      *               rcdwrk,icdwrk,qrwork,qrwsiz)
          call nwsnot(0,ierr,rcond)
@@ -249,12 +252,12 @@ c           update xc, fc, and fcnorm
 
 c-----------------------------------------------------------------------
 
-      subroutine nwndir(rjac,ldr,r,fn,n,epsm,
+      subroutine nwndir(rjac,ldr,r,fn,n,cndtol,
      *                  qraux,dn,qtf,ierr,rcond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
 
       integer ldr,n,ierr,qrwsiz
-      double precision  epsm,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
+      double precision  cndtol,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
       double precision  dn(*),qtf(*)
       double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
@@ -272,7 +275,7 @@ c     In       ldr     Integer         leading dimension of rjac
 c     Out      r       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       fn      Real(*)         function values at current iterate
 c     In       n       Integer         dimension of problem
-c     In       epsm    Real            machine precision
+c     In       cndtol  Real            tolerance of test for ill conditioning
 c     Inout    qraux   Real(*)         QR info from liqrdc
 c     Out      dn      Real(*)         Newton direction
 c     Out      qtf     Real(*)         trans(Q)*f()
@@ -301,7 +304,7 @@ c     copy upper triangular part of QR to R
 
 c     check for singularity or ill conditioning
 
-      call cndjac(n,rjac,ldr,epsm,rcond,rcdwrk,icdwrk,ierr)
+      call cndjac(n,rjac,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
       if( ierr .ne. 0 ) then
           return
       endif

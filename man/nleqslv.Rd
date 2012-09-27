@@ -85,7 +85,8 @@ Usually manual scaling is preferable.}
 The algorithm cannot cope with a singular or ill-conditioned Jacobian, in contrast
 to previous versions of this package. When a Jacobian becomes singular or very ill-conditioned
 the algorithm will return an error.  A Jacobian is considered to be very ill-conditioned
-when the estimated inverse condition is less than or equal to the machine precision.
+when the estimated inverse condition is less than or equal to a specified tolerance with a default value
+equal to \eqn{10^{-12}}{1e-12}.%the machine precision.
 
 When the function to be solved returns non-finite values for a parameter vector \code{x}
 and the algorithm is \emph{not} evaluating a numerical jacobian, then the non-finite
@@ -110,6 +111,12 @@ When the relative steplength in a backtracking step to find an acceptable point 
 than the backtracking tolerance, the backtracking is terminated.
 In the \code{Broyden} method a new Jacobian will be calculated if the Jacobian is outdated.
 The default value is \eqn{10^{-3}}{1e-3}.
+}
+\item{\code{cndtol}}{The tolerance of the test for ill conditioning of 
+the Jacobian or Broyden approximation. If less than the machine precision it will
+be silently set to the machine precision.
+When the estimated inverse condition of the (approximated) Jacobian matrix is less than or equal to 
+the value of \code{cndtol} the matrix is deemed to be ill-conditioned.
 }
 \item{\code{sigma}}{Reduction factor for the geometric linesearch. The default value is 0.5.}
 \item{\code{scalex}}{a vector of scaling values for the parameters.
@@ -158,7 +165,11 @@ A list containing components
   \item{scalex}{a vector containing the scaling factors,
                 which will be the final values when automatic scaling was selected}
   \item{njcnt}{number of jacobian evaluations}
-  \item{nfcnt}{number of function evaluations, excluding those required for calculating a jacobian}
+  \item{nfcnt}{number of function evaluations, excluding those required for calculating a jacobian and
+               excluding the initial function evaluation (at iteration 0)}
+  \item{iter}{number of outer iterations used by the algorithm. This excludes the initial iteration.
+  The number of backtracks can be calculated as the difference between items \code{nfcnt} and \code{iter}
+  of the outputlist.}
 }
 
 %\note{

@@ -28,7 +28,8 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 scalex = rep(1, length(x)),
                 maxit=150,
                 trace=0,
-                chkjac=FALSE
+                chkjac=FALSE,
+                cndtol=1e-12
                )                       
 
     # limit maximum number of iterations for pure local strategy

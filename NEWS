@@ -1,4 +1,14 @@
 
+1.9.4    
+
+o checking validity of a user supplied jacobian is no longer done before the first iteration 
+  in order to avoid computing initial jacobian twice.
+  The checks are now done after the return of the user supplied jacobian; this provides more safety.
+o introduced a tolerance parameter for testing for an ill-conditioned jacobian or broyden approximation.
+  The default tolerance is now equal to 1e-12 and not the machine precison.
+o added an item <iter> to the outputlist of nleqslv giving the number of (outer) iterations used.
+o better description of the meaning of the number of function evaluations in the return value.
+
 1.9.3
 
 o use QR update routines from opensource library qrupdate.
