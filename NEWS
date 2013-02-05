@@ -1,7 +1,23 @@
 
-1.9.4    
+2.0
 
-o checking validity of a user supplied jacobian is no longer done before the first iteration 
+o introduced an option to return the final (approximated) jacobian
+o corrected horrible bug when checking analytical jacobian with scaled x-values
+  (checking incorrectly reported an incorrect jacobian)
+o strict checking of return value of user supplied Jacobian function.
+  Jacobian must be a numerical matrix of correct dimensions.
+o if the initial parameter vector has an attribute names 
+  the output parameter vector will have these names as attribute
+o more tests of Newton method
+o (internal) comments in some fortran to provide clarification 
+o (internal) reorganized fortran for less duplication of code
+o No longer use qrupdate routines for updating QR. 
+  Use heavily modified version of Dennis+Schnabel.
+  Change has no effect on results (at least in all my tests).
+
+1.9.4
+
+o checking validity of a user supplied jacobian is no longer done before the first iteration
   in order to avoid computing initial jacobian twice.
   The checks are now done after the return of the user supplied jacobian; this provides more safety.
 o introduced a tolerance parameter for testing for an ill-conditioned jacobian or broyden approximation.

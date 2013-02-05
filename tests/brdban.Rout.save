@@ -1,14 +1,12 @@
 
-R version 2.13.0 Patched (2011-04-26 r55655)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.15.2 Patched (2013-01-21 r61728) -- "Trick or Treat"
+Copyright (C) 2013 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: i386-apple-darwin9.8.0/i386 (32-bit)
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -35,8 +33,8 @@ Type 'q()' to quit R.
 + 
 + 		temp = 0.0
 + 		for(j in k1:k2) {
-+ 		  	if ( j != k ) {
-+ 		    	temp <- temp + x[j] * (1.0 + x[j])
++ 			if ( j != k ) {
++ 				temp <- temp + x[j] * (1.0 + x[j])
 + 		    }
 + 		}
 + 
@@ -54,18 +52,36 @@ Type 'q()' to quit R.
 > 
 > fsol <- brdban(xsol)
 > 
-> znlq <- nleqslv(xstart, brdban, global="dbldog",
-+                   control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
-> znlq$termcd                 # should be 2 for x values within tolerance                  
-[1] 2
+> znlq <- nleqslv(xstart, brdban, global="dbldog", method="Newton",
++                 control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+> znlq$termcd                 # should be 2 for x values within tolerance
+[1] 1
 > all(abs(znlq$fvec)<=1e-7)   # may not have achieved ftol
 [1] TRUE
->     
+> 
 > xstart <- -2*rep(1,n)
-> znlq <- nleqslv(xstart, brdban, global="dbldog",
-+                   control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+> znlq <- nleqslv(xstart, brdban, global="dbldog", method="Newton",
++                 control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
 > znlq$termcd
 [1] 1
 > all(abs(znlq$fvec)<=1e-8)
 [1] TRUE
 > 
+> znlq <- nleqslv(xstart, brdban, global="dbldog",
++                 control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+> znlq$termcd                 # should be 2 for x values within tolerance
+[1] 1
+> all(abs(znlq$fvec)<=1e-7)   # may not have achieved ftol
+[1] TRUE
+> 
+> xstart <- -2*rep(1,n)
+> znlq <- nleqslv(xstart, brdban, global="dbldog",
++                 control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+> znlq$termcd
+[1] 1
+> all(abs(znlq$fvec)<=1e-8)
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  0.310   0.045   0.340 

@@ -79,16 +79,16 @@ c     Out      fp      Real(*)         final f(xp)
 c     Out      gp      Real(*)         gradient at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
 c     Out      nfcnt   Integer         number of function evaluations
-c     Out      iter    Integer         number of (uter) iterations
+c     Out      iter    Integer         number of (outer) iterations
 c     Out      termcd  Integer         termination code
 c
 c-----------------------------------------------------------------------
 
       integer gcnt,retcd,ierr
-      double precision  dum(2),dlt0,fcnorm,cond
-      logical mxtake
+      double precision  dum(2),dlt0,fcnorm,rcond
+      logical mxtake,fstjac
       logical jacevl,jacupd
-      integer priter
+      integer priter, j
 
       integer idamax
 
@@ -119,10 +119,13 @@ c     evaluate function
 
 c     evaluate analytic or finite difference jacobian and check analytic
 c     jacobian, if requested
-
+      
+      fstjac = .false.
       if(jacflg .eq. 1) then
 
-        if( outopt(2) .eq. 1 ) then
+        if( outopt(2) .eq. 1 ) then 
+           fstjac = .true.
+           njcnt = njcnt + 1
            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *                 ldr,wrk1)
            call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
@@ -146,6 +149,11 @@ c     check stopping criteria for input xc
           call dcopy(n,xc,1,xp,1)
           call dcopy(n,fc,1,fp,1)
           fpnorm = fcnorm
+          if( outopt(3) .eq. 1 .and. .not. fstjac ) then
+             njcnt = njcnt + 1
+             call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *                   ldr,wrk1)
+          endif 
           return
       endif
 
@@ -173,40 +181,23 @@ c     check stopping criteria for input xc
 
          if( jacevl ) then
 
-c          - evaluate the jacobian at the current iterate xc
-c          - evaluate the gradient at the current iterate xc
+            call nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
+     *                  xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
+     *                  qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
-            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
-     *                 ldr,wrk1)
-            njcnt = njcnt + 1
-
-c          - if requested calculate x scale from jacobian column norms a la Minpack
-
-            if( xscalm .eq. 1 ) then
-               call vunsc(n,xc,scalex)
-               call nwcpsx(n,rjac,ldr,scalex,epsm,iter)
-               call vscal(n,xc,scalex)
-            endif
-
-            call nwscjac(n,rjac,ldr,scalex)
-
-c           gp = trans(Rjac) * fc
-            call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
-
-c          - get newton step
-c          - form Q from the QR decomposition (taur/qraux in wrk1) (simple Lapack routine)
-
-            call dcopy(n,fc,1,fq,1)
-            call nwndir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
-     *                  wrk1,dn,qtf,ierr,cond,
-     *                  rcdwrk,icdwrk,qrwork,qrwsiz)
-            call nwsnot(0,ierr,cond)
             if( ierr .eq. 0 ) then
+c              copy the upper triangular part of the QR decomposition
+c              contained in Rjac into R -> Rjac(*, n+1).
+c              form Q from the QR decomposition (taur/qraux in wrk1)
+
+               do j=1,n
+                  call dcopy(j,rjac(1,j),1,rjac(1,n+j),1)
+               enddo
                call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
             endif
 
-c           now Rjac(*  ,1..n) holds expanded Q
-c           now Rjac(n+1,1..n) holds full upper triangle R
+c           now Rjac[*  ,1..n] holds expanded Q
+c           now Rjac[*  ,(n+1)..(2n)] holds full upper triangle R
 
          else
 
@@ -215,9 +206,8 @@ c          - calculate approximate gradient
 
             call dcopy(n,fc,1,fq,1)
             call brodir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
-     *                  dn,qtf,ierr,cond,
-     *                  rcdwrk,icdwrk)
-            call nwsnot(1,ierr,cond)
+     *                  dn,qtf,ierr,rcond,rcdwrk,icdwrk)
+
             if( ierr .eq. 0 ) then
                call dcopy(n,qtf,1,gp,1)
                call dtrmv('U','T','N',n,rjac(1,n+1),ldr,gp,1)
@@ -228,13 +218,7 @@ c      - choose the next iterate xp by a global strategy
 
          if( ierr .gt. 0 ) then
 c           jacobian singular or too ill-conditioned
-            call dcopy(n,xc,1,xp,1)
-            call dcopy(n,fc,1,fp,1)
-            fpnorm = fcnorm
-            gcnt   = 0
-            if( priter .gt. 0 ) then
-               call nwjerr(iter)
-            endif
+            call nweset(n,xc,fc,fcnorm,xp,fp,fpnorm,gcnt,priter,iter)
          elseif(global .eq. 0) then
             call nwpure(n,xc,dn,stepmx,scalex,
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
@@ -276,7 +260,7 @@ c           reset trust region radius
             termcd = 0
 
          elseif(termcd .gt. 0) then
-            jacupd = .false.
+            jacupd = .false. 
          else
             jacupd = .true.
             jacevl = .false.
@@ -286,13 +270,25 @@ c           reset trust region radius
 c           perform Broyden update of current jacobian
 c           update xc, fc, and fcnorm
             call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
-     *                  wrk1,wrk2,rcdwrk)
+     *                  wrk1,wrk2,wrk3)
             call dcopy(n,xp,1,xc,1)
             call dcopy(n,fp,1,fc,1)
             fcnorm = fpnorm
          endif
 
       enddo
+
+      if( outopt(3) .eq. 1 ) then
+c        final update of jacobian
+         call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
+     *               wrk1,wrk2,wrk3)
+c        reconstruct Broyden matrix
+c        calculate Q * R where Q is overwritten by result
+c        Q is in rjac(1,1)
+         call dtrmm('R','U','N','N',n,n,Rone,rjac(1,n+1),n,rjac,n)
+c        unscale
+         call nwunscjac(n,rjac,ldr,scalex)
+      endif
 
       call vunsc(n,xp,scalex)
 
@@ -424,6 +420,7 @@ c-----------------------------------------------------------------------
 c     check for singularity or ill conditioning
 
       call cndjac(n,r,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
+      call nwsnot(1,ierr,rcond)
       if( ierr .ne. 0 ) then
           return
       endif

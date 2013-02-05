@@ -1,14 +1,12 @@
 
-R version 2.13.0 Patched (2011-04-26 r55655)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.15.2 (2012-10-26) -- "Trick or Treat"
+Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: i386-apple-darwin9.8.0/i386 (32-bit)
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -120,3 +118,6 @@ Type 'q()' to quit R.
 [1] "No better point found (algorithm has stalled)"
 [1] FALSE
 > 
+> proc.time()
+   user  system elapsed 
+  0.246   0.045   0.278 

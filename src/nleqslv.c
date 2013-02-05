@@ -70,7 +70,7 @@ static void trace_header(int method, int global, int xscalm, double sigma,
 	Rprintf("  Method: %s", method == 1 ? "Broyden" : "Newton");
 	Rprintf("  Global strategy: ");
 	switch(global)
-	{   
+	{
         case 0: Rprintf("none\n"); break;
         case 1: Rprintf("quadratic linesearch\n"); break;
 	    case 2: Rprintf("geometric linesearch (reduction = %g)\n", sigma); break;
@@ -110,6 +110,8 @@ static char *fcn_message(char *msg, int termcd)
 
 /*
  * interface to user supplied R function
+ * (*flag) == 0 when function is called for function values only
+ * (*flag) >  0 jacobian column number when function is called for numeric jacobian
  */
 
 void fcnval(double *xc, double *fc, int *n, int *flag)
@@ -149,12 +151,13 @@ void FCNJACDUM(double *rjac, int *ldr, double *x, int *n)
 
 /*
  * interface to user supplied jacobian function
-*/
+ */
 
 void fcnjac(double *rjac, int *ldr, double *x, int *n)
 {
     int i, j;
     SEXP sexp_fjac;
+    SEXP jdims;
 
     if (IS_NUMERIC(OS->x))
         for (i = 0; i < *n; i++) {
@@ -170,16 +173,12 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
         }
 
     SETCADR(OS->jcall, OS->x);
-    PROTECT(sexp_fjac = eval(OS->jcall, OS->env));  
-    
-    /* test for numerical object and correct length */
-    if (!IS_NUMERIC(sexp_fjac))
-        error("evaluation of jac function returns non-numeric vector!");
-    if (length(sexp_fjac) != (*n)*(*n))
-        error("jac function must return numeric vector with length"
-              " == length(x) * length(x). Your function"
-              " returns one with length %d while %d expected.",
-              length(sexp_fjac), (*n)*(*n));
+    PROTECT(sexp_fjac = eval(OS->jcall, OS->env));
+    jdims = GET_DIM(sexp_fjac);
+
+    /* test for numerical matrix with correct dimensions */
+    if (!IS_NUMERIC(sexp_fjac) || !isMatrix(sexp_fjac) || INTEGER(jdims)[0]!=*n || INTEGER(jdims)[1]!=*n)
+        error("The jacobian function must return a numerical matrix of dimension (%d,%d).",*n,*n);
 
     for (j = 0; j < *n; j++)
         for (i = 0; i < *n; i++) {
@@ -192,20 +191,23 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 }
 
 SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rxscalm,
-             SEXP control, SEXP rho)
+             SEXP rjacobian, SEXP control, SEXP rho)
 {
     double  *x, *rwork, *rcdwrk, *qrwork;
 	double  *xp, *fp, *gp, *scalex;
+    double  *pjac;
 	int     *icdwrk, *outopt;
 	const char *z;
 
     SEXP    eval_test;
     SEXP    sexp_x, sexp_diag, sexp_fvec, sexp_info, sexp_message, sexp_nfcnt, sexp_njcnt, sexp_iter;
+    SEXP    sexp_jac;
     SEXP    out, out_names;
+    SEXP    xnames;
 
     char    message[256];
 
-	int     i, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz;
+	int     i, j, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz;
     int     maxit, jacflg, method, global, xscalm;
 	double  xtol, ftol, btol, stepmx, dlt, sigma, cndtol;
 
@@ -214,7 +216,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     if( activeflag )
         error("Recursive call of nleqslv not possible");
     ++activeflag;
-        
+
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
     PROTECT(OS->x = duplicate(xstart));
@@ -249,7 +251,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 			error("evaluation of fn function has non-finite values\n   (starting at index=%d)",i+1);
 
     UNPROTECT(1);
-    
+
     /*
      * query the optimal amount of memory Lapack needs
      * to execute blocked QR code
@@ -257,12 +259,12 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
      */
 
     F77_CALL(liqsiz)(&n, &qrwsiz);
-    
+
     if( qrwsiz <= 0 )
         error("Error in querying amount of workspace for QR routines\n");
-  
+
     qrwork  = real_vector(qrwsiz);
-        
+
 	lrwork  = 9*n+2*n*n;
 
     x       = real_vector(n);
@@ -273,7 +275,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 	rwork   = real_vector(lrwork);
 	rcdwrk  = real_vector(3*n);
 	icdwrk  = int_vector(n);
-	outopt  = int_vector(2);
+	outopt  = int_vector(3);
 
     xtol    = NUMERIC_VALUE(getListElement(control, "xtol"));
     ftol    = NUMERIC_VALUE(getListElement(control, "ftol"));
@@ -283,9 +285,10 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     dlt     = NUMERIC_VALUE(getListElement(control, "delta"));
     maxit   = INTEGER_VALUE(getListElement(control, "maxit"));
     cndtol  = NUMERIC_VALUE(getListElement(control, "cndtol"));
-    
+
     outopt[0] = INTEGER_VALUE(getListElement(control, "trace"));
 	outopt[1] = LOGICAL_VALUE(getListElement(control, "chkjac"));
+    outopt[2] = LOGICAL_VALUE(rjacobian) ? 1 : 0;  //LOGICAL_VALUE(getListElement(control, "jacout"));
 
 	z = CHAR(STRING_ELT(rmethod, 0));
 	if( strcmp(z,"Broyden") == 0 )
@@ -366,15 +369,6 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         if (!isFunction(jac))
             error("jac is not a function!");
         PROTECT(OS->jcall = lang2(jac, OS->x));
-        // PROTECT(eval_test = eval(OS->jcall, OS->env));
-        // if (!IS_NUMERIC(eval_test))
-        //     error("evaluation of jac function returns non-numeric vector!");
-        // if (length(eval_test) != n*n)
-        //     error("jac function must return numeric vector with length"
-        //           " == length(x) * length(x). Your function"
-        //           " returns one with length %d while %d expected.",
-        //           length(eval_test), n*n);
-        // UNPROTECT(1);
 
 		jacflg = 1;
         F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol, &cndtol,
@@ -391,6 +385,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     PROTECT(sexp_x = NEW_NUMERIC(n));
     for (i = 0; i < n; i++)
         NUMERIC_POINTER(sexp_x)[i] = xp[i];
+
+    PROTECT(xnames = getAttrib(xstart,R_NamesSymbol));
+    if(!isNull(xnames)) setAttrib(sexp_x, R_NamesSymbol, xnames);
 
     PROTECT(sexp_fvec = NEW_NUMERIC(n));
     for (i = 0; i < n; i++)
@@ -420,7 +417,10 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
             NUMERIC_POINTER(VECTOR_ELT(sexp_diag, i))[0] = scalex[i];
     }
 
-    PROTECT(out = NEW_LIST(8));
+    if( outopt[2] == 1 )
+        PROTECT(out = NEW_LIST(9));
+    else
+        PROTECT(out = NEW_LIST(8));
     SET_VECTOR_ELT(out, 0, sexp_x);
     SET_VECTOR_ELT(out, 1, sexp_fvec);
     SET_VECTOR_ELT(out, 2, sexp_info);
@@ -429,8 +429,30 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     SET_VECTOR_ELT(out, 5, sexp_nfcnt);
     SET_VECTOR_ELT(out, 6, sexp_njcnt);
     SET_VECTOR_ELT(out, 7, sexp_iter);
+    if( outopt[2] == 1 ) {
+        PROTECT(sexp_jac = allocMatrix(REALSXP, n, n));
+        SET_VECTOR_ELT(out, 8, sexp_jac);
+        pjac = REAL(sexp_jac);
+        for(j=0; j < n; j++)
+            for(i=0; i < n; i++)
+                pjac[j*n+i] = rwork[9*n+j*n+i];
 
-    PROTECT(out_names = NEW_STRING(8));
+        if(!isNull(xnames)) {
+        	SEXP rcnames;
+        	PROTECT(rcnames = allocVector(VECSXP, 2));
+        	SET_VECTOR_ELT(rcnames, 0, duplicate(xnames));
+        	SET_VECTOR_ELT(rcnames, 1, duplicate(xnames));
+        	setAttrib(sexp_jac, R_DimNamesSymbol, rcnames);
+        	UNPROTECT(1);
+        }
+
+    }
+
+    if( outopt[2] == 1 )
+        PROTECT(out_names = NEW_STRING(9));
+    else
+        PROTECT(out_names = NEW_STRING(8));
+
     SET_STRING_ELT(out_names, 0, mkChar("x"));
     SET_STRING_ELT(out_names, 1, mkChar("fvec"));
     SET_STRING_ELT(out_names, 2, mkChar("termcd"));
@@ -439,10 +461,14 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     SET_STRING_ELT(out_names, 5, mkChar("nfcnt"));
     SET_STRING_ELT(out_names, 6, mkChar("njcnt"));
     SET_STRING_ELT(out_names, 7, mkChar("iter"));
+    if( outopt[2] == 1 )
+        SET_STRING_ELT(out_names, 8, mkChar("jac"));
 
     SET_NAMES(out, out_names);
-
-    UNPROTECT(12);
+    if( outopt[2] == 1 )
+        UNPROTECT(14);
+    else
+        UNPROTECT(13);
 
     return out;
 }

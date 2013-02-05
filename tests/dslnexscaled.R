@@ -40,24 +40,13 @@ print.result <- function(z) {
 
 # Use our fixed scaling
 
-# Broyden numerical Jacobian
-for( z in c("qline", "gline") ) {  # quadratic, geometric linesearch
-    znlq <- nleqslv(xstart, dslnex, global=z,control=list(btol=.01,scalex=c(2,3))) 
-    print.result(znlq)
-}
-
-# Broyden numerical Jacobian
-for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
-    for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
-        znlq <- nleqslv(xstart, dslnex, global=z, control=list(btol=.01,delta=delta,scalex=c(2,3)))
-        print.result(znlq)
-    }
-}
+znlq <- nleqslv(xstart, dslnex, jacdsln, global="dbldog", control=list(btol=.01,delta=-1.0,chkjac=TRUE,scalex=c(2,3)))
+if(znlq$termcd == -10) stop("Internal error in check analytical jacobian")
 
 # Broyden analytical jacobian
 for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
-        znlq <- nleqslv(xstart, dslnex, jacdsln, global=z, control=list(btol=.01,delta=delta,scalex=c(2,3)))
+        znlq <- nleqslv(xstart, dslnex, jacdsln, global=z, control=list(btol=.01,delta=delta,chkjac=TRUE,scalex=c(2,3)))
         print.result(znlq)
     }
 }
@@ -65,7 +54,7 @@ for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
 # Newton analytical jacobian
 for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
-        znlq <- nleqslv(xstart, dslnex, jacdsln, method="Newton", global=z, control=list(btol=.01,delta=delta,scalex=c(2,3)))
+        znlq <- nleqslv(xstart, dslnex, jacdsln, method="Newton", global=z, control=list(btol=.01,delta=delta,chkjac=TRUE,scalex=c(2,3)))
         print.result(znlq)
     }
 }

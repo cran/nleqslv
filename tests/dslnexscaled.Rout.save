@@ -1,14 +1,12 @@
 
-R version 2.13.0 Patched (2011-04-26 r55655)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.15.2 Patched (2013-01-16 r61667) -- "Trick or Treat"
+Copyright (C) 2013 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: i386-apple-darwin9.8.0/i386 (32-bit)
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -62,36 +60,13 @@ Type 'q()' to quit R.
 > 
 > # Use our fixed scaling
 > 
-> # Broyden numerical Jacobian
-> for( z in c("qline", "gline") ) {  # quadratic, geometric linesearch
-+     znlq <- nleqslv(xstart, dslnex, global=z,control=list(btol=.01,scalex=c(2,3))) 
-+     print.result(znlq)
-+ }
-[1] "Function criterion near zero"
-[1] TRUE
-[1] "Function criterion near zero"
-[1] TRUE
-> 
-> # Broyden numerical Jacobian
-> for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
-+     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
-+         znlq <- nleqslv(xstart, dslnex, global=z, control=list(btol=.01,delta=delta,scalex=c(2,3)))
-+         print.result(znlq)
-+     }
-+ }
-[1] "Function criterion near zero"
-[1] TRUE
-[1] "Function criterion near zero"
-[1] TRUE
-[1] "Function criterion near zero"
-[1] TRUE
-[1] "Function criterion near zero"
-[1] TRUE
+> znlq <- nleqslv(xstart, dslnex, jacdsln, global="dbldog", control=list(btol=.01,delta=-1.0,chkjac=TRUE,scalex=c(2,3)))
+> if(znlq$termcd == -10) stop("Internal error in check analytical jacobian")
 > 
 > # Broyden analytical jacobian
 > for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
 +     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
-+         znlq <- nleqslv(xstart, dslnex, jacdsln, global=z, control=list(btol=.01,delta=delta,scalex=c(2,3)))
++         znlq <- nleqslv(xstart, dslnex, jacdsln, global=z, control=list(btol=.01,delta=delta,chkjac=TRUE,scalex=c(2,3)))
 +         print.result(znlq)
 +     }
 + }
@@ -107,7 +82,7 @@ Type 'q()' to quit R.
 > # Newton analytical jacobian
 > for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
 +     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
-+         znlq <- nleqslv(xstart, dslnex, jacdsln, method="Newton", global=z, control=list(btol=.01,delta=delta,scalex=c(2,3)))
++         znlq <- nleqslv(xstart, dslnex, jacdsln, method="Newton", global=z, control=list(btol=.01,delta=delta,chkjac=TRUE,scalex=c(2,3)))
 +         print.result(znlq)
 +     }
 + }
@@ -120,3 +95,6 @@ Type 'q()' to quit R.
 [1] "Function criterion near zero"
 [1] TRUE
 > 
+> proc.time()
+   user  system elapsed 
+  0.252   0.047   0.279 
