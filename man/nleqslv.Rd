@@ -4,7 +4,7 @@
 \title{Solving systems of non linear equations with Broyden or Newton}
 \description{
 The function solves a system of non linear equations with either a Broyden or a
-full Newton method. It provides linesearch and trust region global strategies
+full Newton method. It provides line search and trust region global strategies
 for difficult systems.
 }
 \usage{
@@ -12,6 +12,7 @@ nleqslv(x, fn, jac=NULL,...,
                method = c("Broyden", "Newton"),
                global = c("dbldog", "pwldog", "qline", "gline", "none"),
                xscalm = c("fixed","auto"),
+               jacobian=FALSE,
                control = list()
 	)
 }
@@ -23,7 +24,9 @@ If not supplied numerical derivatives will be used.}
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac}.}
  \item{method}{The method used for finding a solution. See \sQuote{Details}.}
  \item{global}{The global strategy to apply. See \sQuote{Details}.}
- \item{xscalm}{The type of x scaling to use. See \sQuote{Details}.}
+ \item{xscalm}{The type of x scaling to use. See \sQuote{Details}.}  
+ \item{jacobian}{A logical indicating if the estimated (approximate) jacobian in the solution should be returned.
+ See \sQuote{Details}.}
  \item{control}{A list of control parameters. See \sQuote{Details}.}
 }
 \details{
@@ -45,14 +48,12 @@ of the current function criterion value compared to that of the previous iterati
 A comprehensive discussion of these issues can be found in Dennis and Schnabel (1996).
 Both methods apply a QR-decomposition to the Jacobian as implemented in Lapack.
 The Broyden method applies a rank-1 update to the Jacobian at the end of each iteration
-and uses an algorithm described for example in Golub and Van Loan (1996)
-and in Reichel and Gragg (1990).
-The code used in the package is taken from the opensource package \code{QRupdate}.
+and uses a modified version of the algorithm described in Dennis and Schnabel (1996).
 
 The \code{global} argument indicates which global strategy to use or to use no global strategy
 \describe{
-        \item{\code{qline}}{a quadratic linesearch}
-        \item{\code{gline}}{a geometric linesearch}
+        \item{\code{qline}}{a quadratic line search}
+        \item{\code{gline}}{a geometric line search}
         \item{\code{dbldog}}{a trust region method using the double dogleg method as described in
                              Dennis and Schnabel (1996)}
         \item{\code{pwldog}}{a trust region method using the Powell dogleg method
@@ -62,7 +63,6 @@ The \code{global} argument indicates which global strategy to use or to use no g
                            The default maximum number of iterations (see below) is set to 20.}
 }
 The double dogleg method is the default global strategy employed by this package.
-
 
 The parameters \code{x} may be scaled during the search for a zero of \code{fn}.
 The  \code{xscalm} argument provides two possibilities for scaling
@@ -74,7 +74,7 @@ to the inverse of the typical value of that element of \code{x},
 ensuring that all elements of \code{x} are approximately equal in size.}
 
 \item{\code{auto}}{the scaling factors
-are calculated from the euclidean norms of the columns of the jacobian matrix.
+are calculated from the euclidean norms of the columns of the Jacobian matrix.
 When a new Jacobian is computed, the scaling values will be set to the
 euclidean norm of the corresponding column if that is larger than the current scaling value.
 Thus the scaling values will not decrease during the iteration.
@@ -86,14 +86,19 @@ The algorithm cannot cope with a singular or ill-conditioned Jacobian, in contra
 to previous versions of this package. When a Jacobian becomes singular or very ill-conditioned
 the algorithm will return an error.  A Jacobian is considered to be very ill-conditioned
 when the estimated inverse condition is less than or equal to a specified tolerance with a default value
-equal to \eqn{10^{-12}}{1e-12}.%the machine precision.
+equal to \eqn{10^{-12}}{1e-12}.
 
-When the function to be solved returns non-finite values for a parameter vector \code{x}
-and the algorithm is \emph{not} evaluating a numerical jacobian, then the non-finite
-value will be replaced by a large number forcing the algorithm to backtrack,
-i.e. decrease the linesearch factor or decrease the trust region radius.
-When the algorithm is evaluating a numerical jacobian, it will stop with an error message
+When the function to be solved returns non-finite function values for a parameter vector \code{x}
+and the algorithm is \emph{not} evaluating a numerical Jacobian, then any non-finite
+values will be replaced by a large number forcing the algorithm to backtrack,
+i.e. decrease the line search factor or decrease the trust region radius.
+When the algorithm is evaluating a numerical Jacobian, it will stop with an error message
 on detecting non-finite function values.
+
+When the \code{jacobian} argument is set to \code{TRUE} the final Jacobian or Broyden matrix
+will be returned in the return list.
+The default value is \code{FALSE}; i.e. to not return the final matrix.
+There is no guarantee that the final Broyden matrix resembles the actual Jacobian.
 
 The \code{control} argument is a list that can supply any of the
 following components:
@@ -117,8 +122,9 @@ the Jacobian or Broyden approximation. If less than the machine precision it wil
 be silently set to the machine precision.
 When the estimated inverse condition of the (approximated) Jacobian matrix is less than or equal to 
 the value of \code{cndtol} the matrix is deemed to be ill-conditioned.
+The default value is \eqn{10^{-12}}{1e-12}.
 }
-\item{\code{sigma}}{Reduction factor for the geometric linesearch. The default value is 0.5.}
+\item{\code{sigma}}{Reduction factor for the geometric line search. The default value is 0.5.}
 \item{\code{scalex}}{a vector of scaling values for the parameters.
 The inverse of a scale value is an indication of the size of a parameter.
 The default value is 1.0 for all scale values.}
@@ -126,7 +132,7 @@ The default value is 1.0 for all scale values.}
 If no global strategy has been specified the default is 20.}
 \item{\code{trace}}{Non-negative integer. A value of 1 will give a detailed report of the
 progress of the iteration. For a description see \code{\link{Iteration report}}.}
-\item{\code{chkjac}}{A logical value indicating whether to check an analytical jacobian, if
+\item{\code{chkjac}}{A logical value indicating whether to check an analytical Jacobian, if
 supplied. The default value is \code{FALSE}. The first 10 errors are printed.
 The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
 \item{\code{delta}}{Initial (scaled) trust region radius.
@@ -164,12 +170,16 @@ A list containing components
   \item{message}{a string describing the termination code}
   \item{scalex}{a vector containing the scaling factors,
                 which will be the final values when automatic scaling was selected}
-  \item{njcnt}{number of jacobian evaluations}
-  \item{nfcnt}{number of function evaluations, excluding those required for calculating a jacobian and
+  \item{njcnt}{number of Jacobian evaluations}
+  \item{nfcnt}{number of function evaluations, excluding those required for calculating a Jacobian and
                excluding the initial function evaluation (at iteration 0)}
   \item{iter}{number of outer iterations used by the algorithm. This excludes the initial iteration.
   The number of backtracks can be calculated as the difference between items \code{nfcnt} and \code{iter}
   of the outputlist.}
+  \item{jac}{the final Jacobian or the Broyden approximation if \code{jacobian} was set to \code{TRUE}.
+  If no iterations were executed, as may happen when the initial starting values are sufficiently close
+  the solution, there is no Broyden approximation and the returned matrix will always be the actual Jacobian.
+  If the matrix is singular or too ill-conditioned the returned matrix is of no value.}
 }
 
 %\note{
@@ -202,8 +212,8 @@ In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed
 Powell, M.J.D. (1970), A Fortran subroutine for solving systems nonlinear equations,
 In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon \& Breach.
 
-QRupdate: a Fortran library for fast updating of QR and Cholesky decompositions,
-\url{http://sourceforge.net/projects/qrupdate/}.
+% QRupdate: a Fortran library for fast updating of QR and Cholesky decompositions,
+% \url{http://sourceforge.net/projects/qrupdate/}.
 
 Reichel, L. and W.B. Gragg (1990), Algorithm 686: FORTRAN subroutines for updating the QR decomposition,
 \emph{ACM Trans. Math. Softw.}, \bold{16}, 4, pp. 369--377.
@@ -256,6 +266,19 @@ nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-1.0))
 
 # Newton start
 nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
+
+# final Broyden approximation of Jacobian (quite good)
+z <- nleqslv(xstart, dslnex, jacobian=TRUE,control=list(btol=.01))
+z$x
+z$jac
+jacdsln(z$x)
+
+# different initial start; not a very good final approximation   
+xstart <- c(0.5,2)
+z <- nleqslv(xstart, dslnex, jacobian=TRUE,control=list(btol=.01))
+z$x
+z$jac
+jacdsln(z$x)
 
 \dontrun{
 # no global strategy but limit stepsize

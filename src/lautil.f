@@ -1,11 +1,3 @@
-      subroutine liqrup(Q,ldq,n,R,ldr,u,v,wk)
-      integer ldq,n,ldr
-      double precision Q(ldq,*),R(ldr,*),u(*),v(*),wk(*)
-
-c     call the rank-1 update routine from library qrupdate
-      call dqr1up(n,n,n,Q,ldq,R,ldr,u,v,wk)
-      return
-      end
 
 c-----------------------------------------------------------------------------
 

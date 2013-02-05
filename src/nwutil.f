@@ -42,20 +42,22 @@ c-------------------------------------------------------------------------
       integer idamax
 
 c     check whether function values are within tolerance
-      
+
       termcd = 0
-      
+
       if( ierr .ne. 0 ) then
          termcd = 4 + ierr
          return
       endif
-          
+
       fmax = abs(fplus(idamax(n,fplus,1)))
       if( fmax .le. ftol) then
          termcd = 1
          return
       endif
 
+c     initial check at start so there is no xplus
+c     so only a check of function values is useful
       if(iter .eq. 0) return
 
       if(retcd .eq. 1) then
@@ -76,6 +78,44 @@ c     check iteration limit
 
       if(iter .ge. maxit) then
          termcd = 4
+      endif
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine nweset(n,xc,fc,fcnorm,xp,fp,fpnorm,gcnt,priter,iter)
+      double precision xc(*),fc(*),fcnorm,xp(*),fp(*),fpnorm
+      integer n, gcnt, priter, iter
+
+c-------------------------------------------------------------------------
+c
+c     calling routine got an error in decomposition/update of Jacobian/Broyden
+c     jacobian an singular or too ill-conditioned
+c     prepare return arguments
+c
+c     Arguments
+c
+c     In       n       Integer         size of x
+c     In       xc      Real(*)         current (starting) x values
+c     In       fc      Real(*)         function values f(xc)
+c     In       fcnorm  Real            norm fc
+c     Out      xp      Real(*)         final x values
+c     Out      fp      Real(*)         function values f(xp)
+c     Out      fpnorm  Real            final norm fp
+c     Out      gcnt    Integer         # of backtracking steps (here set to 0)
+c     In       priter  Integer         flag for type of output
+c     In       iter    Integer         iteration counter
+c
+c-------------------------------------------------------------------------
+
+      call dcopy(n,xc,1,xp,1)
+      call dcopy(n,fc,1,fp,1)
+      fpnorm = fcnorm
+      gcnt   = 0
+      if( priter .gt. 0 ) then
+         call nwjerr(iter)
       endif
 
       return
@@ -140,21 +180,18 @@ c     the analytic one
       do j=1,n
          h = p + p * abs(xc(j))
          xcj   = xc(j)
-         xc(j) = xcj + h   
-         
+         xc(j) = xcj + h
+
 c        avoid (small) rounding errors
 c        h = xc(j) - xcj but not here to avoid clever optimizers
 
-         h = rnudif(xc(j), xcj) 
-         
+         h = rnudif(xc(j), xcj)
+
          call fvec(xc,fz,n,j)
          xc(j) = xcj
 
          do i=1,n
             wa(i) = (fz(i)-fc(i))/h
-         enddo
-         do i=1,n
-            wa(i) = wa(i)/scalex(j)
          enddo
 
          dinf = abs(wa(idamax(n,wa,1)))
@@ -172,7 +209,7 @@ c        h = xc(j) - xcj but not here to avoid clever optimizers
       enddo
 
       call vscal(n,xc,scalex)
-      
+
       if( errcnt .gt. 0 ) then
          termcd = -10
       endif
@@ -356,7 +393,7 @@ c---------------------------------------------------------------------
       logical rsing
       double precision Rzero,R2d3
       parameter(Rzero=0.0d0, R2d3=2.0d0/3.0d0)
-      
+
       ierr = 0
 
       rsing = .false.
@@ -394,7 +431,7 @@ c-----------------------------------------------------------------------
 
 c-------------------------------------------------------------------------
 c
-c     Calculate and scales the jacobian  matrix
+c     Calculate the jacobian  matrix
 c
 c     Arguments
 c
@@ -409,7 +446,7 @@ c                                       0  numeric
 c                                       1  analytic
 c     In       fvec    Name            name of routine to evaluate f()
 c     In       mkjac   Name            name of routine to evaluate jacobian
-c     Out      rjac    Real(ldr,*)     jacobian matrix
+c     Out      rjac    Real(ldr,*)     jacobian matrix (unscaled)
 c     In       ldr     Integer         leading dimension of rjac
 c     Internal xw      Real(*)         used for storing unscaled x
 c
@@ -441,22 +478,51 @@ c
 c     Arguments
 c
 c     In       n       Integer         size of x and f
-c     In       rjac    Real(ldr,*)     jacobian matrix
+c     Inout    rjac    Real(ldr,*)     jacobian matrix
 c     In       ldr     Integer         leading dimension of rjac
-c     Out      scalex  Real(*)         scaling factors for x
+c     In       scalex  Real(*)         scaling factors for x
 c
 c-------------------------------------------------------------------------
 
-      integer i,j
-      double precision t
-      
+      integer j
+      double precision t, Rone
+      parameter(Rone=1.0d0)
+
       do j = 1,n
-         t = scalex(j)
-         do i = 1,n
-            rjac(i,j) = rjac(i,j) / t
-         enddo
+         t = Rone/scalex(j)
+         call dscal(n,t,rjac(1,j),1)
+      enddo 
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine nwunscjac(n,rjac,ldr,scalex)
+      integer n, ldr
+      double precision rjac(ldr,*), scalex(*)
+
+c-------------------------------------------------------------------------
+c
+c     Unscale jacobian
+c
+c     Arguments
+c
+c     In       n       Integer         size of x and f
+c     Inout    rjac    Real(ldr,*)     jacobian matrix
+c     In       ldr     Integer         leading dimension of rjac
+c     In       scalex  Real(*)         scaling factors for x
+c
+c-------------------------------------------------------------------------
+
+      integer j
+      double precision t
+
+      do j = 1,n
+         t = scalex(j)  
+         call dscal(n,t,rjac(1,j),1)
       enddo
-   
+
       return
       end
 
@@ -517,7 +583,7 @@ c     In       x       Real(*)     x-values
 c     In       scalex  Real(*)     scaling factors for x
 c     In       factor  Real        multiplier
 c     Inout    wrk     Real(*)     workspace
-c     Out      stepsiz Real       stepsize   
+c     Out      stepsiz Real        stepsize
 c
 c     Currently not used
 c     Minpack uses this to calculate initial trust region size
@@ -614,7 +680,7 @@ c     In       scalex  Real(*)         scaling vector for x
 c     In       fvec    Name            name of routine to calculate f(x)
 c     Out      f       Real(*)         f(x)
 c     Out      fnorm   Real            .5*||f(x)||**2
-c     Internal xw      Real(*)         used for storing unscaled xc 
+c     Internal xw      Real(*)         used for storing unscaled xc
 c
 c-------------------------------------------------------------------------
 

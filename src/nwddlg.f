@@ -63,9 +63,9 @@ c
 c-------------------------------------------------------------------------
 
       integer i
-      double precision  dnlen,ssdlen,alpha,beta,lambda,vlen,vssdag,fpred
+      double precision  dnlen,ssdlen,alpha,beta,lambda,fpred
       double precision  sqalpha,eta,gamma,fpnsav,oarg(7)
-      double precision  dnrm2, ddot
+      double precision  dnrm2,ddot
       logical nwtake
       integer dtype
 
@@ -76,7 +76,7 @@ c-------------------------------------------------------------------------
       parameter(Rone=1.0d0, Rtwo=2.0d0, Rten=10.0d0)
       parameter(Rp2 = Rtwo/Rten, Rp8 = Rone - Rp2)
 
-c     length scaled newton direction
+c     length newton direction
 
       dnlen = dnrm2(n, dn, 1)
 
@@ -107,21 +107,14 @@ c     calculate double dogleg parameter
       gamma = alpha*alpha/(-beta*ddot(n,g,1,dn,1))
       eta = Rp2 + Rp8*gamma
 
-      do i=1,n
-         v(i) = eta*dn(i) - ssd(i)
-      enddo
-
-      vssdag = ddot(n,v,1,ssd,1)
-      vlen   = dnrm2(n,v,1)**2
-
       retcd = 4
       gcnt  = 0
 
       do while( retcd .gt. 1 )
 c        find new step by double dogleg algorithm
 
-         call dogstp(n,dn,dnlen,dlt,nwtake,vssdag,vlen,
-     *               ssd,v,ssdlen,eta,d,dtype,lambda)
+         call ddlgstp(n,dn,dnlen,dlt,nwtake,v,
+     *               ssd,ssdlen,eta,d,dtype,lambda)
 
 c        compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
 
@@ -161,11 +154,11 @@ c        check whether the global step is acceptable
 
 c-----------------------------------------------------------------------
 
-      subroutine dogstp(n,dn,dnlen,dlt,nwtake,vssdag,vlen,
-     *                  ssd,v,ssdlen,eta,d,dtype,lambda)
+      subroutine ddlgstp(n,dn,dnlen,dlt,nwtake,v,
+     *                  ssd,ssdlen,eta,d,dtype,lambda)
       integer n
       double precision  dn(*), ssd(*), v(*), d(*)
-      double precision  dnlen, dlt, vssdag, vlen, ssdlen, eta, lambda
+      double precision  dnlen, dlt, ssdlen, eta, lambda
       logical nwtake
       integer dtype
 
@@ -181,10 +174,8 @@ c     In       dn      Real(*)         current newton step
 c     Out      dnlen   Real            length dn()
 c     In       dlt     Real            current trust region radius
 c     Inout    nwtake  Logical         true if newton step taken
-c     In       vssdag  Real            (internal)
-c     In       vlen    Real            (internal)
+c     Out      v       Real(*)         (internal) eta * dn() - ssd()
 c     In       ssd     Real(*)         (internal) steepest descent direction
-c     In       v       Real(*)         (internal) eta * dn() - ssd()
 c     In       ssdlen  Real            (internal) length ssd
 c     In       eta     Real            (internal) double dogleg parameter
 c     Out      d       Real(*)         new step for x()
@@ -197,7 +188,11 @@ c     Out      lambda  Real            weight of eta*dn() in d()
 c                                      closer to 1 ==> more of eta*dn()
 c
 c-----------------------------------------------------------------------
-
+      
+      integer i
+      double precision vssd, vlen
+      double precision dnrm2, ddot
+      
       nwtake = .false.
 
       if(dnlen .le. dlt) then
@@ -227,10 +222,16 @@ c        take step in steepest descent direction
 
       else
 
-c        calculate convex combination of ssd and eta*p
-c        which has scaled length dlt
+c        calculate convex combination of ssd and eta*dn with length dlt
 
-         lambda =(-vssdag+sqrt(vssdag**2-vlen*(ssdlen**2-dlt**2)))/vlen
+         do i=1,n
+            v(i) = eta*dn(i) - ssd(i)
+         enddo
+         
+         vssd = ddot(n,v,1,ssd,1)
+         vlen = dnrm2(n,v,1)**2
+
+         lambda =(-vssd+sqrt(vssd**2-vlen*(ssdlen**2-dlt**2)))/vlen
          call dcopy(n, ssd, 1, d, 1)
          call daxpy(n, lambda, v, 1, d, 1)
          dtype = 2

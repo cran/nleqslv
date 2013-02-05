@@ -15,7 +15,6 @@ trigjac <- function(x) {
 	n <- length(x)
 	J <- matrix(numeric(n*n),n,n)
 
-	jrows <- 1:n
 	for (p in 1:n) {
 		J[,p]  <- sin(x[p])
 		J[p,p] <- (p+1) * sin(x[p]) - cos(x[p])

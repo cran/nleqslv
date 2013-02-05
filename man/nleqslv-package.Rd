@@ -13,10 +13,10 @@ The methods provided are
           using the Broyden rank 1 update.
     \item a full Newton method where the Jacobian matrix of derivatives is recalculated at each iteration
   }
-Both methods utilise global strategies such as linesearch or trust region methods
+Both methods utilise global strategies such as line search or trust region methods
 whenever the standard Newton/Broyden step does not lead to a point closer to a root
 of the equation system.
-Linesearch may be either quadratic or geometric. The trust region methods are either
+Line search may be either quadratic or geometric. The trust region methods are either
 the double dogleg or the Powell single dogleg method.
 
 The algorithms provided in this package are derived from Dennis and Schnabel (1996).

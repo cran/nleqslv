@@ -15,8 +15,8 @@ brdban <- function(x) {
 
 		temp = 0.0
 		for(j in k1:k2) {
-		  	if ( j != k ) {
-		    	temp <- temp + x[j] * (1.0 + x[j])
+			if ( j != k ) {
+				temp <- temp + x[j] * (1.0 + x[j])
 		    }
 		}
 
@@ -34,13 +34,24 @@ xsol <- c( -0.42830,  -0.47660,  -0.51965,  -0.55810,  -0.59251,
 
 fsol <- brdban(xsol)
 
-znlq <- nleqslv(xstart, brdban, global="dbldog",
-                  control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
-znlq$termcd                 # should be 2 for x values within tolerance                  
+znlq <- nleqslv(xstart, brdban, global="dbldog", method="Newton",
+                control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+znlq$termcd                 # should be 2 for x values within tolerance
 all(abs(znlq$fvec)<=1e-7)   # may not have achieved ftol
-    
+
+xstart <- -2*rep(1,n)
+znlq <- nleqslv(xstart, brdban, global="dbldog", method="Newton",
+                control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+znlq$termcd
+all(abs(znlq$fvec)<=1e-8)
+
+znlq <- nleqslv(xstart, brdban, global="dbldog",
+                control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+znlq$termcd                 # should be 2 for x values within tolerance
+all(abs(znlq$fvec)<=1e-7)   # may not have achieved ftol
+
 xstart <- -2*rep(1,n)
 znlq <- nleqslv(xstart, brdban, global="dbldog",
-                  control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
+                control=list(trace=0,ftol=1e-8,xtol=1e-8,btol=1e-2,delta=-1.0))
 znlq$termcd
 all(abs(znlq$fvec)<=1e-8)

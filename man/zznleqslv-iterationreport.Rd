@@ -10,11 +10,11 @@ All iteration reports consist of a series of columns with a header summarising t
 Common column headers are
 \describe{
 \item{\code{Iter}}{Iteration counter}
-\item{\code{Jac}}{Jacobian type. The jacobian type is indicated by \code{N} for a Newton jacobian
+\item{\code{Jac}}{Jacobian type. The Jacobian type is indicated by \code{N} for a Newton Jacobian
 or \code{B} for a Broyden updated matrix; optionally followed by the letter \code{s} 
 indicating a totally singular matrix or the letter \code{i} indicating an ill-conditioned matrix.
-Unless the jacobian is singular, the jacobian type is followed by an estimate
-of the inverse condition number of the jacobian in parentheses as computed by Lapack.
+Unless the Jacobian is singular, the Jacobian type is followed by an estimate
+of the inverse condition number of the Jacobian in parentheses as computed by Lapack.
 This column will be blank when backtracking is active.}
 \item{\code{Fnorm}}{euclidean norm of function values / 2}
 \item{\code{Largest |f|}}{infinity norm of \eqn{f(x)}{f(x)} at the current point}
@@ -29,7 +29,7 @@ Iter        Jac Lambda        Ftarg         Fnorm   Largest |f|
    1            0.0100 2.886806e+00  2.866321e+00  2.237878e+00
    2 B(2.2e-02) 1.0000 2.865748e+00  4.541965e+03  9.341610e+01
 }
-The column headed by \code{Lambda} shows the value of the linesearch parameter.
+The column headed by \code{Lambda} shows the value of the line search parameter.
 The column headed by \code{Ftarg} follows from a sufficient decrease requirement and
 is the value below which \code{Fnorm} must drop if the current step is to be accepted.
 
@@ -58,7 +58,7 @@ Iter        Jac   Lambda    Eta   Dlt0   Dltn        Fnorm  Largest |f|
   11 B(1.5e-01) N        0.9787 0.0000 0.0000 6.451792e-19 8.118586e-10
 }
 
-After the column for the jacobian the letters indicate the following
+After the column for the Jacobian the letters indicate the following
 \describe{
 \item{\code{C}}{a fraction (\eqn{\le1.0}{<=1.0}) of the Cauchy or steepest descent step is taken where
 the fraction is the ratio of the trust region radius and the Cauchy steplength.}

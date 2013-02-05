@@ -79,14 +79,14 @@ c     Out      fp      Real(*)         final f(xp)
 c     Out      gp      Real(*)         gradient at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
 c     Out      nfcnt   Integer         number of function evaluations
-c     Out      iter    Integer         number of (uter) iterations
+c     Out      iter    Integer         number of (outer) iterations
 c     Out      termcd  Integer         termination code
 c
 c-----------------------------------------------------------------------
 
       integer gcnt,retcd,ierr
       double precision  dum(2),fcnorm,rcond
-      logical mxtake
+      logical mxtake,fstjac
       integer priter
 
       integer idamax
@@ -117,19 +117,22 @@ c     evaluate function
 
 c     evaluate analytic or finite difference jacobian and check analytic
 c     jacobian, if requested
-
+      
+      fstjac = .false.
       if(jacflg .eq. 1) then
 
         if( outopt(2) .eq. 1 ) then
+           fstjac = .true.  
+           njcnt = njcnt + 1
            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *                 ldr,wrk1)
            call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
      *                 fq,wrk1,fvec,termcd)
            if(termcd .lt. 0) then
-c              copy initial values     
+c              copy initial values
                call dcopy(n,xc,1,xp,1)
                call dcopy(n,fc,1,fp,1)
-               fpnorm = fcnorm   
+               fpnorm = fcnorm
                return
            endif
         endif
@@ -138,12 +141,17 @@ c              copy initial values
 
 c     check stopping criteria for input xc
 
-      call nwtcvg(xc,fc,xc,xtol,retcd,ftol,iter,maxit,n,ierr, termcd)
+      call nwtcvg(xc,fc,xc,xtol,retcd,ftol,iter,maxit,n,ierr,termcd)
 
       if(termcd .gt. 0) then
           call dcopy(n,xc,1,xp,1)
           call dcopy(n,fc,1,fp,1)
           fpnorm = fcnorm
+          if( outopt(3) .eq. 1 .and. .not. fstjac ) then
+             njcnt = njcnt + 1
+             call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *                   ldr,wrk1)
+          endif 
           return
       endif
 
@@ -151,9 +159,9 @@ c     check stopping criteria for input xc
 
          dum(1) = fcnorm
          dum(2) = abs(fc(idamax(n,fc,1)))
-         
+
          if( global .eq. 0 ) then
-            call nwprot(iter, -1, dum) 
+            call nwprot(iter, -1, dum)
          elseif( global .le. 2 ) then
             call nwlsot(iter,-1,dum)
          elseif( global .eq. 3 ) then
@@ -167,45 +175,15 @@ c     check stopping criteria for input xc
       do while( termcd .eq. 0 )
          iter = iter + 1
 
-c        - evaluate the jacobian at the current iterate xc
-c        - evaluate the gradient at the current iterate xc
-
-         call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
-     *               ldr,wrk1)
-         njcnt = njcnt + 1
-
-c        - if requested calculate x scale from jacobian column norms a la Minpack
-
-         if( xscalm .eq. 1 ) then
-            call vunsc(n,xc,scalex)
-            call nwcpsx(n,rjac,ldr,scalex,epsm,iter)
-            call vscal(n,xc,scalex)
-         endif
-
-         call nwscjac(n,rjac,ldr,scalex)
-
-c        gp = trans(Rjac) * fc
-         call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
-
-c        - get newton step
-
-         call dcopy(n,fc,1,fq,1)
-         call nwndir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
-     *               wrk1,dn,qtf,ierr,rcond,
-     *               rcdwrk,icdwrk,qrwork,qrwsiz)
-         call nwsnot(0,ierr,rcond)
+         call nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
+     *               xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
+     *               qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
 c        - choose the next iterate xp by a global strategy
 
          if( ierr .gt. 0 ) then
 c           jacobian singular or too ill-conditioned
-            call dcopy(n,xc,1,xp,1)
-            call dcopy(n,fc,1,fp,1)
-            fpnorm = fcnorm
-            gcnt   = 0
-            if( priter .gt. 0 ) then
-               call nwjerr(iter)
-            endif
+            call nweset(n,xc,fc,fcnorm,xp,fp,fpnorm,gcnt,priter,iter)
          elseif(global .eq. 0) then
             call nwpure(n,xc,dn,stepmx,scalex,
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
@@ -219,12 +197,12 @@ c           jacobian singular or too ill-conditioned
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 3) then
-            call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
+            call nwddlg(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
      *                  btol,mxtake,dlt,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          elseif(global .eq. 4) then
-            call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
+            call nwpdlg(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
      *                  btol,mxtake,dlt,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
@@ -244,89 +222,13 @@ c           update xc, fc, and fcnorm
          endif
 
       enddo
-
+      
+      if( outopt(3) .eq. 1 ) then
+         call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
+     *               ldr,wrk1)
+      endif 
+      
       call vunsc(n,xp,scalex)
-
-      return
-      end
-
-c-----------------------------------------------------------------------
-
-      subroutine nwndir(rjac,ldr,r,fn,n,cndtol,
-     *                  qraux,dn,qtf,ierr,rcond,
-     *                  rcdwrk,icdwrk,qrwork,qrwsiz)
-
-      integer ldr,n,ierr,qrwsiz
-      double precision  cndtol,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
-      double precision  dn(*),qtf(*)
-      double precision  rcdwrk(*),qrwork(*)
-      integer           icdwrk(*)
-      double precision  rcond
-
-c-----------------------------------------------------------------------
-c
-c     Calculate the newton direction
-c
-c     Arguments
-c
-c     Inout    rjac    Real(ldr,*)     jacobian matrix at current iterate
-c                                      overwritten with QR decomposition
-c     In       ldr     Integer         leading dimension of rjac
-c     Out      r       Real(ldr,*)     upper triangular R from QR decomposition
-c     In       fn      Real(*)         function values at current iterate
-c     In       n       Integer         dimension of problem
-c     In       cndtol  Real            tolerance of test for ill conditioning
-c     Inout    qraux   Real(*)         QR info from liqrdc
-c     Out      dn      Real(*)         Newton direction
-c     Out      qtf     Real(*)         trans(Q)*f()
-c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
-c                                      1 indicating Jacobian ill-conditioned
-c                                      2 indicating Jacobian completely singular
-c     Out      rcond   Real            inverse condition  matrix
-c     Wk       rcdwrk  Real(*)         workspace
-c     Wk       icdwrk  Integer(*)      workspace
-c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
-c     In       qrwsiz  Integer         size of qrwork
-c
-c-----------------------------------------------------------------------
-
-      integer j,info
-
-      double precision Rzero, Rone
-      parameter(Rzero=0.0d0, Rone=1.0d0)
-
-c     perform a QR factorization of rjac (simple Lapack routine)
-c     check for singularity or ill conditioning
-c     form qtf = trans(Q) * fn
-c     copy upper triangular part of QR to R
-
-      call liqrfa(rjac,ldr,n,qraux,qrwork,qrwsiz,ierr)
-
-c     check for singularity or ill conditioning
-
-      call cndjac(n,rjac,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
-      if( ierr .ne. 0 ) then
-          return
-      endif
-
-c     compute qtf = trans(Q)*fn
-
-      call dcopy(n,fn,1,qtf,1)
-      call liqrqt(rjac, ldr, n, qraux, qtf, qrwork, qrwsiz, info)
-
-c     copy the upper triangular part of a QR decomposition
-c     contained in Rjac into R.
-
-      do j=1,n
-         call dcopy(j,rjac(1,j),1,r(1,j),1)
-      enddo
-
-c     solve rjac*dn  =  -fn
-c       ==> R*dn = - qtf
-
-      call dcopy(n,qtf,1,dn,1)
-      call dtrsv('U','N','N',n,rjac,ldr,dn,1)
-      call dscal(n, -Rone, dn, 1)
 
       return
       end

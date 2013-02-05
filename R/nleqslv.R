@@ -11,7 +11,8 @@
 nleqslv <- function(x, fn, jac = NULL, ...,
                     method = c("Broyden", "Newton"),
                     global = c("dbldog", "pwldog", "qline", "gline", "none"),
-                    xscalm = c("fixed","auto"),
+                    xscalm = c("fixed","auto"), 
+                    jacobian=FALSE,
                     control = list())
 {   
     fn1  <- function(par) fn(par, ...)
@@ -43,7 +44,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
 
     # to reset flag for checking recursive calls (not allowed for now)
     on.exit(.C("deactivatenleq",PACKAGE="nleqslv"))
-    out <- .Call("nleqslv", x, fn1, jac1, method, global, xscalm, con, new.env(), PACKAGE = "nleqslv")
+    out <- .Call("nleqslv", x, fn1, jac1, method, global, xscalm, jacobian, con, new.env(), PACKAGE = "nleqslv")
 
     out
 }
