@@ -123,21 +123,21 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      subroutine chkjac(A,lda,xc,fc,n,epsm,scalex,fz,wa,fvec,termcd)
+      subroutine chkjac1(A,lda,xc,fc,n,epsm,scalex,fz,wa,xw,fvec,termcd)
 
       integer lda,n,termcd
       double precision  A(lda,*),xc(*),fc(*)
       double precision  epsm,scalex(*)
-      double precision  fz(*),wa(*)
+      double precision  fz(*),wa(*),xw(*)
       external fvec
 
 c-------------------------------------------------------------------------
 c
-c     Check the analytic jacobian against its finite difference approximation
+c     Check the user supplied jacobian against its finite difference approximation
 c
 c     Arguments
 c
-c     In       A       Real(lda,*)     analytic jacobian
+c     In       A       Real(lda,*)     user supplied jacobian
 c     In       lda     Integer         leading dimension of ajanal
 c     In       xc      Real(*)         vector of x values
 c     In       fc      Real(*)         function values f(xc)
@@ -146,10 +146,11 @@ c     In       epsm    Real            machine precision
 c     In       scalex  Real(*)         scaling vector for x()
 c     Wk       fz      Real(*)         workspace
 c     Wk       wa      Real(*)         workspace
+c     Wk       xw      Real(*)         workspace
 c     In       fvec    Name            name of routine to evaluate f(x)
 c     Out      termcd  Integer         return code
-c                                        0  analytic jacobian ok
-c                                      -10  analytic jacobian NOT ok
+c                                        0  user supplied jacobian ok
+c                                      -10  user supplied jacobian NOT ok
 c
 c-------------------------------------------------------------------------
 
@@ -175,20 +176,21 @@ c     the analytic one
       tol    = epsm**Rquart
 
       errcnt = 0
-      call vunsc(n,xc,scalex)
+      call dcopy(n,xc,1,xw,1)
+      call vunsc(n,xw,scalex)
 
       do j=1,n
-         h = p + p * abs(xc(j))
-         xcj   = xc(j)
-         xc(j) = xcj + h
+         h = p + p * abs(xw(j))
+         xcj   = xw(j)
+         xw(j) = xcj + h
 
 c        avoid (small) rounding errors
 c        h = xc(j) - xcj but not here to avoid clever optimizers
 
-         h = rnudif(xc(j), xcj)
+         h = rnudif(xw(j), xcj)
 
-         call fvec(xc,fz,n,j)
-         xc(j) = xcj
+         call fvec(xw,fz,n,j)
+         xw(j) = xcj
 
          do i=1,n
             wa(i) = (fz(i)-fc(i))/h
@@ -208,7 +210,7 @@ c        h = xc(j) - xcj but not here to avoid clever optimizers
          enddo
       enddo
 
-      call vscal(n,xc,scalex)
+c      call vscal(n,xc,scalex)
 
       if( errcnt .gt. 0 ) then
          termcd = -10
@@ -218,7 +220,157 @@ c        h = xc(j) - xcj but not here to avoid clever optimizers
 
 c-----------------------------------------------------------------------
 
-      subroutine fdjac(xc,fc,n,epsm,fvec,fz,rjac,ldr)
+      subroutine chkjac2(A,lda,xc,fc,n,epsm,scalex,fz,wa,xw,fvec,termcd,
+     *                   dsub,dsuper)
+
+      integer lda,n,termcd,dsub,dsuper
+      double precision  A(lda,*),xc(*),fc(*)
+      double precision  epsm,scalex(*)
+      double precision  fz(*),wa(*),xw(*)
+      external fvec
+
+c-------------------------------------------------------------------------
+c
+c     Check the user supplied jacobian against its finite difference approximation
+c
+c     Arguments
+c
+c     In       A       Real(lda,*)     user supplied jacobian
+c     In       lda     Integer         leading dimension of ajanal
+c     In       xc      Real(*)         vector of x values
+c     In       fc      Real(*)         function values f(xc)
+c     In       n       Integer         size of x
+c     In       epsm    Real            machine precision
+c     In       scalex  Real(*)         scaling vector for x()
+c     Wk       fz      Real(*)         workspace
+c     Wk       wa      Real(*)         workspace 
+c     Wk       xw      Real(*)         workspace
+c     In       fvec    Name            name of routine to evaluate f(x)
+c     Out      termcd  Integer         return code
+c                                        0  user supplied jacobian ok
+c                                      -10  user supplied jacobian NOT ok
+c
+c-------------------------------------------------------------------------
+
+      integer i,j,k,dsum,errcnt
+      double precision  ndigit,p,h,dinf
+      double precision  tol
+      double precision w(n),xstep(n)
+      
+      integer MAXERR
+      parameter(MAXERR=10)
+
+      double precision Rquart, Rone, Rten, Rzero
+      parameter(Rquart=0.25d0, Rone=1.0d0, Rten=10.0d0, Rzero=0.0d0)
+
+      dsum = dsub + dsuper + 1
+
+      termcd = 0
+
+c     compute the finite difference jacobian and check it against
+c     the user supplied one
+
+      ndigit = -log10(epsm)
+      p = sqrt(max(Rten**(-ndigit),epsm))
+      tol    = epsm**Rquart
+
+      errcnt = 0
+      call dcopy(n,xc,1,xw,1)
+      call vunsc(n,xw,scalex)
+      
+      do j=1,n
+          xstep(j) = p + p * abs(xw(j))
+          w(j) = xw(j)
+      enddo 
+
+      do k=1,dsum
+         do j=k,n,dsum
+            xw(j) = xw(j) + xstep(j)
+         enddo
+
+c        for non finite values error message will be wrong      
+         call fvec(xw,fz,n,n+k)
+
+         do j=k,n,dsum
+             h = xstep(j)
+             xw(j) = w(j)
+             dinf = Rzero
+             do i=max(j-dsuper,1),min(j+dsub,n)
+                wa(i) = (fz(i)-fc(i)) / h 
+                if(abs(wa(i)).gt.dinf) dinf = abs(wa(i))
+             enddo 
+             
+             do i=max(j-dsuper,1),min(j+dsub,n)
+                if(abs(A(i,j)-wa(i)).gt.tol*dinf) then
+                   errcnt = errcnt + 1
+                   if( errcnt .gt. MAXERR ) then
+                      termcd = -10
+                      return
+                   endif
+                   call nwckot(i,j,A(i,j),wa(i))
+                endif   
+             enddo
+         enddo
+      enddo
+
+c      call vscal(n,xc,scalex)
+
+      if( errcnt .gt. 0 ) then
+         termcd = -10
+      endif
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine chkjac(A,lda,xc,fc,n,epsm,jacflg,scalex,fz,wa,xw,fvec,
+     *                  termcd)
+
+      integer lda,n,termcd,jacflg(*)
+      double precision  A(lda,*),xc(*),fc(*)
+      double precision  epsm,scalex(*)
+      double precision  fz(*),wa(*),xw(*)
+      external fvec
+
+c-------------------------------------------------------------------------
+c
+c     Check the user supplied jacobian against its finite difference approximation
+c
+c     Arguments
+c
+c     In       A       Real(lda,*)     user supplied jacobian
+c     In       lda     Integer         leading dimension of ajanal
+c     In       xc      Real(*)         vector of x values
+c     In       fc      Real(*)         function values f(xc)
+c     In       n       Integer         size of x
+c     In       epsm    Real            machine precision
+c     In       jacflg  Integer(*)      indicates how to compute jacobian
+c                                      jacflg[1]:  0 numeric 1 user supplied
+c     In       scalex  Real(*)         scaling vector for x()
+c     Wk       fz      Real(*)         workspace
+c     Wk       wa      Real(*)         workspace
+c     Wk       xw      Real(*)         workspace
+c     In       fvec    Name            name of routine to evaluate f(x)
+c     Out      termcd  Integer         return code
+c                                        0  user supplied jacobian ok
+c                                      -10  user supplied jacobian NOT ok
+c
+c-------------------------------------------------------------------------
+
+      if(jacflg(1) .eq. 1 .and. (jacflg(2)+jacflg(3) .ge. 0) ) then
+c        user supplied and banded           
+         call chkjac2(A,lda,xc,fc,n,epsm,scalex,fz,wa,xw,fvec,termcd,
+     *                jacflg(2),jacflg(3))
+      else
+         call chkjac1(A,lda,xc,fc,n,epsm,scalex,fz,wa,xw,fvec,termcd)
+      endif
+
+      return
+      end
+  
+c-----------------------------------------------------------------------
+
+      subroutine fdjac0(xc,fc,n,epsm,fvec,fz,rjac,ldr)
 
       integer ldr,n
       double precision  epsm
@@ -270,6 +422,77 @@ c        h = xc(j) - xcj  but not here to avoid clever optimizers
          xc(j) = xcj
          do i=1,n
             rjac(i,j) = (fz(i)-fc(i)) / h
+         enddo
+      enddo
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      subroutine fdjac2(xc,fc,n,epsm,fvec,fz,rjac,ldr,dsub,dsuper,
+     *                  w,xstep)
+
+      integer ldr,n,dsub,dsuper
+      double precision  epsm
+      double precision  rjac(ldr,*),fz(*),xc(*),fc(*) 
+      double precision  w(*), xstep(*)
+      external fvec
+
+c-------------------------------------------------------------------------
+c
+c     Compute a banded finite difference jacobian at the current point xc
+c
+c     Arguments
+c
+c     In       xc      Real(*)         current point
+c     In       fc      Real(*)         function values at current point
+c     In       n       Integer         size of x and f
+c     In       epsm    Real            machine precision
+c     In       fvec    Name            name of routine to evaluate f(x)
+c     Wk       fz      Real(*)         workspace
+c     Out      rjac    Real(ldr,*)     jacobian matrix at x
+c                                        entry [i,j] is derivative of
+c                                        f(i) wrt to x(j)
+c     In       ldr     Integer         leading dimension of rjac
+c     In       dsub    Integer         number of subdiagonals
+c     In       dsuper  Integer         number of superdiagonals 
+c     Internal w       Real(*)         for temporary saving of xc
+c     Internal xstep   Real(*)         stepsizes
+c
+c-------------------------------------------------------------------------
+
+      integer i,j,k
+      double precision  ndigit,p,h
+
+      double precision Rten,Rzero
+      parameter(Rten=10d0,Rzero=0.0d0)
+
+      integer dsum
+
+      dsum = dsub + dsuper + 1
+
+      ndigit = -log10(epsm)
+      p = sqrt(max(Rten**(-ndigit),epsm))
+
+      do k=1,n
+         xstep(k) = p + p * abs(xc(k))
+      enddo
+     
+      do k=1,dsum
+         do j=k,n,dsum
+            w(j) = xc(j)
+            xc(j) = xc(j) + xstep(j)
+         enddo
+
+         call fvec(xc,fz,n,n+k)
+         do j=k,n,dsum
+             rjac(1:n,j) = Rzero
+             h = xstep(j)
+             xc(j) = w(j)
+             do i=max(j-dsuper,1),min(j+dsub,n)
+                rjac(i,j) = (fz(i)-fc(i)) / h
+             enddo
          enddo
       enddo
 
@@ -421,11 +644,11 @@ c---------------------------------------------------------------------
 c-----------------------------------------------------------------------
 
       subroutine nwfjac(x,scalex,f,fq,n,epsm,jacflg,fvec,mkjac,rjac,
-     *                  ldr,xw)
+     *                  ldr,xw,w,xstep)
 
-      integer ldr,n,jacflg
+      integer ldr,n,jacflg(*)
       double precision  epsm
-      double precision  x(*),f(*),scalex(*),xw(*)
+      double precision  x(*),f(*),scalex(*),xw(*),w(*),xstep(*)
       double precision  rjac(ldr,*),fq(*)
       external fvec,mkjac
 
@@ -441,14 +664,15 @@ c     In       f       Real(*)         function values f(x)
 c     Wk       fq      Real(*)         (internal) workspace
 c     In       n       Integer         size of x and f
 c     In       epsm    Real            machine precision
-c     In       jacflg  Integer         indicates how to compute jacobian
-c                                       0  numeric
-c                                       1  analytic
+c     In       jacflg  Integer(*)      indicates how to compute jacobian
+c                                      jacflg[1]:  0 or 2 numeric; 1 user supplied
 c     In       fvec    Name            name of routine to evaluate f()
 c     In       mkjac   Name            name of routine to evaluate jacobian
 c     Out      rjac    Real(ldr,*)     jacobian matrix (unscaled)
 c     In       ldr     Integer         leading dimension of rjac
 c     Internal xw      Real(*)         used for storing unscaled x
+c     Internal w       Real(*)         workspace for banded jacobian
+c     Internal xstep   Real(*)         workspace for banded jacobian
 c
 c-------------------------------------------------------------------------
 
@@ -456,8 +680,11 @@ c     compute the finite difference or analytic jacobian at x
 
       call dcopy(n,x,1,xw,1)
       call vunsc(n,xw,scalex)
-      if(jacflg .eq. 0) then
-         call fdjac(xw,f,n,epsm,fvec,fq,rjac,ldr)
+      if(jacflg(1) .eq. 0) then
+         call fdjac0(xw,f,n,epsm,fvec,fq,rjac,ldr)
+      elseif(jacflg(1) .eq. 2) then
+         call fdjac2(xw,f,n,epsm,fvec,fq,rjac,ldr,jacflg(2),jacflg(3),
+     *               w,xstep)
       else
          call mkjac(rjac,ldr,xw,n)
       endif
@@ -491,7 +718,7 @@ c-------------------------------------------------------------------------
       do j = 1,n
          t = Rone/scalex(j)
          call dscal(n,t,rjac(1,j),1)
-      enddo 
+      enddo
 
       return
       end
@@ -519,7 +746,7 @@ c-------------------------------------------------------------------------
       double precision t
 
       do j = 1,n
-         t = scalex(j)  
+         t = scalex(j)
          call dscal(n,t,rjac(1,j),1)
       enddo
 

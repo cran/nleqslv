@@ -5,7 +5,7 @@
      *                  rcdwrk,icdwrk,qrwork,qrwsiz,fjac,fvec,outopt,xp,
      *                  fp,gp,njcnt,nfcnt,iter,termcd)
 
-      integer n,jacflg,maxit,njcnt,nfcnt,iter,termcd,method
+      integer n,jacflg(*),maxit,njcnt,nfcnt,iter,termcd,method
       integer global,xscalm,lrwork,qrwsiz
       integer outopt(*)
       double precision  xtol,ftol,btol,cndtol,stepmx,dlt,sigma
@@ -24,9 +24,8 @@ c     In       x0      Real(*)         starting vector for x
 c     In       n       Integer         dimension of problem
 c     Inout    scalex  Real(*)         scaling factors x()
 c     Inout    maxit   Integer         maximum number iterations
-c     Inout    jacflg  Integer         jacobian flag
-c                                        0 numeric
-c                                        1 analytical (user supplied)
+c     Inout    jacflg  Integer(*)      jacobian flag array
+c                                      jacflg[1]:  0 numeric 1 user supplied
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
 c     Inout    btol    Real            x tolerance for backtracking 
@@ -55,21 +54,21 @@ c     In       icdwrk  Integer(*)      workspace for Dtrcon (n)
 c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
 c     In       qrwsiz  Integer         size of qrwork
 c     In       fjac    Name            optional name of routine to calculate
-c                                      analytic jacobian
+c                                      user supplied jacobian
 c     In       fvec    Name            name of routine to calculate f(x)
 c     In       outopt  Integer(*)      output options
 c                                       outopt(1)
 c                                         0 no output
 c                                         1 output an iteration report
 c                                       outopt(2)
-c                                         0 do not check any analytical jacobian
-c                                         1 check analytical jacobian if supplied
+c                                         0 do not check any user supplied jacobian
+c                                         1 check user supplied jacobian if supplied
 c     Out      xp      Real(*)         final values for x()
 c     Out      fp      Real(*)         final values for f(x)
 c     Out      gp      Real(*)         gradient of f() at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
 c     Out      nfcnt   Integer         number of function evaluations 
-c     Out      iter    Integer         number of (uter) iterations
+c     Out      iter    Integer         number of (outer) iterations
 c     Out      termcd  Integer         termination code
 c                                       > 0 process terminated
 c                                             1  function criterion near zero
@@ -81,7 +80,7 @@ c
 c                                       < 0 invalid input parameters
 c                                            -1  n not positive
 c                                            -2  insufficient workspace rwork
-c                                            -3  cannot check analytical jacobian (not supplied)
+c                                            -3  cannot check user supplied jacobian (not supplied)
 c
 c    The subroutine fvec must be declared as
 c
@@ -162,7 +161,7 @@ c-----------------------------------------------------------------------
      *                  global,stepmx,dlt,sigma,epsm,outopt,
      *                  scalex,xscalm,termcd)
 
-      integer n,lrwk,jacflg
+      integer n,lrwk,jacflg(*)
       integer method,global,maxit,xscalm,termcd
       integer outopt(*)
       double precision  xtol,ftol,btol,cndtol,stepmx,dlt,sigma,epsm
@@ -181,7 +180,7 @@ c     Inout    ftol    Real            f tolerance
 c     Inout    btol    Real            x tolerance for backtracking 
 c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     Inout    maxit   Integer         maximum number iterations
-c     Inout    jacflg  Integer         jacobian flag
+c     Inout    jacflg  Integer(*)      jacobian flag
 c     Inout    method  Integer         method to use (Newton/Broyden)
 c     Inout    global  Integer         global strategy to use
 c     Inout    stepmx  Real            maximum stepsize
@@ -237,7 +236,7 @@ c     check dimensions of workspace arrays
 
 c     check jacflg, method, and global
 
-      if(jacflg .ne. 1) jacflg = 0
+      if(jacflg(1) .gt. 2 .or. jacflg(1) .lt. 0) jacflg(1) = 0
 
       if(method .lt. 0 .or. method .gt. 1) method = 0
 

@@ -1,11 +1,14 @@
 #include <R.h>
-#include <Rdefines.h>
+#include <Rinternals.h>
 
 typedef struct opt_struct {
     SEXP x;
-    SEXP fcall;
-    SEXP jcall;
-    SEXP env;
+    SEXP fcall; /* function */
+    SEXP jcall; /* jacobian */
+    SEXP env;   /* environment in which to evaluate calls */
+    SEXP names; /* names of starting values */
+    int  dsub;  /* number of subdiagonals if jacobian is banded */
+    int  dsuper;/* number of superdiagonals if jacobian is banded */
 } opt_struct, *OptStruct;
 
 OptStruct OS;
@@ -88,30 +91,41 @@ static void trace_header(int method, int global, int xscalm, double sigma,
 
 static char *fcn_message(char *msg, int termcd)
 {
-    if      (termcd == 1)
-        sprintf(msg, "Function criterion near zero");
-    else if (termcd == 2)
-        sprintf(msg, "x-values within tolerance `xtol'");
-    else if (termcd == 3)
-        sprintf(msg, "No better point found (algorithm has stalled)");
-    else if (termcd == 4)
-        sprintf(msg, "Iteration limit exceeded");
-    else if (termcd == 5)
-        sprintf(msg, "Jacobian is too ill-conditioned");
-    else if (termcd == 6)
-        sprintf(msg, "Jacobian is singular");
-    else if (termcd == -10 )
-        sprintf(msg, "Analytical Jacobian most likely incorrect");
-    else
-        sprintf(msg, "`termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
-
+    switch(termcd)
+    {
+        case 1: sprintf(msg, "Function criterion near zero"); break;
+        case 2: sprintf(msg, "x-values within tolerance `xtol'"); break;
+        case 3: sprintf(msg, "No better point found (algorithm has stalled)"); break;
+        case 4: sprintf(msg, "Iteration limit exceeded"); break;
+        case 5: sprintf(msg, "Jacobian is too ill-conditioned"); break;
+        case 6: sprintf(msg, "Jacobian is singular"); break;
+        case -10: sprintf(msg, "User supplied Jacobian most likely incorrect"); break;
+        default: sprintf(msg, "`termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
+    }
     return msg;
+}
+
+#define max(a,b) ((a)>(b) ? (a):(b))
+#define min(a,b) ((a)<(b) ? (a):(b))
+
+static int  findcol(int row, int n, int k)
+{
+    int j, col = 0;
+
+    for(j=k; j <= n; j += OS->dsub+OS->dsuper+1)
+    {
+        if( row >= max(j-OS->dsuper,1) && row <= min(j+OS->dsub,n) )
+            col = j;
+        break;
+    }
+    return col;
 }
 
 /*
  * interface to user supplied R function
  * (*flag) == 0 when function is called for function values only
  * (*flag) >  0 jacobian column number when function is called for numeric jacobian
+ *         > *n (*flag-*n) is strip number for banded evaluation
  */
 
 void fcnval(double *xc, double *fc, int *n, int *flag)
@@ -119,24 +133,24 @@ void fcnval(double *xc, double *fc, int *n, int *flag)
     int i;
     SEXP sexp_fvec;
 
-    if (IS_NUMERIC(OS->x))
-        for (i = 0; i < *n; i++) {
-            NUMERIC_POINTER(OS->x)[i] = xc[i];
-    }
-    else
-        for (i = 0; i < *n; i++) {
-            NUMERIC_POINTER(VECTOR_ELT(OS->x, i))[0] = xc[i];
-    }
+    for (i = 0; i < *n; i++)
+            REAL(OS->x)[i] = xc[i];
 
     SETCADR(OS->fcall, OS->x);
     PROTECT(sexp_fvec = eval(OS->fcall, OS->env));
-
+    if(!isReal(sexp_fvec)) error("function must return a numeric vector");
+    if(LENGTH(sexp_fvec) != *n) error("function return should be a vector of length %d but is of length %d\n",
+                                       LENGTH(sexp_fvec), *n);
     for (i = 0; i < *n; i++) {
-        fc[i] = NUMERIC_POINTER(sexp_fvec)[i];
+        fc[i] = REAL(sexp_fvec)[i];
 		if( !R_FINITE(fc[i]) ) {
             fc[i] = sqrt(DBL_MAX / (double)(*n)); /* should force backtracking */
 		    if( *flag ) {
+		        if( *flag <= *n )
 				error("Non-finite value(s) detected in jacobian (row=%d,col=%d)",i+1,*flag);
+				else
+				error("Non-finite value(s) detected in banded jacobian (row=%d,col=%d)",i+1,
+				      findcol(i+1,*n,*flag-*n));
 	        }
         }
 	}
@@ -159,32 +173,25 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
     SEXP sexp_fjac;
     SEXP jdims;
 
-    if (IS_NUMERIC(OS->x))
-        for (i = 0; i < *n; i++) {
-            if (!R_FINITE(x[i]))
-                error("non-finite value supplied by Nwnleq!");
-            NUMERIC_POINTER(OS->x)[i] = x[i];
-        }
-    else
-        for (i = 0; i < *n; i++) {
-            if (!R_FINITE(x[i]))
-                error("non-finite value supplied by Nwnleq!");
-            NUMERIC_POINTER(VECTOR_ELT(OS->x, i))[0] = x[i];
-        }
+    for (i = 0; i < *n; i++) {
+         if (!R_FINITE(x[i]))
+             error("non-finite value supplied by Nwnleq!");
+         REAL(OS->x)[i] = x[i];
+    }
 
     SETCADR(OS->jcall, OS->x);
     PROTECT(sexp_fjac = eval(OS->jcall, OS->env));
-    jdims = GET_DIM(sexp_fjac);
+    jdims = getAttrib(sexp_fjac,R_DimSymbol);
 
     /* test for numerical matrix with correct dimensions */
-    if (!IS_NUMERIC(sexp_fjac) || !isMatrix(sexp_fjac) || INTEGER(jdims)[0]!=*n || INTEGER(jdims)[1]!=*n)
+    if (!isReal(sexp_fjac) || !isMatrix(sexp_fjac) || INTEGER(jdims)[0]!=*n || INTEGER(jdims)[1]!=*n)
         error("The jacobian function must return a numerical matrix of dimension (%d,%d).",*n,*n);
 
     for (j = 0; j < *n; j++)
         for (i = 0; i < *n; i++) {
-	        if( !R_FINITE(NUMERIC_POINTER(sexp_fjac)[(*n)*j + i]) )
+	        if( !R_FINITE(REAL(sexp_fjac)[(*n)*j + i]) )
 				error("Non-finite value(s) returned by jacobian (row=%d,col=%d)",i+1,j+1);
-            rjac[(*ldr)*j + i] = NUMERIC_POINTER(sexp_fjac)[(*n)*j + i];
+            rjac[(*ldr)*j + i] = REAL(sexp_fjac)[(*n)*j + i];
         }
 
     UNPROTECT(1);
@@ -208,10 +215,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     char    message[256];
 
 	int     i, j, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz;
-    int     maxit, jacflg, method, global, xscalm;
+    int     maxit, method, global, xscalm;
+    int     jactype, jacflg[3], dsub, dsuper;
 	double  xtol, ftol, btol, stepmx, dlt, sigma, cndtol;
-
-    PROTECT_INDEX ipx;
 
     if( activeflag )
         error("Recursive call of nleqslv not possible");
@@ -219,19 +225,20 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
-    PROTECT(OS->x = duplicate(xstart));
+    if( isReal(xstart) )
+        PROTECT(OS->x = duplicate(xstart));
+    else if(isInteger(xstart) || isLogical(xstart) )
+        PROTECT(OS->x = coerceVector(xstart,REALSXP));
+    else
+        error("`x' cannot be converted to numeric!");
+
+    OS->names = getAttrib(xstart, R_NamesSymbol);
+
     n = length(OS->x);
 
-    switch (TYPEOF(OS->x)) {
-    case REALSXP:
-        break;
-    case VECSXP:
-        for (i = 0; i < n; i++)
-            SET_VECTOR_ELT(OS->x, i, AS_NUMERIC(VECTOR_ELT(OS->x, i)));
-        break;
-    default:
-        error("`x' that you provided is non-list and non-numeric!");
-    }
+    for (i = 0; i < n; i++)
+		if( !R_FINITE(REAL(OS->x)[i]) )
+			error("`x' contains a non-finite value at index=%d\n",i+1);
 
     if (!isFunction(fn)) error("fn is not a function!");
     PROTECT(OS->fcall = lang2(fn, OS->x));
@@ -240,14 +247,14 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     OS->env = rho;
 
     PROTECT(eval_test = eval(OS->fcall, OS->env));
-    if (!IS_NUMERIC(eval_test))
+    if (!isReal(eval_test))
         error("evaluation of fn function returns non-numeric vector!");
     i = length(eval_test);
     if( i != n )
         error("Length of fn result <> length of x!");
 
     for (i = 0; i < n; i++)
-		if( !R_FINITE(NUMERIC_POINTER(eval_test)[i]) )
+		if( !R_FINITE(REAL(eval_test)[i]) )
 			error("evaluation of fn function has non-finite values\n   (starting at index=%d)",i+1);
 
     UNPROTECT(1);
@@ -277,18 +284,28 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 	icdwrk  = int_vector(n);
 	outopt  = int_vector(3);
 
-    xtol    = NUMERIC_VALUE(getListElement(control, "xtol"));
-    ftol    = NUMERIC_VALUE(getListElement(control, "ftol"));
-    btol    = NUMERIC_VALUE(getListElement(control, "btol"));
-    sigma   = NUMERIC_VALUE(getListElement(control, "sigma"));
-    stepmx  = NUMERIC_VALUE(getListElement(control, "stepmax"));
-    dlt     = NUMERIC_VALUE(getListElement(control, "delta"));
-    maxit   = INTEGER_VALUE(getListElement(control, "maxit"));
-    cndtol  = NUMERIC_VALUE(getListElement(control, "cndtol"));
+    xtol    = asReal(getListElement(control, "xtol"));
+    ftol    = asReal(getListElement(control, "ftol"));
+    btol    = asReal(getListElement(control, "btol"));
+    sigma   = asReal(getListElement(control, "sigma"));
+    stepmx  = asReal(getListElement(control, "stepmax"));
+    dlt     = asReal(getListElement(control, "delta"));
+    cndtol  = asReal(getListElement(control, "cndtol"));
 
-    outopt[0] = INTEGER_VALUE(getListElement(control, "trace"));
-	outopt[1] = LOGICAL_VALUE(getListElement(control, "chkjac"));
-    outopt[2] = LOGICAL_VALUE(rjacobian) ? 1 : 0;  //LOGICAL_VALUE(getListElement(control, "jacout"));
+    if(!R_FINITE(xtol)) error("'xtol' is not a valid finite number");
+    if(!R_FINITE(ftol)) error("'ftol' is not a valid finite number");
+    if(!R_FINITE(btol)) error("'btol' is not a valid finite number");
+    if(!R_FINITE(sigma)) error("'sigma' is not a valid finite number");
+    if(!R_FINITE(stepmx)) error("'stepmx' is not a valid finite number");
+    if(!R_FINITE(dlt)) error("'delta' is not a valid finite number");
+    if(!R_FINITE(cndtol)) error("'cndtol' is not a valid finite number");
+
+    maxit   = asInteger(getListElement(control, "maxit"));
+    if(maxit == NA_INTEGER) error("'maxit' is not an integer");
+
+    outopt[0] = asInteger(getListElement(control, "trace"));
+	outopt[1] = asLogical(getListElement(control, "chkjac"));
+    outopt[2] = asLogical(rjacobian) ? 1 : 0;
 
 	z = CHAR(STRING_ELT(rmethod, 0));
 	if( strcmp(z,"Broyden") == 0 )
@@ -314,53 +331,53 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 	else
 		xscalm = 1;
 
-    PROTECT_WITH_INDEX(sexp_diag = getListElement(control, "scalex"), &ipx);
-    switch (TYPEOF(sexp_diag)) {
-    case REALSXP:
-        if (length(sexp_diag) == n) {
-            REPROTECT(sexp_diag = duplicate(sexp_diag), ipx);
-            for (i = 0; i < n; i++)
-                scalex[i] = NUMERIC_POINTER(sexp_diag)[i];
-        }
-        else {
-            REPROTECT(sexp_diag = NEW_NUMERIC(n), ipx);
-        }
-        break;
-    case VECSXP:
-        if (length(sexp_diag) == n) {
-            REPROTECT(sexp_diag = duplicate(sexp_diag), ipx);
-            for (i = 0; i < n; i++) {
-                SET_VECTOR_ELT(sexp_diag, i, AS_NUMERIC(VECTOR_ELT(sexp_diag, i)));
-                scalex[i] = NUMERIC_VALUE(VECTOR_ELT(sexp_diag, i));
-            }
-        }
-        else {
-            REPROTECT(sexp_diag = NEW_LIST(n), ipx);
-            for (i = 0; i < n; i++)
-                SET_VECTOR_ELT(sexp_diag, i, NEW_NUMERIC(1));
-        }
-        break;
-    default:
-        error("`scalex' that you provided is non-list and non-numeric!");
-    }
+    dsub   = asInteger(getListElement(control, "dsub"));
+    dsuper = asInteger(getListElement(control, "dsuper"));
+    /* -1 means not specified i.e. not active */
+    if(dsub==NA_INTEGER || dsub<-1 || dsub>n-2) error("Invalid/impossible value for 'dsub'");
+    if(dsuper==NA_INTEGER || dsuper<-1 || dsuper>n-2) error("Invalid/impossible value for 'dsuper'");
+    if( (dsub < 0 && dsuper >= 0) || (dsuper < 0 && dsub >= 0) ) error("Both dsub and dsuper must be specified");
+    if(method==1 && dsub==0 && dsuper==0) error("method Broyden not implemented for dsub=dsuper=0!");
+    
+    /*
+     * setup calculation type of jacobian
+     */
 
-    if (IS_NUMERIC(OS->x)) {
-        for (i = 0; i < n; i++)
-            x[i] = NUMERIC_POINTER(OS->x)[i];
+    jactype = isNull(jac) ? 0 : 1;
+    if( dsub >= 0 && dsuper >= 0 ) {
+        /*
+         * both dsub and dsuper specified and >= 0
+         * banded jacobian
+         */
+
+        jactype = 2;
+        jacflg[1] = OS->dsub   = dsub;
+        jacflg[2] = OS->dsuper = dsuper;
     }
     else {
-        for (i = 0; i < n; i++)
-            x[i] = NUMERIC_VALUE(VECTOR_ELT(OS->x, i));
+        jacflg[1] = OS->dsub   = -1;
+        jacflg[2] = OS->dsuper = -1;
     }
+
+    /* copied from code in <Rsource>/src/library/stats/src/optim.c */
+    sexp_diag = getListElement(control, "scalex");
+    if( LENGTH(sexp_diag) != n )
+        error("'scalex' is of the wrong length");
+    PROTECT(sexp_diag = coerceVector(sexp_diag,REALSXP));
+    for (i = 0; i < n; i++)
+        scalex[i] = REAL(sexp_diag)[i];
+
+    for (i = 0; i < n; i++)
+        x[i] = REAL(OS->x)[i];
 
 /*========================================================================*/
 
     if( outopt[0] == 1)
         trace_header(method, global, xscalm, sigma, dlt, stepmx, ftol, xtol, btol, cndtol);
 
-    if (isNull(jac)) {
-		jacflg = 0;
-        F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol, &cndtol,
+    if( !(jactype==1) ) {
+        jacflg[0] = jactype; /* numerical jacobian */
+        F77_CALL(nwnleq)(x, &n, scalex, &maxit, jacflg, &xtol, &ftol, &btol, &cndtol,
                          &method, &global, &xscalm, &stepmx, &dlt, &sigma,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
                          FCNJACDUM, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
@@ -370,8 +387,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
             error("jac is not a function!");
         PROTECT(OS->jcall = lang2(jac, OS->x));
 
-		jacflg = 1;
-        F77_CALL(nwnleq)(x, &n, scalex, &maxit, &jacflg, &xtol, &ftol, &btol, &cndtol,
+		jacflg[0] = jactype;  /* user supplied jacobian */
+        F77_CALL(nwnleq)(x, &n, scalex, &maxit, jacflg, &xtol, &ftol, &btol, &cndtol,
                          &method, &global, &xscalm, &stepmx, &dlt, &sigma,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
                          &fcnjac, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
@@ -382,45 +399,40 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     fcn_message(message, termcd);
 
-    PROTECT(sexp_x = NEW_NUMERIC(n));
+    PROTECT(sexp_x = allocVector(REALSXP,n));
     for (i = 0; i < n; i++)
-        NUMERIC_POINTER(sexp_x)[i] = xp[i];
+        REAL(sexp_x)[i] = xp[i];
 
     PROTECT(xnames = getAttrib(xstart,R_NamesSymbol));
     if(!isNull(xnames)) setAttrib(sexp_x, R_NamesSymbol, xnames);
 
-    PROTECT(sexp_fvec = NEW_NUMERIC(n));
+    PROTECT(sexp_fvec = allocVector(REALSXP,n));
     for (i = 0; i < n; i++)
-        NUMERIC_POINTER(sexp_fvec)[i] = fp[i];
+        REAL(sexp_fvec)[i] = fp[i];
 
-    PROTECT(sexp_info = NEW_INTEGER(1));
-    INTEGER_POINTER(sexp_info)[0] = termcd;
+    PROTECT(sexp_info = allocVector(INTSXP,1));
+    INTEGER(sexp_info)[0] = termcd;
 
-    PROTECT(sexp_nfcnt = NEW_INTEGER(1));
-    INTEGER_POINTER(sexp_nfcnt)[0] = nfcnt;
+    PROTECT(sexp_nfcnt = allocVector(INTSXP,1));
+    INTEGER(sexp_nfcnt)[0] = nfcnt;
 
-    PROTECT(sexp_njcnt = NEW_INTEGER(1));
-    INTEGER_POINTER(sexp_njcnt)[0] = njcnt;
+    PROTECT(sexp_njcnt = allocVector(INTSXP,1));
+    INTEGER(sexp_njcnt)[0] = njcnt;
 
-    PROTECT(sexp_iter = NEW_INTEGER(1));
-    INTEGER_POINTER(sexp_iter)[0] = iter;
+    PROTECT(sexp_iter = allocVector(INTSXP,1));
+    INTEGER(sexp_iter)[0] = iter;
 
-    PROTECT(sexp_message = NEW_STRING(1));
+    PROTECT(sexp_message = allocVector(STRSXP,1));
     SET_STRING_ELT(sexp_message, 0, mkChar(message));
 
-    if (IS_NUMERIC(sexp_diag)) {
-        for (i = 0; i < n; i++)
-            NUMERIC_POINTER(sexp_diag)[i] = scalex[i];
-    }
-    else {
-        for (i = 0; i < n; i++)
-            NUMERIC_POINTER(VECTOR_ELT(sexp_diag, i))[0] = scalex[i];
-    }
+    for (i = 0; i < n; i++)
+        REAL(sexp_diag)[i] = scalex[i];
 
     if( outopt[2] == 1 )
-        PROTECT(out = NEW_LIST(9));
+        PROTECT(out = allocVector(VECSXP,9));
     else
-        PROTECT(out = NEW_LIST(8));
+        PROTECT(out = allocVector(VECSXP,8));
+
     SET_VECTOR_ELT(out, 0, sexp_x);
     SET_VECTOR_ELT(out, 1, sexp_fvec);
     SET_VECTOR_ELT(out, 2, sexp_info);
@@ -449,9 +461,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     }
 
     if( outopt[2] == 1 )
-        PROTECT(out_names = NEW_STRING(9));
+        PROTECT(out_names = allocVector(STRSXP,9));
     else
-        PROTECT(out_names = NEW_STRING(8));
+        PROTECT(out_names = allocVector(STRSXP,8));
 
     SET_STRING_ELT(out_names, 0, mkChar("x"));
     SET_STRING_ELT(out_names, 1, mkChar("fvec"));
@@ -464,7 +476,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     if( outopt[2] == 1 )
         SET_STRING_ELT(out_names, 8, mkChar("jac"));
 
-    SET_NAMES(out, out_names);
+    setAttrib(out, R_NamesSymbol, out_names);
     if( outopt[2] == 1 )
         UNPROTECT(14);
     else

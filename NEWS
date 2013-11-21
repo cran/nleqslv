@@ -1,4 +1,14 @@
 
+2.1
+
+o introduced an option to specify that the jacobian is banded
+o if the initial parameter vector has a names attribute, the parameter vector passed to the function 
+  to solve will have these names as attribute
+o corrected another bug when checking a user supplied jacobian: scaled x-values were being returned
+o use Rinternals.h instead of Rdefines.h
+o replace C++ style comments      
+o cleanup/simplification of C code in nleqslv.c and more error checking
+
 2.0
 
 o introduced an option to return the final (approximated) jacobian

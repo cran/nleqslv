@@ -20,7 +20,7 @@ nleqslv(x, fn, jac=NULL,...,
  \item{x}{A list or numeric vector of starting estimates.}
  \item{fn}{A function of \code{x} returning the function values.}
  \item{jac}{A function to return the Jacobian for the \code{fn} function.
-If not supplied numerical derivatives will be used.}
+            If not supplied numerical derivatives will be used.}
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac}.}
  \item{method}{The method used for finding a solution. See \sQuote{Details}.}
  \item{global}{The global strategy to apply. See \sQuote{Details}.}
@@ -82,9 +82,9 @@ This is the method described in \enc{Moré}{More} (1978).
 Usually manual scaling is preferable.}
 }
 
-The algorithm cannot cope with a singular or ill-conditioned Jacobian, in contrast
-to previous versions of this package. When a Jacobian becomes singular or very ill-conditioned
-the algorithm will return an error.  A Jacobian is considered to be very ill-conditioned
+The algorithm cannot cope with a singular or ill-conditioned Jacobian.
+When a Jacobian becomes singular or very ill-conditioned
+the algorithm will return an error. A Jacobian is considered to be very ill-conditioned
 when the estimated inverse condition is less than or equal to a specified tolerance with a default value
 equal to \eqn{10^{-12}}{1e-12}.
 
@@ -132,7 +132,7 @@ The default value is 1.0 for all scale values.}
 If no global strategy has been specified the default is 20.}
 \item{\code{trace}}{Non-negative integer. A value of 1 will give a detailed report of the
 progress of the iteration. For a description see \code{\link{Iteration report}}.}
-\item{\code{chkjac}}{A logical value indicating whether to check an analytical Jacobian, if
+\item{\code{chkjac}}{A logical value indicating whether to check a user supplied Jacobian, if
 supplied. The default value is \code{FALSE}. The first 10 errors are printed.
 The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
 \item{\code{delta}}{Initial (scaled) trust region radius.
@@ -144,7 +144,13 @@ If it is positive it will be set to the smaller of the value supplied or the max
 The default is \eqn{-2.0}.}
 \item{\code{stepmax}}{Maximum scaled stepsize.
 If this is negative then the maximum stepsize is set to the largest positive representable number.
-The default is \eqn{-1.0}, so there is no default maximum stepsize.}
+The default is \eqn{-1.0}, so there is no default maximum stepsize.} 
+\item{\code{dsub}}{Number of non zero subdiagonals of a banded Jacobian.
+The default is to assume that the Jacobian is \emph{not} banded.
+Must be specified if \code{dsuper} has been specified and must be larger than zero when \code{dsuper} is zero.}
+\item{\code{dsuper}}{Number of non zero super diagonals of a banded Jacobian.
+The default is to assume that the Jacobian is \emph{not} banded.
+Must be specified if \code{dsub} has been specified and must be larger than zero when \code{dsub} is zero.}
 }
 }
 \value{
@@ -164,7 +170,7 @@ A list containing components
          \item{\code{4}}{Iteration limit \code{maxit} exceeded.}
          \item{\code{5}}{Jacobian is too ill-conditioned.}
          \item{\code{6}}{Jacobian is singular.}
-         \item{\code{-10}}{Analytical Jacobian is most likely incorrect.}
+         \item{\code{-10}}{User supplied Jacobian is most likely incorrect.}
          }
    }
   \item{message}{a string describing the termination code}
