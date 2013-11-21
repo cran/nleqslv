@@ -1,4 +1,5 @@
       subroutine nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
+     *                  wrk2,wrk3,       
      *                  xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *                  qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
@@ -20,10 +21,11 @@ c     In       fjac    Name            name of routine to calculate jacobian
 c                                      (optional)
 c     In       fvec    Name            name of routine to calculate f()
 c     In       epsm    Real            machine precision
-c     In       jacflg  Integer         jacobian flag
-c                                        1 if analytic jacobian supplied
-c                                        0 if analytic jacobian not supplied
-c     Wk       wrk1    Real(*)         workspace
+c     In       jacflg  Integer(*)      jacobian flag array
+c                                      jacflg[1]:  0 numeric 1 user supplied
+c     Wk       wrk1    Real(*)         workspace    
+c     Wk       wrk2    Real(*)         workspace
+c     Wk       wrk3    Real(*)         workspace
 c     In       xscalm  Integer         x scaling method
 c                                        1 from column norms of first jacobian
 c                                          increased if needed after first iteration
@@ -49,12 +51,12 @@ c
 c-----------------------------------------------------------------------
 
       integer ldr,n,iter, njcnt, ierr
-      integer jacflg,xscalm,qrwsiz  
+      integer jacflg(*),xscalm,qrwsiz  
       logical fstjac
       double precision  epsm, cndtol, rcond
       double precision  rjac(ldr,*)
       double precision  xc(*),fc(*),dn(*)
-      double precision  wrk1(*)
+      double precision  wrk1(*),wrk2(*),wrk3(*)
       double precision  qtf(*),gp(*),fq(*)
       double precision  scalex(*)
       double precision  rcdwrk(*),qrwork(*)
@@ -68,7 +70,7 @@ c     evaluate the jacobian at the current iterate xc
       
       if( .not. fstjac ) then
          call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
-     *               ldr,wrk1)
+     *               ldr,wrk1,wrk2,wrk3)
          njcnt = njcnt + 1 
       else
          fstjac = .false.    

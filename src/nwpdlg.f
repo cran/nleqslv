@@ -106,7 +106,7 @@ c     set trust radius to ssdlen or dnlen if required
 
       do while( retcd .gt. 1 )
 
-c        find new step by double dogleg algorithm
+c        find new step by single dogleg algorithm
 
          call pwlstp(n,dn,dnlen,dlt,nwtake,v,
      *               ssd,ssdlen,d,dtype,lambda)

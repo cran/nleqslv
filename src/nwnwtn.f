@@ -8,7 +8,7 @@
      *                  termcd)
 
       integer ldr,n,termcd,njcnt,nfcnt,iter
-      integer maxit,jacflg,global,xscalm,qrwsiz
+      integer maxit,jacflg(*),global,xscalm,qrwsiz
       integer outopt(*)
       double precision  xtol,ftol,btol,cndtol
       double precision  stepmx,dlt,sigma,fpnorm,epsm
@@ -33,9 +33,8 @@ c     In       xc      Real(*)         initial estimate of solution
 c     In       n       Integer         dimensions of problem
 c     Inout    scalex  Real(*)         scaling factors x(*)
 c     In       maxit   Integer         maximum number of allowable iterations
-c     In       jacflg  Integer         jacobian flag
-c                                         1 if analytic jacobian supplied
-c                                         0 if analytic jacobian not supplied
+c     In       jacflg  Integer(*)      jacobian flag array
+c                                      jacflg[1]:  0 numeric 1 user supplied
 c     In       xtol    Real            tolerance at which successive iterates x()
 c                                      are considered close enough to
 c                                      terminate algorithm
@@ -115,23 +114,24 @@ c     evaluate function
       call vscal(n,xc,scalex)
       call nwfvec(xc,n,scalex,fvec,fc,fcnorm,wrk1)
 
-c     evaluate analytic or finite difference jacobian and check analytic
+c     evaluate user supplied or finite difference jacobian and check user supplied
 c     jacobian, if requested
       
       fstjac = .false.
-      if(jacflg .eq. 1) then
+      if(jacflg(1) .eq. 1) then
 
         if( outopt(2) .eq. 1 ) then
            fstjac = .true.  
            njcnt = njcnt + 1
            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
-     *                 ldr,wrk1)
-           call chkjac(rjac,ldr,xc,fc,n,epsm,scalex,
-     *                 fq,wrk1,fvec,termcd)
+     *                 ldr,wrk1,wrk2,wrk3)
+           call chkjac(rjac,ldr,xc,fc,n,epsm,jacflg,scalex,
+     *                 fq,wrk1,wrk2,fvec,termcd)
            if(termcd .lt. 0) then
 c              copy initial values
                call dcopy(n,xc,1,xp,1)
                call dcopy(n,fc,1,fp,1)
+               call vunsc(n,xp,scalex)
                fpnorm = fcnorm
                return
            endif
@@ -150,7 +150,7 @@ c     check stopping criteria for input xc
           if( outopt(3) .eq. 1 .and. .not. fstjac ) then
              njcnt = njcnt + 1
              call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
-     *                   ldr,wrk1)
+     *                   ldr,wrk1,wrk2,wrk3)
           endif 
           return
       endif
@@ -176,6 +176,7 @@ c     check stopping criteria for input xc
          iter = iter + 1
 
          call nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
+     *               wrk2,wrk3,       
      *               xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *               qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
@@ -225,7 +226,7 @@ c           update xc, fc, and fcnorm
       
       if( outopt(3) .eq. 1 ) then
          call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
-     *               ldr,wrk1)
+     *               ldr,wrk1,wrk2,wrk3)
       endif 
       
       call vunsc(n,xp,scalex)
