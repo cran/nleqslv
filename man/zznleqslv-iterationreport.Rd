@@ -16,7 +16,7 @@ indicating a totally singular matrix or the letter \code{i} indicating an ill-co
 Unless the Jacobian is singular, the Jacobian type is followed by an estimate
 of the inverse condition number of the Jacobian in parentheses as computed by Lapack.
 This column will be blank when backtracking is active.}
-\item{\code{Fnorm}}{euclidean norm of function values / 2}
+\item{\code{Fnorm}}{square of the euclidean norm of function values / 2}
 \item{\code{Largest |f|}}{infinity norm of \eqn{f(x)}{f(x)} at the current point}
 }
 A sample iteration report for \code{qline} is

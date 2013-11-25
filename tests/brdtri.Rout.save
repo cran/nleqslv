@@ -7,8 +7,6 @@ R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
 
-  Natural language support but running in an English locale
-
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
 'citation()' on how to cite R or R packages in publications.
@@ -36,6 +34,7 @@ Type 'q()' to quit R.
 > 
 > n <- 100
 > xstart <- -rep(1,n)
+> ztol <- 1000*.Machine$double.eps
 > 
 > z1 <- nleqslv(xstart,brdtri, method="Newton")
 > z2 <- nleqslv(xstart,brdtri, method="Newton", control=list(dsub=1,dsuper=1))
@@ -50,6 +49,8 @@ z2 termcd= 1 jcnt,fcnt= 4 4
 [1] "Function criterion near zero"
 > all.equal(z2$x,z1$x)
 [1] TRUE
+> all.equal(z2$x,z1$x, tolerance=ztol)
+[1] TRUE
 > 
 > z1 <- nleqslv(xstart,brdtri, method="Newton")
 > z2 <- nleqslv(xstart,brdtri, method="Newton", control=list(dsub=1,dsuper=1))
@@ -62,7 +63,7 @@ z2 termcd= 1 jcnt,fcnt= 4 4
 [1] "Function criterion near zero"
 > z2$message
 [1] "Function criterion near zero"
-> all.equal(z2$x,z1$x)
+> all.equal(z2$x,z1$x, tolerance=ztol)
 [1] TRUE
 > 
 > z3 <- nleqslv(xstart,brdtri, method="Broyden")
@@ -78,9 +79,11 @@ z4 termcd= 1 jcnt,fcnt= 1 10
 [1] "x-values within tolerance `xtol'"
 > all.equal(z3$x,z1$x)
 [1] TRUE
-> all.equal(z4$x,z1$x) 
+> all.equal(z4$x,z1$x)
+[1] TRUE
+> all.equal(z4$x,z3$x, tolerance=ztol)
 [1] TRUE
 > 
 > proc.time()
    user  system elapsed 
-  0.458   0.054   0.501 
+  0.373   0.058   0.419 

@@ -43,6 +43,7 @@ Type 'q()' to quit R.
 > 
 > n <- 10
 > xstart <- -rep(1,n)
+> ztol <- 1000*.Machine$double.eps
 > 
 > z1 <- nleqslv(xstart,brdban, method="Newton")
 > z2 <- nleqslv(xstart,brdban, method="Newton", control=list(dsub=5,dsuper=1))
@@ -57,6 +58,8 @@ z2 termcd= 1 jcnt,fcnt= 5 5
 [1] "Function criterion near zero"
 > all.equal(z2$x,z1$x)
 [1] TRUE
+> all.equal(z2$x,z1$x, tolerance=ztol)
+[1] TRUE
 > 
 > z1 <- nleqslv(xstart,brdban, ml=2,mu=2, method="Newton")
 > z2 <- nleqslv(xstart,brdban, ml=2,mu=2, method="Newton", control=list(dsub=2,dsuper=2))
@@ -69,7 +72,7 @@ z2 termcd= 1 jcnt,fcnt= 5 5
 [1] "Function criterion near zero"
 > z2$message
 [1] "Function criterion near zero"
-> all.equal(z2$x,z1$x)
+> all.equal(z2$x,z1$x, tolerance=ztol)
 [1] TRUE
 > 
 > z3 <- nleqslv(xstart,brdban, ml=2,mu=2, method="Broyden")
@@ -85,10 +88,11 @@ z4 termcd= 1 jcnt,fcnt= 1 20
 [1] "Function criterion near zero"
 > all.equal(z3$x,z1$x)
 [1] TRUE
-> all.equal(z4$x,z1$x) 
+> all.equal(z4$x,z1$x)
 [1] TRUE
->     
+> all.equal(z4$x,z3$x, tolerance=ztol)
+[1] TRUE
 > 
 > proc.time()
    user  system elapsed 
-  0.377   0.049   0.412 
+  0.377   0.051   0.415 

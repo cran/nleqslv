@@ -163,8 +163,8 @@ c-------------------------------------------------------------------------
       integer MAXERR
       parameter(MAXERR=10)
 
-      double precision Rquart, Rone, Rten
-      parameter(Rquart=0.25d0, Rone=1.0d0, Rten=10.0d0)
+      double precision Rquart, Rten
+      parameter(Rquart=0.25d0, Rten=10.0d0)
 
       termcd = 0
 
@@ -260,8 +260,8 @@ c-------------------------------------------------------------------------
       integer MAXERR
       parameter(MAXERR=10)
 
-      double precision Rquart, Rone, Rten, Rzero
-      parameter(Rquart=0.25d0, Rone=1.0d0, Rten=10.0d0, Rzero=0.0d0)
+      double precision Rquart, Rten, Rzero
+      parameter(Rquart=0.25d0, Rten=10.0d0, Rzero=0.0d0)
 
       dsum = dsub + dsuper + 1
 
@@ -464,9 +464,10 @@ c-------------------------------------------------------------------------
 
       integer i,j,k
       double precision  ndigit,p,h
+      double precision  rnudif
 
-      double precision Rten,Rzero
-      parameter(Rten=10d0,Rzero=0.0d0)
+      double precision Rten
+      parameter(Rten=10d0)
 
       integer dsum
 
@@ -487,8 +488,10 @@ c-------------------------------------------------------------------------
 
          call fvec(xc,fz,n,n+k)
          do j=k,n,dsum
-             rjac(1:n,j) = Rzero
-             h = xstep(j)
+             call nuzero(n,rjac(1,j))
+c            fdjac0 for why      
+c            doing this ensures that results for fdjac2 and fdjac0 will be identical
+             h = rnudif(xc(j),w(j))
              xc(j) = w(j)
              do i=max(j-dsuper,1),min(j+dsub,n)
                 rjac(i,j) = (fz(i)-fc(i)) / h
@@ -614,8 +617,8 @@ c---------------------------------------------------------------------
 
       integer i,info
       logical rsing
-      double precision Rzero,R2d3
-      parameter(Rzero=0.0d0, R2d3=2.0d0/3.0d0)
+      double precision Rzero
+      parameter(Rzero=0.0d0)
 
       ierr = 0
 

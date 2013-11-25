@@ -199,9 +199,6 @@ c-------------------------------------------------------------------------
       double precision Rzero, Rone, Rtwo, Rthree
       parameter(Rzero=0.0d0, Rone=1.0d0, Rtwo=2.0d0, Rthree=3.0d0)
 
-      double precision Rthous
-      parameter(Rthous = 1000.0d0)
-
       double precision Rhalf
       parameter(Rhalf = 0.5d0)
 

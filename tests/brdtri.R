@@ -17,6 +17,7 @@ brdtri <- function(x) {
 
 n <- 100
 xstart <- -rep(1,n)
+ztol <- 1000*.Machine$double.eps
 
 z1 <- nleqslv(xstart,brdtri, method="Newton")
 z2 <- nleqslv(xstart,brdtri, method="Newton", control=list(dsub=1,dsuper=1))
@@ -26,6 +27,7 @@ cat("z2 termcd=",z2$termcd, "jcnt,fcnt=",z2$njcnt,z2$nfcnt,"\n")
 z1$message
 z2$message
 all.equal(z2$x,z1$x)
+all.equal(z2$x,z1$x, tolerance=ztol)
 
 z1 <- nleqslv(xstart,brdtri, method="Newton")
 z2 <- nleqslv(xstart,brdtri, method="Newton", control=list(dsub=1,dsuper=1))
@@ -34,7 +36,7 @@ cat("z1 termcd=",z1$termcd, "jcnt,fcnt=",z1$njcnt,z1$nfcnt,"\n")
 cat("z2 termcd=",z2$termcd, "jcnt,fcnt=",z2$njcnt,z2$nfcnt,"\n")
 z1$message
 z2$message
-all.equal(z2$x,z1$x)
+all.equal(z2$x,z1$x, tolerance=ztol)
 
 z3 <- nleqslv(xstart,brdtri, method="Broyden")
 z4 <- nleqslv(xstart,brdtri, method="Broyden", control=list(dsub=1,dsuper=1))
@@ -44,4 +46,5 @@ cat("z4 termcd=",z2$termcd, "jcnt,fcnt=",z4$njcnt,z4$nfcnt,"\n")
 z3$message
 z4$message
 all.equal(z3$x,z1$x)
-all.equal(z4$x,z1$x) 
+all.equal(z4$x,z1$x)
+all.equal(z4$x,z3$x, tolerance=ztol)

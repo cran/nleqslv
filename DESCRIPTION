@@ -1,8 +1,8 @@
 Package: nleqslv
 Type: Package
 Title: Solve systems of non linear equations
-Version: 2.1
-Date: 2013-11-21
+Version: 2.1.1
+Date: 2013-11-25
 Author: Berend Hasselman
 Maintainer: Berend Hasselman <bhh@xs4all.nl>
 Description: Solve a system of non linear equations using a Broyden or a Newton method
@@ -10,7 +10,7 @@ Description: Solve a system of non linear equations using a Broyden or a Newton 
              There are options for using a numerical or user supplied Jacobian and    
              for specifying that a numerical Jacobian is banded.
 License: GPL (>= 2)
-Packaged: 2013-11-21 10:30:38 UTC; berendhasselman
+Packaged: 2014-02-05 19:15:56 UTC; berendhasselman
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-11-21 12:56:17
+Date/Publication: 2014-02-05 20:48:01

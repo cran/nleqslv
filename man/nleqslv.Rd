@@ -94,6 +94,7 @@ values will be replaced by a large number forcing the algorithm to backtrack,
 i.e. decrease the line search factor or decrease the trust region radius.
 When the algorithm is evaluating a numerical Jacobian, it will stop with an error message
 on detecting non-finite function values.
+An error message will also be issued when a user supplied jacobian contains non-finite entries.
 
 When the \code{jacobian} argument is set to \code{TRUE} the final Jacobian or Broyden matrix
 will be returned in the return list.
