@@ -37,15 +37,15 @@ xstart <- c(2,.5)
 
 z <- nleqslv(xstart,dslnex, jacobian=TRUE, control=list(trace=do.trace))
 print.result(z)
-all.equal(z$jac,jacdsln(z$x), tol=0.05)
+all.equal(z$jac,jacdsln(z$x), tolerance=0.05)
 
 z <- nleqslv(xstart,dslnex,jacdsln, jacobian=TRUE, control=list(trace=do.trace))
 print.result(z)
-all.equal(z$jac,jacdsln(z$x), tol=0.05)
+all.equal(z$jac,jacdsln(z$x), tolerance=0.05)
 
 z <- nleqslv(xstart,dslnex, method="Newton", jacobian=TRUE, control=list(trace=do.trace))
 print.result(z)
-all.equal(z$jac,jacdsln(z$x), tol=10^3*.Machine$double.eps^0.5)
+all.equal(z$jac,jacdsln(z$x), tolerance=10^3*.Machine$double.eps^0.5)
 
 z <- nleqslv(xstart,dslnex, jacdsln, method="Newton", jacobian=TRUE, control=list(trace=do.trace))
 print.result(z)

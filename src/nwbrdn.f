@@ -91,8 +91,8 @@ c-----------------------------------------------------------------------
 
       integer idamax
 
-      double precision Rzero, Rone
-      parameter(Rzero=0.0d0, Rone=1.0d0)
+      double precision Rone
+      parameter(Rone=1.0d0)
 
 c     initialization
 

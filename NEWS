@@ -1,3 +1,9 @@
+2.1.1
+
+o corrected tiny rounding error when computing banded jacobian (fdjac2 in src/nwutil.f)
+o corrected error in documentation of iteration report
+o cleanup fortran sources to remove many (not all) ftnchek warnings
+o clarifications in the documentation
 
 2.1
 

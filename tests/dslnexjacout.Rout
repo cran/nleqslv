@@ -59,21 +59,21 @@ Type 'q()' to quit R.
 > print.result(z)
 [1] "Function criterion near zero"
 [1] TRUE
-> all.equal(z$jac,jacdsln(z$x), tol=0.05)
+> all.equal(z$jac,jacdsln(z$x), tolerance=0.05)
 [1] TRUE
 > 
 > z <- nleqslv(xstart,dslnex,jacdsln, jacobian=TRUE, control=list(trace=do.trace))
 > print.result(z)
 [1] "Function criterion near zero"
 [1] TRUE
-> all.equal(z$jac,jacdsln(z$x), tol=0.05)
+> all.equal(z$jac,jacdsln(z$x), tolerance=0.05)
 [1] TRUE
 > 
 > z <- nleqslv(xstart,dslnex, method="Newton", jacobian=TRUE, control=list(trace=do.trace))
 > print.result(z)
 [1] "Function criterion near zero"
 [1] TRUE
-> all.equal(z$jac,jacdsln(z$x), tol=10^3*.Machine$double.eps^0.5)
+> all.equal(z$jac,jacdsln(z$x), tolerance=10^3*.Machine$double.eps^0.5)
 [1] TRUE
 > 
 > z <- nleqslv(xstart,dslnex, jacdsln, method="Newton", jacobian=TRUE, control=list(trace=do.trace))

@@ -90,9 +90,6 @@ c-----------------------------------------------------------------------
 
       integer idamax
 
-      double precision Rzero, Rone
-      parameter(Rzero=0.0d0, Rone=1.0d0)
-
 c     initialization
 
       retcd = 0
