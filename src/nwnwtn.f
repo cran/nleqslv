@@ -1,7 +1,7 @@
 
       subroutine nwsolv(ldr,xc,n,scalex,maxit,
      *                  jacflg,xtol,ftol,btol,cndtol,global,xscalm,
-     *                  stepmx,dlt,sigma,
+     *                  stepmx,delta,sigma,
      *                  rjac,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
      *                  fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,
@@ -11,7 +11,7 @@
       integer maxit,jacflg(*),global,xscalm,qrwsiz
       integer outopt(*)
       double precision  xtol,ftol,btol,cndtol
-      double precision  stepmx,dlt,sigma,fpnorm,epsm
+      double precision  stepmx,delta,sigma,fpnorm,epsm
       double precision  rjac(ldr,*)
       double precision  xc(*),fc(*),xp(*),fp(*),dn(*),d(*)
       double precision  wrk1(*),wrk2(*),wrk3(*),wrk4(*)
@@ -34,7 +34,8 @@ c     In       n       Integer         dimensions of problem
 c     Inout    scalex  Real(*)         scaling factors x(*)
 c     In       maxit   Integer         maximum number of allowable iterations
 c     In       jacflg  Integer(*)      jacobian flag array
-c                                      jacflg[1]:  0 numeric 1 user supplied
+c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
+c                                                  3: user supplied banded
 c     In       xtol    Real            tolerance at which successive iterates x()
 c                                      are considered close enough to
 c                                      terminate algorithm
@@ -43,18 +44,19 @@ c                                      are considered close enough to zero
 c     Inout    btol    Real            x tolerance for backtracking
 c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     In       global  Integer         global strategy to use
-c                                        1 quadratic line search
-c                                        2 geometric line search
-c                                        3 double dogleg
-c                                        4 single dogleg
+c                                        1 cubic linesearch
+c                                        2 quadratic linesearch
+c                                        3 geometric linesearch
+c                                        4 double dogleg
+c                                        5 powell dogleg
 c     In       xscalm  Integer         x scaling method
 c                                        1 from column norms of first jacobian
 c                                          increased if needed after first iteration
 c                                        0 scaling user supplied
 c     In       stepmx  Real            maximum allowable step size
-c     In       dlt     Real            trust region radius
+c     In       delta   Real            trust region radius
 c     In       sigma   Real            reduction factor geometric linesearch
-c     Inout    rjac    Real(ldr,*)     jacobian (2*n columns)
+c     Inout    rjac    Real(ldr,*)     jacobian (n columns)
 c     Wk       wrk1    Real(*)         workspace
 c     Wk       wrk2    Real(*)         workspace
 c     Wk       wrk3    Real(*)         workspace
@@ -115,7 +117,7 @@ c     evaluate user supplied or finite difference jacobian and check user suppli
 c     jacobian, if requested
       
       fstjac = .false.
-      if(jacflg(1) .eq. 1) then
+      if(mod(jacflg(1),2) .eq. 1) then
 
         if( outopt(2) .eq. 1 ) then
            fstjac = .true.  
@@ -159,11 +161,11 @@ c     check stopping criteria for input xc
 
          if( global .eq. 0 ) then
             call nwprot(iter, -1, dum)
-         elseif( global .le. 2 ) then
+         elseif( global .le. 3 ) then
             call nwlsot(iter,-1,dum)
-         elseif( global .eq. 3 ) then
-            call nwdgot(iter,-1,dum)
          elseif( global .eq. 4 ) then
+            call nwdgot(iter,-1,dum)
+         elseif( global .eq. 5 ) then
             call nwpwot(iter,-1,dum)
          endif
 
@@ -187,21 +189,25 @@ c           jacobian singular or too ill-conditioned
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 1) then
-            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
+            call nwclsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 2) then
-            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
+            call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
      *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 3) then
+            call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
+     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  priter,iter)
+         elseif(global .eq. 4) then
             call nwddlg(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
-     *                  btol,mxtake,dlt,qtf,scalex,
+     *                  btol,mxtake,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
-         elseif(global .eq. 4) then
+         elseif(global .eq. 5) then
             call nwpdlg(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
-     *                  btol,mxtake,dlt,qtf,scalex,
+     *                  btol,mxtake,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          endif

@@ -1,16 +1,17 @@
 
       subroutine nwnleq(x0,n,scalex,maxit,
      *                  jacflg,xtol,ftol,btol,cndtol,method,global,
-     *                  xscalm,stepmx,dlt,sigma,rwork,lrwork,
+     *                  xscalm,stepmx,delta,sigma,rjac,ldr,
+     *                  rwork,lrwork,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz,fjac,fvec,outopt,xp,
      *                  fp,gp,njcnt,nfcnt,iter,termcd)
 
       integer n,jacflg(*),maxit,njcnt,nfcnt,iter,termcd,method
-      integer global,xscalm,lrwork,qrwsiz
+      integer global,xscalm,ldr,lrwork,qrwsiz
       integer outopt(*)
-      double precision  xtol,ftol,btol,cndtol,stepmx,dlt,sigma
+      double precision  xtol,ftol,btol,cndtol,stepmx,delta,sigma
       double precision  xp(*),fp(*),gp(*),x0(*)
-      double precision  rwork(*),rcdwrk(*),qrwork(*)
+      double precision  rjac(ldr,*),rwork(*),rcdwrk(*),qrwork(*)
       double precision  scalex(*)
       integer           icdwrk(*)
       external fjac,fvec
@@ -25,7 +26,8 @@ c     In       n       Integer         dimension of problem
 c     Inout    scalex  Real(*)         scaling factors x()
 c     Inout    maxit   Integer         maximum number iterations
 c     Inout    jacflg  Integer(*)      jacobian flag array
-c                                      jacflg[1]:  0 numeric 1 user supplied
+c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
+c                                                  3: user supplied banded
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
 c     Inout    btol    Real            x tolerance for backtracking 
@@ -34,20 +36,24 @@ c     Inout    method  Integer         method to use
 c                                        0 Newton
 c                                        1 Broyden
 c     In       global  Integer         global strategy to use
-c                                        1 quadratic linesearch
-c                                        2 geometric linesearch
-c                                        3 double dogleg
-c                                        4 powell dogleg
+c                                        1 cubic linesearch
+c                                        2 quadratic linesearch
+c                                        3 geometric linesearch
+c                                        4 double dogleg
+c                                        5 powell dogleg
 c     In       xscalm  Integer         scaling method
 c                                        0 scale fixed and supplied by user
 c                                        1 for scale from jac. columns a la Minpack
 c     Inout    stepmx  Real            maximum stepsize
-c     Inout    dlt     Real            trust region radius
+c     Inout    delta   Real            trust region radius
 c                                        > 0.0 or special value for initial value
 c                                        -1.0  ==> use min(Cauchy length, stepmx)
 c                                        -2.0  ==> use min(Newton length, stepmx)
 c     Inout    sigma   Real            reduction factor geometric linesearch
-c     Out      rwork   Real(*)         real workspace (9n+2n^2)
+c     Inout    rjac    Real(ldr,*)     workspace jacobian
+c                                         2*n*n for Broyden and n*n for Newton
+c     In       ldr     Integer         leading dimension rjac
+c     Out      rwork   Real(*)         real workspace (9n)
 c     In       lrwork  Integer         size real workspace
 c     In       rcdwrk  Real(*)         workspace for Dtrcon (3n)
 c     In       icdwrk  Integer(*)      workspace for Dtrcon (n)
@@ -114,7 +120,7 @@ c-------------------------------------------------------------------------
 c     check input parameters
 
       call nwpchk(n,lrwork,xtol,ftol,btol,cndtol,maxit,
-     *            jacflg,method,global,stepmx,dlt,sigma,
+     *            jacflg,method,global,stepmx,delta,sigma,
      *            epsm,outopt,scalex,xscalm,termcd)
       if(termcd .lt. 0) then
          return
@@ -125,10 +131,10 @@ c     should be at least n
 
       if( method .eq. 0 ) then
 
-         call nwsolv(n,x0,n,scalex,maxit,jacflg,
+         call nwsolv(ldr,x0,n,scalex,maxit,jacflg,
      *               xtol,ftol,btol,cndtol,global,xscalm,
-     *               stepmx,dlt,sigma,
-     *               rwork(1+9*n),
+     *               stepmx,delta,sigma,
+     *               rjac,
      *               rwork(1    ),rwork(1+  n),
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
@@ -138,10 +144,10 @@ c     should be at least n
 
       elseif( method .eq. 1 ) then
 
-         call brsolv(n,x0,n,scalex,maxit,jacflg,
+         call brsolv(ldr,x0,n,scalex,maxit,jacflg,
      *               xtol,ftol,btol,cndtol,global,xscalm,
-     *               stepmx,dlt,sigma,
-     *               rwork(1+9*n),
+     *               stepmx,delta,sigma,
+     *               rjac,
      *               rwork(1    ),rwork(1+  n),
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
@@ -158,13 +164,13 @@ c-----------------------------------------------------------------------
 
       subroutine nwpchk(n,lrwk,
      *                  xtol,ftol,btol,cndtol,maxit,jacflg,method,
-     *                  global,stepmx,dlt,sigma,epsm,outopt,
+     *                  global,stepmx,delta,sigma,epsm,outopt,
      *                  scalex,xscalm,termcd)
 
       integer n,lrwk,jacflg(*)
       integer method,global,maxit,xscalm,termcd
       integer outopt(*)
-      double precision  xtol,ftol,btol,cndtol,stepmx,dlt,sigma,epsm
+      double precision  xtol,ftol,btol,cndtol,stepmx,delta,sigma,epsm
       double precision  scalex(*)
 
 c-------------------------------------------------------------------------
@@ -184,7 +190,7 @@ c     Inout    jacflg  Integer(*)      jacobian flag
 c     Inout    method  Integer         method to use (Newton/Broyden)
 c     Inout    global  Integer         global strategy to use
 c     Inout    stepmx  Real            maximum stepsize
-c     Inout    dlt     Real            trust region radius
+c     Inout    delta     Real            trust region radius
 c     Inout    sigma   Real            reduction factor geometric linesearch
 c     Out      epsm                    machine precision
 c     Inout    scalex  Real(*)         scaling factors x()
@@ -225,7 +231,8 @@ c     check dimensions of the problem
 
 c     check dimensions of workspace arrays
 
-      len = 9*n+2*n*n
+      len = 9*n
+c      +2*n*n
       if(lrwk .lt. len) then
          termcd = -2
          return
@@ -233,11 +240,11 @@ c     check dimensions of workspace arrays
 
 c     check jacflg, method, and global
 
-      if(jacflg(1) .gt. 2 .or. jacflg(1) .lt. 0) jacflg(1) = 0
+      if(jacflg(1) .gt. 3 .or. jacflg(1) .lt. 0) jacflg(1) = 0
 
       if(method .lt. 0 .or. method .gt. 1) method = 0
 
-      if(global .lt. 0 .or. global .gt. 4) global = 1
+      if(global .lt. 0 .or. global .gt. 5) global = 4
 
 c     set outopt to correct values
 
@@ -292,13 +299,13 @@ c     set stepmx
 
       if(stepmx .le. Rzero) stepmx = Rhuge
 
-c     check dlt
-      if(dlt .le. Rzero) then
-         if( dlt .ne. -Rtwo ) then
-            dlt = -Rone
+c     check delta
+      if(delta .le. Rzero) then
+         if( delta .ne. -Rtwo ) then
+            delta = -Rone
          endif
-      elseif(dlt .gt. stepmx) then
-         dlt = stepmx
+      elseif(delta .gt. stepmx) then
+         delta = stepmx
       endif
 
       return

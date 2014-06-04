@@ -1,11 +1,11 @@
 
       subroutine nwddlg(n,rjac,ldr,dn,g,xc,fcnorm,stepmx,xtol,
-     *                  mxtake,dlt,qtf,scalex,fvec,d,xprev,
+     *                  mxtake,delta,qtf,scalex,fvec,d,xprev,
      *                  ssd,v,wa,fprev,xp,fp,fpnorm,retcd,gcnt,
      *                  priter,iter)
 
       integer ldr, n, retcd, gcnt, priter, iter
-      double precision  fcnorm, stepmx, xtol, fpnorm, dlt
+      double precision  fcnorm, stepmx, xtol, fpnorm, delta
       double precision  rjac(ldr,*), dn(*), g(*), xc(*), qtf(*)
       double precision  scalex(*), d(*)
       double precision  xprev(*), xp(*), fp(*)
@@ -30,7 +30,7 @@ c     In       fcnorm  Real            .5*||f(xc)||**2
 c     In       stepmx  Real            maximum stepsize
 c     In       xtol    Real            x-tolerance (stepsize)
 c     Out      mxtake  Logical         true if maximum step taken
-c     Inout    dlt     Real            on input: initial trust region radius
+c     Inout    delta   Real            on input: initial trust region radius
 c                                                if -1 then set to something
 c                                                reasonable
 c                                      on output: final value
@@ -96,10 +96,10 @@ c     steepest descent direction and length
 
 c     set trust radius to ssdlen or dnlen if required
 
-      if( dlt .eq. -Rone ) then
-         dlt = min(ssdlen, stepmx)
-      elseif( dlt .eq. -Rtwo ) then
-         dlt = min(dnlen, stepmx)
+      if( delta .eq. -Rone ) then
+         delta = min(ssdlen, stepmx)
+      elseif( delta .eq. -Rtwo ) then
+         delta = min(dnlen, stepmx)
       endif
 
 c     calculate double dogleg parameter
@@ -113,7 +113,7 @@ c     calculate double dogleg parameter
       do while( retcd .gt. 1 )
 c        find new step by double dogleg algorithm
 
-         call ddlgstp(n,dn,dnlen,dlt,nwtake,v,
+         call ddlgstp(n,dn,dnlen,delta,nwtake,v,
      *               ssd,ssdlen,eta,d,dtype,lambda)
 
 c        compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
@@ -134,13 +134,13 @@ c        evaluate function at xp = xc + d
 
 c        check whether the global step is acceptable
 
-         oarg(2) = dlt
-         call nwtrup(n,fcnorm,g,d,nwtake,stepmx,xtol,dlt,mxtake,
+         oarg(2) = delta
+         call nwtrup(n,fcnorm,g,d,nwtake,stepmx,xtol,delta,mxtake,
      *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm)
 
          if( priter .gt. 0 ) then
             oarg(1) = lambda
-            oarg(3) = dlt
+            oarg(3) = delta
             oarg(4) = eta
             oarg(5) = fpnorm
             oarg(6) = abs(fp(idamax(n,fp,1)))
@@ -154,11 +154,11 @@ c        check whether the global step is acceptable
 
 c-----------------------------------------------------------------------
 
-      subroutine ddlgstp(n,dn,dnlen,dlt,nwtake,v,
+      subroutine ddlgstp(n,dn,dnlen,delta,nwtake,v,
      *                  ssd,ssdlen,eta,d,dtype,lambda)
       integer n
       double precision  dn(*), ssd(*), v(*), d(*)
-      double precision  dnlen, dlt, ssdlen, eta, lambda
+      double precision  dnlen, delta, ssdlen, eta, lambda
       logical nwtake
       integer dtype
 
@@ -172,7 +172,7 @@ c
 c     In       n       Integer         size of problem
 c     In       dn      Real(*)         current newton step
 c     Out      dnlen   Real            length dn()
-c     In       dlt     Real            current trust region radius
+c     In       delta     Real            current trust region radius
 c     Inout    nwtake  Logical         true if newton step taken
 c     Out      v       Real(*)         (internal) eta * dn() - ssd()
 c     In       ssd     Real(*)         (internal) steepest descent direction
@@ -195,34 +195,34 @@ c-----------------------------------------------------------------------
       
       nwtake = .false.
 
-      if(dnlen .le. dlt) then
+      if(dnlen .le. delta) then
 
 c        Newton step smaller than trust radius ==> take it
 
          nwtake = .true.
          call dcopy(n, dn, 1, d, 1)
-         dlt = dnlen
+         delta = dnlen
          dtype = 4
 
-      elseif(eta*dnlen .le. dlt) then
+      elseif(eta*dnlen .le. delta) then
 
 c        take partial step in newton direction
 
          call dcopy(n, dn, 1, d, 1)
-         call dscal(n, dlt / dnlen, d, 1)
+         call dscal(n, delta / dnlen, d, 1)
          dtype = 3
 
-      elseif(ssdlen .ge. dlt) then
+      elseif(ssdlen .ge. delta) then
 
 c        take step in steepest descent direction
 
          call dcopy(n, ssd, 1, d, 1)
-         call dscal(n, dlt / ssdlen, d, 1)
+         call dscal(n, delta / ssdlen, d, 1)
          dtype = 1
 
       else
 
-c        calculate convex combination of ssd and eta*dn with length dlt
+c        calculate convex combination of ssd and eta*dn with length delta
 
          do i=1,n
             v(i) = eta*dn(i) - ssd(i)
@@ -231,7 +231,7 @@ c        calculate convex combination of ssd and eta*dn with length dlt
          vssd = ddot(n,v,1,ssd,1)
          vlen = dnrm2(n,v,1)**2
 
-         lambda =(-vssd+sqrt(vssd**2-vlen*(ssdlen**2-dlt**2)))/vlen
+         lambda =(-vssd+sqrt(vssd**2-vlen*(ssdlen**2-delta**2)))/vlen
          call dcopy(n, ssd, 1, d, 1)
          call daxpy(n, lambda, v, 1, d, 1)
          dtype = 2

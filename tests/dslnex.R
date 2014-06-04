@@ -41,7 +41,7 @@ print.result <- function(z) {
 }
 
 # Broyden numerical Jacobian
-for( z in c("qline", "gline") ) {  # quadratic, geometric linesearch
+for( z in c("cline", "qline", "gline") ) {  # cubic, quadratic, geometric linesearch
     znlq <- nleqslv(xstart, dslnex, global=z,control=list(btol=.01)) 
     print.result(znlq)
 }

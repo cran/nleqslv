@@ -1,2 +1,5 @@
 useDynLib(nleqslv)
 export(nleqslv)
+export(testnslv)
+
+S3method(print,test.nleqslv)

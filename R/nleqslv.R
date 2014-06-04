@@ -10,7 +10,7 @@
 
 nleqslv <- function(x, fn, jac = NULL, ...,
                     method = c("Broyden", "Newton"),
-                    global = c("dbldog", "pwldog", "qline", "gline", "none"),
+                    global = c("dbldog", "pwldog", "cline", "qline", "gline", "none"),
                     xscalm = c("fixed","auto"), 
                     jacobian=FALSE,
                     control = list())

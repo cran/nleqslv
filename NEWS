@@ -1,3 +1,13 @@
+2.2
+
+o introduce a function to test and optionally benchmark different methods and global strategies 
+  and print results compactly
+o added a new global strategy: cubic line search 
+o try to safeguard against very large trust region in iteration report
+o allocate half as much memory for the Jacobian when Newton method is specfied
+o advice in error message on what to do when initial value of function is not finite
+o cleanup some code
+
 2.1.1
 
 o corrected tiny rounding error when computing banded jacobian (fdjac2 in src/nwutil.f)

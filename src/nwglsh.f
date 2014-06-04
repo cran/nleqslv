@@ -53,7 +53,7 @@ c-------------------------------------------------------------------------
       integer i
       double precision  alpha,slope,rsclen,oarg(4)
       double precision  lambda,lamhi,lamlo
-      double precision  ddot,dnrm2, nudnrm
+      double precision  ddot,dnrm2, nudnrm, ftarg
       double precision  dlen
       logical scstep
 
@@ -76,10 +76,6 @@ c     safeguard initial step size
       endif
 
 c     compute slope  =  g-trans * d
-c     if the jacobian or an approximation is not singular or
-c     ill conditioned then slope = -2*fcnorm
-c     but otherwise the parameter mu used for the quasi pseudo inverse
-c     destroys this equality. So calculate slope from its definition
 
       slope = ddot(n,g,1,d,1)
 
@@ -98,7 +94,7 @@ c     initialization of retcd, mxtake and lambda (linesearch length)
 
       do while( retcd .eq. 2 )
 
-c        compute the next iterate xp
+c        compute next x
 
          do i=1,n
             xp(i) = xc(i) + lambda*d(i)
@@ -108,20 +104,21 @@ c        evaluate functions and the objective function at xp
 
          call nwfvec(xp,n,scalex,fvec,fp,fpnorm,xw)
          gcnt = gcnt + 1
+         ftarg = fcnorm + alpha * lambda * slope
 
          if( priter .gt. 0) then
             oarg(1) = lambda
-            oarg(2) = fcnorm + alpha * lambda * slope
+            oarg(2) = ftarg
             oarg(3) = fpnorm
             oarg(4) = abs(fp(idamax(n,fp,1)))
             call nwlsot(iter,1,oarg)
          endif
 
-c        test whether the standard step produces enough decrease
-c        the objective function.
+c        test if the standard step produces enough decrease
+c        of the objective function.
 c        If not update lambda and compute a new next iterate
 
-         if( fpnorm .le. (fcnorm + alpha * lambda * slope) ) then
+         if( fpnorm .le. ftarg ) then
             retcd = 0
          else
             lambda  = sigma * lambda

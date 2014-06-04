@@ -10,7 +10,7 @@ for difficult systems.
 \usage{
 nleqslv(x, fn, jac=NULL,...,
                method = c("Broyden", "Newton"),
-               global = c("dbldog", "pwldog", "qline", "gline", "none"),
+               global = c("dbldog", "pwldog", "cline", "qline", "gline", "none"),
                xscalm = c("fixed","auto"),
                jacobian=FALSE,
                control = list()
@@ -52,6 +52,7 @@ and uses a modified version of the algorithm described in Dennis and Schnabel (1
 
 The \code{global} argument indicates which global strategy to use or to use no global strategy
 \describe{
+        \item{\code{cline}}{a cubic line search}
         \item{\code{qline}}{a quadratic line search}
         \item{\code{gline}}{a geometric line search}
         \item{\code{dbldog}}{a trust region method using the double dogleg method as described in
@@ -63,6 +64,11 @@ The \code{global} argument indicates which global strategy to use or to use no g
                            The default maximum number of iterations (see below) is set to 20.}
 }
 The double dogleg method is the default global strategy employed by this package.
+
+Which global strategy to use in a particular situation is a matter of trial and error.
+When one of the trust region methods fails, one of the line search strategies should be tried.
+Sometimes a trust region will work and sometimes a line search method; neither has a clear advantage but 
+in many cases the double dogleg method works quite well.
 
 The parameters \code{x} may be scaled during the search for a zero of \code{fn}.
 The  \code{xscalm} argument provides two possibilities for scaling

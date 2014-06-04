@@ -12,7 +12,7 @@ static  double jacond = 0.0;
 /*
  * output for a single incorrect jacobian entry
  */
- 
+
 void F77_SUB(nwckot)(int *i, int *j, double *aij, double *wi)
 {
     Rprintf("Chkjac  possible error in jacobian[%d,%d] = %20.13e\n"
@@ -31,7 +31,7 @@ void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
 }
 
 /*
- * output a compact description of the type of the jacobian used 
+ * output a compact description of the type of the jacobian used
  *    Newton/Broyden followed by lowercase letter for ill-conditioned/singular
  *    estimated inverse condition number
  *
@@ -45,19 +45,19 @@ static void  nwrowhdr(int *iter)
 	char jmethod;
 
     Rprintf( "  %4d ", *iter);
-	if( jacupd < 0) { 
+	if( jacupd < 0) {
 	    /* output padding */
         Rprintf("%11s","");
     }
     else {
     	jmethod = (jacupd == 0) ? 'N' : 'B';
 
-        /* 
+        /*
          * meaning jacsng
          *   0   jacobian is ok (not singular or ill-conditioned)
          *   1   jacobian is ill-conditioned
          *   2   jacobian is singular
-         * 
+         *
          * Indicate this after output of <jmethod>
          */
 
@@ -84,11 +84,21 @@ void F77_SUB(nwjerr)(int *iter)
 
 static void enumout(double x)
 {
-    Rprintf(" %13.*e", fabs(x) >= 1E100? 5 : 6, x);
+    Rprintf(" %13.*e", fabs(x) >= 1e100? 5 : 6, x);
 }
 
-void F77_SUB(nwprot)(int *iter, int *lstep, double *oarg)
+#if 0
+void F77_SUB(xclshpar)(int *gcnt, double *slope, double *a, double *b, double *disc, double *dbp2, double *t, double *t1,double *t2)
 {
+    Rprintf("Clsh: gcnt=%d, slope=%g, a=%g, b=%g, disc=%g, disc-b^2= %d, t=%g t1=%g t2=%g\n",*gcnt, *slope, *a, *b, *disc, *dbp2>0, *t,*t1,*t2);
+}
+#endif
+void F77_SUB(nwprot)(int *iter, int *lstep, double *oarg)
+{   
+    /*
+     * None global method output
+     */
+     
 	double v;
 
 	if( *lstep <= 0 ) {
@@ -114,6 +124,10 @@ void F77_SUB(nwprot)(int *iter, int *lstep, double *oarg)
 
 void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
 {
+    /*
+     * Linesearch output
+     */
+
 	double v;
 
 	if( *lstep <= 0 ) {
@@ -138,8 +152,25 @@ void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
 	}
 }
 
+/*
+ * output trust region size within width 8
+ * (sometimes it is too large for %8.4f)
+ */
+
+void dnumout(double x)
+{
+    if(x >= 1000.0)
+        Rprintf(" %8.*e", x >= 1e100? 1 : 2, x);
+    else
+        Rprintf(" %8.4f",x);
+}
+
 void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
 {
+    /*
+     * Double dogleg output
+     */
+
 	char step;
 
 	/*
@@ -156,7 +187,7 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
 
             Rprintf("  %4d%50s" , *iter, "");
             enumout(oarg[0]);
-            enumout(oarg[1]); 
+            enumout(oarg[1]);
             Rprintf("\n");
 	}
 	else {
@@ -169,8 +200,9 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
 		else
 			Rprintf( "%8s", "");
 
-		Rprintf( " %8.4f %8.4f %8.4f",
-                    oarg[3],oarg[1],oarg[2]);
+        Rprintf(" %8.4f", oarg[3]);
+        dnumout(oarg[1]);
+        dnumout(oarg[2]);
         enumout(oarg[4]);
         enumout(oarg[5]);
         Rprintf("\n");
@@ -179,6 +211,10 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
 
 void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
 {
+    /*
+     * Single dogleg output
+     */
+
 	char step;
 
 	/*
@@ -207,7 +243,8 @@ void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
 		else
 			Rprintf( "%8s", "");
 
-        Rprintf( " %8.4f %8.4f", oarg[1],oarg[2]);
+        dnumout(oarg[1]);
+        dnumout(oarg[2]);
         enumout(oarg[3]);
         enumout(oarg[4]);
         Rprintf("\n");

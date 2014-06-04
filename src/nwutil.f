@@ -345,7 +345,8 @@ c     In       fc      Real(*)         function values f(xc)
 c     In       n       Integer         size of x
 c     In       epsm    Real            machine precision
 c     In       jacflg  Integer(*)      indicates how to compute jacobian
-c                                      jacflg[1]:  0 numeric 1 user supplied
+c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
+c                                                  3: user supplied banded
 c     In       scalex  Real(*)         scaling vector for x()
 c     Wk       fz      Real(*)         workspace
 c     Wk       wa      Real(*)         workspace
@@ -357,7 +358,7 @@ c                                      -10  user supplied jacobian NOT ok
 c
 c-------------------------------------------------------------------------
 
-      if(jacflg(1) .eq. 1 .and. (jacflg(2)+jacflg(3) .ge. 0) ) then
+      if(jacflg(1) .eq. 3) then
 c        user supplied and banded           
          call chkjac2(A,lda,xc,fc,n,epsm,scalex,fz,wa,xw,fvec,termcd,
      *                jacflg(2),jacflg(3))
@@ -668,7 +669,8 @@ c     Wk       fq      Real(*)         (internal) workspace
 c     In       n       Integer         size of x and f
 c     In       epsm    Real            machine precision
 c     In       jacflg  Integer(*)      indicates how to compute jacobian
-c                                      jacflg[1]:  0 or 2 numeric; 1 user supplied
+c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
+c                                                  3: user supplied banded
 c     In       fvec    Name            name of routine to evaluate f()
 c     In       mkjac   Name            name of routine to evaluate jacobian
 c     Out      rjac    Real(ldr,*)     jacobian matrix (unscaled)

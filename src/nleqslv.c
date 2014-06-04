@@ -27,12 +27,13 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n);
 
 void F77_NAME(nwnleq)(double *x, int *n, double *scalex, int *maxit, int *jacflg, double *xtol,
                       double *ftol, double *btol, double *cndtol,
-                      int *method, int *global, int *xscalm, double *stepmx, double *dlt, double *sigma,
+                      int *method, int *global, int *xscalm, double *stepmx, double *delta, double *sigma,
+                      double *rjac, int *ldr,
                       double *rwork, int *lrwork, double *rcdwrk, int *icdwrk, double *qrwork, int *qrwsiz,
                       void (*fcnjac)(double *rjac, int *ldr, double *x, int *n),
                       void (*fcnval)(double *xc, double *fc, int *n, int *flag),
-   			          int *outopt, double *xp, double *fp, double *gp, int *njcnt, int *nfcnt, int *iter,
-   			          int *termcd);
+                      int *outopt, double *xp, double *fp, double *gp, int *njcnt, int *nfcnt, int *iter,
+                      int *termcd);
 
 void F77_NAME(liqsiz)(int *n, int *wrksiz); /* returns size of optimal QR work memory */
 
@@ -47,10 +48,10 @@ static SEXP getListElement(SEXP list, char *str)
     int i;
 
     for (i = 0; i < length(list); i++)
-		if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-	    	elmt = VECTOR_ELT(list, i);
-	    	break;
-		}
+        if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
+            elmt = VECTOR_ELT(list, i);
+            break;
+        }
     return elmt;
 }
 
@@ -65,27 +66,28 @@ static int *int_vector(int n)
 }
 
 static void trace_header(int method, int global, int xscalm, double sigma,
-                         double dlt, double stepmx, double ftol, double xtol, double btol, double cndtol)
-{	/* print header for iteration tracing output for documentation purposes
-	 */
+                         double delta, double stepmx, double ftol, double xtol, double btol, double cndtol)
+{   /* print header for iteration tracing output for documentation purposes
+     */
 
-	Rprintf("  Algorithm parameters\n  --------------------\n");
-	Rprintf("  Method: %s", method == 1 ? "Broyden" : "Newton");
-	Rprintf("  Global strategy: ");
-	switch(global)
-	{
+    Rprintf("  Algorithm parameters\n  --------------------\n");
+    Rprintf("  Method: %s", method == 1 ? "Broyden" : "Newton");
+    Rprintf("  Global strategy: ");
+    switch(global)
+    {
         case 0: Rprintf("none\n"); break;
-        case 1: Rprintf("quadratic linesearch\n"); break;
-	    case 2: Rprintf("geometric linesearch (reduction = %g)\n", sigma); break;
-	    case 3: Rprintf("double dogleg (initial trust region = %g)\n", dlt); break;
-	    case 4: Rprintf("single dogleg (initial trust region = %g)\n", dlt); break;
+        case 1: Rprintf("cubic linesearch\n"); break;
+        case 2: Rprintf("quadratic linesearch\n"); break;
+        case 3: Rprintf("geometric linesearch (reduction = %g)\n", sigma); break;
+        case 4: Rprintf("double dogleg (initial trust region = %g)\n", delta); break;
+        case 5: Rprintf("single dogleg (initial trust region = %g)\n", delta); break;
         default: error("Internal: invalid global value in trace_header\n");
     }
 
-	Rprintf("  Maximum stepsize = %g\n", stepmx <= 0.0 ? DBL_MAX : stepmx);
+    Rprintf("  Maximum stepsize = %g\n", stepmx <= 0.0 ? DBL_MAX : stepmx);
     Rprintf("  Scaling: %s\n", xscalm == 0 ? "fixed" : "automatic");
 
-	Rprintf("  ftol = %g xtol = %g btol = %g cndtol = %g\n\n", ftol,xtol,btol,cndtol);
+    Rprintf("  ftol = %g xtol = %g btol = %g cndtol = %g\n\n", ftol,xtol,btol,cndtol);
     Rprintf("  Iteration report\n  ----------------\n");
 }
 
@@ -143,24 +145,24 @@ void fcnval(double *xc, double *fc, int *n, int *flag)
                                        LENGTH(sexp_fvec), *n);
     for (i = 0; i < *n; i++) {
         fc[i] = REAL(sexp_fvec)[i];
-		if( !R_FINITE(fc[i]) ) {
+        if( !R_FINITE(fc[i]) ) {
             fc[i] = sqrt(DBL_MAX / (double)(*n)); /* should force backtracking */
-		    if( *flag ) {
-		        if( *flag <= *n )
-				error("Non-finite value(s) detected in jacobian (row=%d,col=%d)",i+1,*flag);
-				else
-				error("Non-finite value(s) detected in banded jacobian (row=%d,col=%d)",i+1,
-				      findcol(i+1,*n,*flag-*n));
-	        }
+            if( *flag ) {
+                if( *flag <= *n )
+                    error("Non-finite value(s) detected in jacobian (row=%d,col=%d)",i+1,*flag);
+                else
+                    error("Non-finite value(s) detected in banded jacobian (row=%d,col=%d)",i+1,
+                           findcol(i+1,*n,*flag-*n));
+            }               
         }
-	}
+    }
 
     UNPROTECT(1);
 }
 
 void FCNJACDUM(double *rjac, int *ldr, double *x, int *n)
 {
-	error("FCNJACDUM should not have been called");
+    error("FCNJACDUM should not have been called");
 }
 
 /*
@@ -189,8 +191,8 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 
     for (j = 0; j < *n; j++)
         for (i = 0; i < *n; i++) {
-	        if( !R_FINITE(REAL(sexp_fjac)[(*n)*j + i]) )
-				error("Non-finite value(s) returned by jacobian (row=%d,col=%d)",i+1,j+1);
+            if( !R_FINITE(REAL(sexp_fjac)[(*n)*j + i]) )
+                error("Non-finite value(s) returned by jacobian (row=%d,col=%d)",i+1,j+1);
             rjac[(*ldr)*j + i] = REAL(sexp_fjac)[(*n)*j + i];
         }
 
@@ -200,11 +202,11 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rxscalm,
              SEXP rjacobian, SEXP control, SEXP rho)
 {
-    double  *x, *rwork, *rcdwrk, *qrwork;
-	double  *xp, *fp, *gp, *scalex;
+    double  *x, *rwork, *rcdwrk, *qrwork, *rjac;
+    double  *xp, *fp, *gp, *scalex;
     double  *pjac;
-	int     *icdwrk, *outopt;
-	const char *z;
+    int     *icdwrk, *outopt;
+    const char *z;
 
     SEXP    eval_test;
     SEXP    sexp_x, sexp_diag, sexp_fvec, sexp_info, sexp_message, sexp_nfcnt, sexp_njcnt, sexp_iter;
@@ -214,10 +216,10 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     char    message[256];
 
-	int     i, j, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz;
+    int     i, j, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz, lrjac, ldr;
     int     maxit, method, global, xscalm;
     int     jactype, jacflg[3], dsub, dsuper;
-	double  xtol, ftol, btol, stepmx, dlt, sigma, cndtol;
+    double  xtol, ftol, btol, stepmx, delta, sigma, cndtol;
 
     if( activeflag )
         error("Recursive call of nleqslv not possible");
@@ -237,8 +239,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     n = length(OS->x);
 
     for (i = 0; i < n; i++)
-		if( !R_FINITE(REAL(OS->x)[i]) )
-			error("`x' contains a non-finite value at index=%d\n",i+1);
+        if( !R_FINITE(REAL(OS->x)[i]) )
+            error("`x' contains a non-finite value at index=%d\n",i+1);
 
     if (!isFunction(fn)) error("fn is not a function!");
     PROTECT(OS->fcall = lang2(fn, OS->x));
@@ -254,10 +256,17 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         error("Length of fn result <> length of x!");
 
     for (i = 0; i < n; i++)
-		if( !R_FINITE(REAL(eval_test)[i]) )
-			error("evaluation of fn function has non-finite values\n   (starting at index=%d)",i+1);
+        if( !R_FINITE(REAL(eval_test)[i]) )
+            error("initial value of fn function contains non-finite values (starting at index=%d)\n"
+                  "  Check initial x and/or correctness of function",i+1);
 
     UNPROTECT(1);
+ 
+    z = CHAR(STRING_ELT(rmethod, 0));
+    if( strcmp(z,"Broyden") == 0 )
+        method = 1;
+    else
+        method = 0;
 
     /*
      * query the optimal amount of memory Lapack needs
@@ -272,24 +281,27 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     qrwork  = real_vector(qrwsiz);
 
-	lrwork  = 9*n+2*n*n;
+    lrwork = 9*n;
+    ldr    = n;                             /* leading dimension of rjac */
+    lrjac  = method==1? 2*ldr*n : ldr*n;    /* Broyden needs 2*n columns; Newton needs n columns */
 
     x       = real_vector(n);
     xp      = real_vector(n);
     fp      = real_vector(n);
     gp      = real_vector(n);
     scalex  = real_vector(n);
-	rwork   = real_vector(lrwork);
-	rcdwrk  = real_vector(3*n);
-	icdwrk  = int_vector(n);
-	outopt  = int_vector(3);
-
+    rwork   = real_vector(lrwork);
+    rcdwrk  = real_vector(3*n);
+    icdwrk  = int_vector(n);
+    outopt  = int_vector(3);
+    rjac    = real_vector(lrjac);
+    
     xtol    = asReal(getListElement(control, "xtol"));
     ftol    = asReal(getListElement(control, "ftol"));
     btol    = asReal(getListElement(control, "btol"));
     sigma   = asReal(getListElement(control, "sigma"));
     stepmx  = asReal(getListElement(control, "stepmax"));
-    dlt     = asReal(getListElement(control, "delta"));
+    delta     = asReal(getListElement(control, "delta"));
     cndtol  = asReal(getListElement(control, "cndtol"));
 
     if(!R_FINITE(xtol)) error("'xtol' is not a valid finite number");
@@ -297,39 +309,35 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     if(!R_FINITE(btol)) error("'btol' is not a valid finite number");
     if(!R_FINITE(sigma)) error("'sigma' is not a valid finite number");
     if(!R_FINITE(stepmx)) error("'stepmx' is not a valid finite number");
-    if(!R_FINITE(dlt)) error("'delta' is not a valid finite number");
+    if(!R_FINITE(delta)) error("'delta' is not a valid finite number");
     if(!R_FINITE(cndtol)) error("'cndtol' is not a valid finite number");
 
     maxit   = asInteger(getListElement(control, "maxit"));
     if(maxit == NA_INTEGER) error("'maxit' is not an integer");
 
     outopt[0] = asInteger(getListElement(control, "trace"));
-	outopt[1] = asLogical(getListElement(control, "chkjac"));
+    outopt[1] = asLogical(getListElement(control, "chkjac"));
     outopt[2] = asLogical(rjacobian) ? 1 : 0;
 
-	z = CHAR(STRING_ELT(rmethod, 0));
-	if( strcmp(z,"Broyden") == 0 )
-		method = 1;
-	else
-		method = 0;
-
-	z = CHAR(STRING_ELT(rglobal, 0));
-   	if( strcmp(z,"none") == 0 )
+    z = CHAR(STRING_ELT(rglobal, 0));
+    if( strcmp(z,"none") == 0 )
         global = 0;
+    else if( strcmp(z,"cline") == 0 )
+        global = 1;
     else if( strcmp(z,"qline") == 0 )
-		global = 1;
-	else if( strcmp(z,"gline") == 0 )
-		global = 2;
-	else if( strcmp(z,"dbldog") == 0 )
-		global = 3;
-	else if( strcmp(z,"pwldog") == 0 )
-		global = 4;
+        global = 2;
+    else if( strcmp(z,"gline") == 0 )
+        global = 3;
+    else if( strcmp(z,"dbldog") == 0 )
+        global = 4;
+    else if( strcmp(z,"pwldog") == 0 )
+        global = 5;
 
-	z = CHAR(STRING_ELT(rxscalm, 0));
-	if( strcmp(z,"fixed") == 0 )
-		xscalm = 0;
-	else
-		xscalm = 1;
+    z = CHAR(STRING_ELT(rxscalm, 0));
+    if( strcmp(z,"fixed") == 0 )
+        xscalm = 0;
+    else
+        xscalm = 1;
 
     dsub   = asInteger(getListElement(control, "dsub"));
     dsuper = asInteger(getListElement(control, "dsuper"));
@@ -350,7 +358,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
          * banded jacobian
          */
 
-        jactype = 2;
+        jactype  += 2;
         jacflg[1] = OS->dsub   = dsub;
         jacflg[2] = OS->dsuper = dsuper;
     }
@@ -358,7 +366,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         jacflg[1] = OS->dsub   = -1;
         jacflg[2] = OS->dsuper = -1;
     }
-
+    
+    jacflg[0] = jactype;
+    
     /* copied from code in <Rsource>/src/library/stats/src/optim.c */
     sexp_diag = getListElement(control, "scalex");
     if( LENGTH(sexp_diag) != n )
@@ -373,23 +383,24 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 /*========================================================================*/
 
     if( outopt[0] == 1)
-        trace_header(method, global, xscalm, sigma, dlt, stepmx, ftol, xtol, btol, cndtol);
+        trace_header(method, global, xscalm, sigma, delta, stepmx, ftol, xtol, btol, cndtol);
 
-    if( !(jactype==1) ) {
-        jacflg[0] = jactype; /* numerical jacobian */
+    if( isNull(jac) ) {
+        /* numerical jacobian */
         F77_CALL(nwnleq)(x, &n, scalex, &maxit, jacflg, &xtol, &ftol, &btol, &cndtol,
-                         &method, &global, &xscalm, &stepmx, &dlt, &sigma,
+                         &method, &global, &xscalm, &stepmx, &delta, &sigma,
+                         rjac, &ldr,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
                          FCNJACDUM, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
     }
     else {
+        /* user supplied jacobian */
         if (!isFunction(jac))
             error("jac is not a function!");
         PROTECT(OS->jcall = lang2(jac, OS->x));
-
-		jacflg[0] = jactype;  /* user supplied jacobian */
         F77_CALL(nwnleq)(x, &n, scalex, &maxit, jacflg, &xtol, &ftol, &btol, &cndtol,
-                         &method, &global, &xscalm, &stepmx, &dlt, &sigma,
+                         &method, &global, &xscalm, &stepmx, &delta, &sigma,
+                         rjac, &ldr,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
                          &fcnjac, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
         UNPROTECT(1);
@@ -447,15 +458,15 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         pjac = REAL(sexp_jac);
         for(j=0; j < n; j++)
             for(i=0; i < n; i++)
-                pjac[j*n+i] = rwork[9*n+j*n+i];
+                pjac[j*n+i] = rjac[j*n+i];
 
         if(!isNull(xnames)) {
-        	SEXP rcnames;
-        	PROTECT(rcnames = allocVector(VECSXP, 2));
-        	SET_VECTOR_ELT(rcnames, 0, duplicate(xnames));
-        	SET_VECTOR_ELT(rcnames, 1, duplicate(xnames));
-        	setAttrib(sexp_jac, R_DimNamesSymbol, rcnames);
-        	UNPROTECT(1);
+            SEXP rcnames;
+            PROTECT(rcnames = allocVector(VECSXP, 2));
+            SET_VECTOR_ELT(rcnames, 0, duplicate(xnames));
+            SET_VECTOR_ELT(rcnames, 1, duplicate(xnames));
+            setAttrib(sexp_jac, R_DimNamesSymbol, rcnames);
+            UNPROTECT(1);
         }
 
     }

@@ -22,7 +22,8 @@ c                                      (optional)
 c     In       fvec    Name            name of routine to calculate f()
 c     In       epsm    Real            machine precision
 c     In       jacflg  Integer(*)      jacobian flag array
-c                                      jacflg[1]:  0 numeric 1 user supplied
+c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
+c                                                  3: user supplied banded
 c     Wk       wrk1    Real(*)         workspace    
 c     Wk       wrk2    Real(*)         workspace
 c     Wk       wrk3    Real(*)         workspace

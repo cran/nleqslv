@@ -1,10 +1,10 @@
 
-      subroutine nwtrup(n,fcnorm,g,sc,nwtake,stepmx,xtol,dlt,
+      subroutine nwtrup(n,fcnorm,g,sc,nwtake,stepmx,xtol,delta,
      *                  mxtake, fpred,retcd,xprev,fpnsav,fprev,xp,fp,
      *                  fpnorm)
 
       integer n,retcd
-      double precision  fcnorm,stepmx,xtol,dlt,fpred,fpnsav,fpnorm
+      double precision  fcnorm,stepmx,xtol,delta,fpred,fpnsav,fpnorm
       double precision  xp(*),g(*)
       double precision  sc(*),xprev(*),fprev(*),fp(*)
       logical nwtake,mxtake
@@ -12,7 +12,7 @@
 c-------------------------------------------------------------------------
 c
 c     Decide whether to accept xp=xc+sc as the next iterate
-c     and updates the trust region dlt
+c     and updates the trust region delta
 c
 c     Arguments
 c
@@ -23,13 +23,13 @@ c     In       sc      Real(*)         current step
 c     In       nwtake  Logical         true if sc is newton direction
 c     In       stepmx  Real            maximum step size
 c     In       xtol    Real            minimum step tolerance
-c     Inout    dlt     Real            trust region radius
+c     Inout    delta   Real            trust region radius
 c     In       mxtake  Logical         true if max. step taken
 c     In       fpred   Real            predicted value of .5*||f()||**2
 c
 c     Inout    retcd   Integer         return code
 c                                       0 xp accepted as next iterate;
-c                                         dlt trust region for next iteration.
+c                                         delta trust region for next iteration.
 c
 c                                       1 xp unsatisfactory but
 c                                         accepted as next iterate because
@@ -38,12 +38,12 @@ c                                         step length.
 c
 c                                       2 f(xp) too large.
 c                                         continue current iteration with
-c                                         new reduced dlt.
+c                                         new reduced delta.
 c
 c                                       3 f(xp) sufficiently small, but
 c                                         quadratic model predicts f(xp)
 c                                         sufficiently well to continue current
-c                                         iteration with new doubled dlt.
+c                                         iteration with new doubled delta.
 c
 c                                      On first entry, retcd must be 4
 c
@@ -90,13 +90,13 @@ c     pred measures the predicted reduction in the function value
 
       if(retcd .eq. 3 .and. ret3ok) then
 
-c        reset xp to xprev and terminate global step
+c        reset xp,fp,fpnorm to saved values and terminate global step
 
          retcd = 0
          call dcopy(n,xprev,1,xp,1)
          call dcopy(n,fprev,1,fp,1)
          fpnorm = fpnsav
-         dlt  = Rhalf*dlt
+         delta  = Rhalf*delta
 
       elseif(ared .gt. alpha * slope) then
 
@@ -111,30 +111,30 @@ c           cannot find satisfactory xp sufficiently distinct from xc
 
          else
 
-c           reduce trust region and continue global step
+c           reduce trust region and continue current global step
 
             retcd = 2
             sclen = dnrm2(n,sc,1)
             dltmp = -slope*sclen/(Rtwo*(ared-slope))
 
-            if(dltmp .lt. Rpten*dlt) then
-               dlt = Rpten*dlt
+            if(dltmp .lt. Rpten*delta) then
+               delta = Rpten*delta
             else
-               dlt = min(Rhalf*dlt, dltmp)
+               delta = min(Rhalf*delta, dltmp)
             endif
 
          endif
 
       elseif(retcd .ne. 2 .and. (abs(pred-ared) .le. Rpten*abs(ared))
-     *      .and. (.not.nwtake) .and. (dlt.le. Rp99*stepmx)) then
+     *      .and. (.not. nwtake) .and. (delta .le. Rp99*stepmx)) then
 
-c        fpnorm sufficiently small
+c        pred predicts ared very well and ared is sufficiently small
 c        to attempt a doubling of the trust region and continue global step
 
          call dcopy(n,xp,1,xprev,1)
          call dcopy(n,fp,1,fprev,1)
          fpnsav = fpnorm
-         dlt    = min(Rtwo*dlt,stepmx)
+         delta  = min(Rtwo*delta,stepmx)
          retcd  = 3
 
       else
@@ -143,17 +143,17 @@ c        fpnorm sufficiently small to accept xp as next iterate.
 c        Choose new trust region.
 
          retcd = 0
-         if(dlt .gt. Rp99*stepmx) mxtake = .true.
+         if(delta .gt. Rp99*stepmx) mxtake = .true.
          if(ared .ge. Rpten*pred) then
 
 c           Not good enough. Decrease trust region for next iteration
 
-            dlt = Rhalf*dlt
+            delta = Rhalf*delta
          elseif( ared .le. Rp75*pred ) then
 
 c           Wonderful. Increase trust region for next iteration
 
-            dlt = min(Rtwo*dlt,stepmx)
+            delta = min(Rtwo*delta,stepmx)
          endif
 
       endif
