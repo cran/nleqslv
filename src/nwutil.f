@@ -505,10 +505,11 @@ c            doing this ensures that results for fdjac2 and fdjac0 will be ident
 
 c-----------------------------------------------------------------------
 
-      double precision function nudnrm(n, d, x)
+      function nudnrm(n, d, x)
       integer n
       double precision  d(*), x(*)
-
+      double precision nudnrm
+      
 c-------------------------------------------------------------------------
 c
 c     calculate  max( abs(d[*]) / max(x[*],1) )
@@ -538,10 +539,11 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      double precision function nuxnrm(n, xn, xc)
+      function nuxnrm(n, xn, xc)
       integer n
       double precision  xn(*), xc(*)
-
+      double precision nuxnrm
+      
 c-------------------------------------------------------------------------
 c
 c     calculate  max( abs(xn[*]-xc[*]) / max(xn[*],1) )
@@ -571,9 +573,10 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      double precision function rnudif(x, y)
+      function rnudif(x, y)
       double precision x, y
-
+      double precision rnudif
+      
 c-------------------------------------------------------------------------
 c
 c     Return difference of x and y (x - y)

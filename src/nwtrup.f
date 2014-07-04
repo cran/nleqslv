@@ -1,13 +1,13 @@
 
-      subroutine nwtrup(n,fcnorm,g,sc,nwtake,stepmx,xtol,delta,
-     *                  mxtake, fpred,retcd,xprev,fpnsav,fprev,xp,fp,
+      subroutine nwtrup(n,fcnorm,g,sc,nwtstep,stepmx,xtol,delta,
+     *                  fpred,retcd,xprev,fpnsav,fprev,xp,fp,
      *                  fpnorm)
 
       integer n,retcd
       double precision  fcnorm,stepmx,xtol,delta,fpred,fpnsav,fpnorm
       double precision  xp(*),g(*)
       double precision  sc(*),xprev(*),fprev(*),fp(*)
-      logical nwtake,mxtake
+      logical nwtstep
 
 c-------------------------------------------------------------------------
 c
@@ -20,11 +20,10 @@ c     In       n       Integer         size of xc()
 c     In       fcnorm  Real            .5*||f(xc)||**2
 c     In       g       Real(*)         gradient at xc()
 c     In       sc      Real(*)         current step
-c     In       nwtake  Logical         true if sc is newton direction
+c     In       nwtstep Logical         true if sc is newton direction
 c     In       stepmx  Real            maximum step size
 c     In       xtol    Real            minimum step tolerance
 c     Inout    delta   Real            trust region radius
-c     In       mxtake  Logical         true if max. step taken
 c     In       fpred   Real            predicted value of .5*||f()||**2
 c
 c     Inout    retcd   Integer         return code
@@ -73,9 +72,6 @@ c-------------------------------------------------------------------------
       double precision alpha
       parameter(alpha = Rp4)
 
-      mxtake = .false.
-
-c     ared measures the actual    reduction in the function value
 c     pred measures the predicted reduction in the function value
 
       ared  = fpnorm - fcnorm
@@ -126,7 +122,7 @@ c           reduce trust region and continue current global step
          endif
 
       elseif(retcd .ne. 2 .and. (abs(pred-ared) .le. Rpten*abs(ared))
-     *      .and. (.not. nwtake) .and. (delta .le. Rp99*stepmx)) then
+     *      .and. (.not. nwtstep) .and. (delta .le. Rp99*stepmx)) then
 
 c        pred predicts ared very well and ared is sufficiently small
 c        to attempt a doubling of the trust region and continue global step
@@ -143,7 +139,6 @@ c        fpnorm sufficiently small to accept xp as next iterate.
 c        Choose new trust region.
 
          retcd = 0
-         if(delta .gt. Rp99*stepmx) mxtake = .true.
          if(ared .ge. Rpten*pred) then
 
 c           Not good enough. Decrease trust region for next iteration

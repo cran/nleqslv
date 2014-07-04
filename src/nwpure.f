@@ -1,13 +1,12 @@
 
       subroutine nwpure(n,xc,d,stepmx,scalex,fvec,
-     *                  xp,fp,fpnorm,xw,mxtake,retcd,gcnt,priter,iter)
+     *                  xp,fp,fpnorm,xw,retcd,gcnt,priter,iter)
 
       integer n,retcd,gcnt
       double precision  stepmx,fpnorm
       double precision  xc(*)
       double precision  d(*),xp(*),fp(*),xw(*)
       double precision  scalex(*)
-      logical mxtake
       external fvec
 
       integer priter,iter
@@ -30,9 +29,6 @@ c     In       fp      Real(*)          new f(x)
 c     In       fpnorm  Real             .5*||fp||**2
 c     Out      xw      Real(*)          workspace for unscaling x
 c
-c     Out      mxtake  Logical          .true. if maximum step taken
-c                                       else .false.
-c
 c     Out      retcd   Integer          return code
 c                                         0 new satisfactory x() found (!always)
 c
@@ -47,7 +43,6 @@ c-------------------------------------------------------------------------
       double precision  lambda
       double precision  dnrm2
       double precision  dlen
-      logical scstep
 
       integer idamax
 
@@ -59,14 +54,11 @@ c     safeguard initial step size
       dlen = dnrm2(n,d,1)
       if( dlen .gt. stepmx ) then
           lambda = stepmx / dlen
-          scstep = .true.
       else
           lambda = Rone
-          scstep = .false.
       endif
 
       retcd  = 0
-      mxtake = .false.
       gcnt   = 1
 
 c     compute the next iterate xp
@@ -86,9 +78,5 @@ c     evaluate functions and the objective function at xp
          call nwprot(iter,1,oarg)
       endif
       
-      if( scstep ) then
-         mxtake = .true.
-      endif
-
       return
       end

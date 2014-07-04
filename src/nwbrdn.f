@@ -2,7 +2,7 @@
       subroutine brsolv(ldr,xc,n,scalex,maxit,
      *                  jacflg,xtol,ftol,btol,cndtol,global,xscalm,
      *                  stepmx,delta,sigma,
-     *                  rjac,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
+     *                  rjac,r,wrk1,wrk2,wrk3,wrk4,fc,fq,dn,d,qtf,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
      *                  fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,
      *                  termcd)
@@ -12,7 +12,7 @@
       integer outopt(*)
       double precision  xtol,ftol,btol,cndtol
       double precision  stepmx,delta,sigma,fpnorm,epsm
-      double precision  rjac(ldr,*)
+      double precision  rjac(ldr,*),r(ldr,*)
       double precision  xc(*),fc(*),xp(*),fp(*),dn(*),d(*)
       double precision  wrk1(*),wrk2(*),wrk3(*),wrk4(*)
       double precision  qtf(*),gp(*),fq(*)
@@ -56,7 +56,8 @@ c                                        0 scaling user supplied
 c     In       stepmx  Real            maximum allowable step size
 c     In       delta   Real            trust region radius
 c     In       sigma   Real            reduction factor geometric linesearch
-c     Inout    rjac    Real(ldr,*)     jacobian (2*n columns)
+c     Inout    rjac    Real(ldr,*)     jacobian (n columns)(compact QR decomposition/Q matrix)
+c     Inout    r       Real(ldr,*)     stored R from QR decomposition
 c     Wk       wrk1    Real(*)         workspace
 c     Wk       wrk2    Real(*)         workspace
 c     Wk       wrk3    Real(*)         workspace
@@ -87,9 +88,9 @@ c-----------------------------------------------------------------------
 
       integer gcnt,retcd,ierr
       double precision  dum(2),dlt0,fcnorm,rcond
-      logical mxtake,fstjac
+      logical fstjac
       logical jacevl,jacupd
-      integer priter, j
+      integer priter
 
       integer idamax
 
@@ -190,17 +191,15 @@ c     check stopping criteria for input xc
 
             if( ierr .eq. 0 ) then
 c              copy the upper triangular part of the QR decomposition
-c              contained in Rjac into R -> Rjac(*, n+1).
+c              contained in Rjac into R(*, n+1).
 c              form Q from the QR decomposition (taur/qraux in wrk1)
 
-               do j=1,n
-                  call dcopy(j,rjac(1,j),1,rjac(1,n+j),1)
-               enddo
+               call dlacpy('U',n,n,rjac,ldr,r,ldr)
                call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
             endif
 
 c           now Rjac[*  ,1..n] holds expanded Q
-c           now Rjac[*  ,(n+1)..(2n)] holds full upper triangle R
+c           now R[*  ,1..n] holds full upper triangle R
 
          else
 
@@ -208,12 +207,12 @@ c          - get broyden step
 c          - calculate approximate gradient
 
             call dcopy(n,fc,1,fq,1)
-            call brodir(rjac,ldr,rjac(1,n+1),fq,n,cndtol,
+            call brodir(rjac,ldr,r,fq,n,cndtol,
      *                  dn,qtf,ierr,rcond,rcdwrk,icdwrk)
 
             if( ierr .eq. 0 ) then
                call dcopy(n,qtf,1,gp,1)
-               call dtrmv('U','T','N',n,rjac(1,n+1),ldr,gp,1)
+               call dtrmv('U','T','N',n,r,ldr,gp,1)
             endif
          endif
 
@@ -224,28 +223,28 @@ c           jacobian singular or too ill-conditioned
             call nweset(n,xc,fc,fcnorm,xp,fp,fpnorm,gcnt,priter,iter)
          elseif(global .eq. 0) then
             call nwpure(n,xc,dn,stepmx,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 1) then
             call nwclsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 2) then
             call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 3) then
             call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 4) then
-            call nwddlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
-     *                  btol,mxtake,delta,qtf,scalex,
+            call nwddlg(n,r,ldr,dn,gp,xc,fcnorm,stepmx,
+     *                  btol,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          elseif(global .eq. 5) then
-            call nwpdlg(n,rjac(1,n+1),ldr,dn,gp,xc,fcnorm,stepmx,
-     *                  btol,mxtake,delta,qtf,scalex,
+            call nwpdlg(n,r,ldr,dn,gp,xc,fcnorm,stepmx,
+     *                  btol,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          endif
@@ -276,7 +275,7 @@ c           reset trust region radius
          if( jacupd ) then
 c           perform Broyden update of current jacobian
 c           update xc, fc, and fcnorm
-            call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
+            call brupdt(n,rjac,r,ldr,xc,xp,fc,fp,epsm,
      *                  wrk1,wrk2,wrk3)
             call dcopy(n,xp,1,xc,1)
             call dcopy(n,fp,1,fc,1)
@@ -287,12 +286,12 @@ c           update xc, fc, and fcnorm
 
       if( outopt(3) .eq. 1 ) then
 c        final update of jacobian
-         call brupdt(n,rjac,rjac(1,n+1),ldr,xc,xp,fc,fp,epsm,
+         call brupdt(n,rjac,r,ldr,xc,xp,fc,fp,epsm,
      *               wrk1,wrk2,wrk3)
 c        reconstruct Broyden matrix
 c        calculate Q * R where Q is overwritten by result
-c        Q is in rjac(1,1)
-         call dtrmm('R','U','N','N',n,n,Rone,rjac(1,n+1),n,rjac,n)
+c        Q is in rjac and R is in r
+         call dtrmm('R','U','N','N',n,n,Rone,r,n,rjac,n)
 c        unscale
          call nwunscjac(n,rjac,ldr,scalex)
       endif

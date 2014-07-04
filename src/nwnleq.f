@@ -147,12 +147,13 @@ c     should be at least n
          call brsolv(ldr,x0,n,scalex,maxit,jacflg,
      *               xtol,ftol,btol,cndtol,global,xscalm,
      *               stepmx,delta,sigma,
-     *               rjac,
+     *               rjac,rjac(1,n+1),
      *               rwork(1    ),rwork(1+  n),
      *               rwork(1+2*n),rwork(1+3*n),
      *               rwork(1+4*n),rwork(1+5*n),
      *               rwork(1+6*n),rwork(1+7*n),
-     *               rwork(1+8*n),rcdwrk,icdwrk,qrwork,qrwsiz,epsm,
+     *               rwork(1+8*n),rcdwrk,icdwrk,
+     *               qrwork,qrwsiz,epsm,
      *               fjac,fvec,outopt,xp,fp,gp,njcnt,nfcnt,iter,termcd)
 
       endif

@@ -1,13 +1,12 @@
 
       subroutine nwqlsh(n,xc,fcnorm,d,g,stepmx,xtol,scalex,fvec,
-     *                  xp,fp,fpnorm,xw,mxtake,retcd,gcnt,priter,iter)
+     *                  xp,fp,fpnorm,xw,retcd,gcnt,priter,iter)
 
       integer n,retcd,gcnt
       double precision  stepmx,xtol,fcnorm,fpnorm
       double precision  xc(*)
       double precision  d(*),g(*),xp(*),fp(*),xw(*)
       double precision  scalex(*)
-      logical mxtake
       external fvec
 
       integer priter,iter
@@ -35,9 +34,6 @@ c     In       fp      Real(*)          new f(x)
 c     In       fpnorm  Real             .5*||fp||**2
 c     Out      xw      Real(*)           workspace for unscaling x(*)
 c
-c     Out      mxtake  Logical          .true. if maximum step taken
-c                                       else .false.
-c
 c     Out      retcd   Integer          return code
 c                                         0 new satisfactory x() found
 c                                         1 no  satisfactory x() found
@@ -54,7 +50,6 @@ c-------------------------------------------------------------------------
       double precision  lambda,lamhi,lamlo,t
       double precision  ddot,dnrm2, nudnrm, ftarg
       double precision  dlen
-      logical scstep
       
       integer idamax
       
@@ -68,10 +63,8 @@ c     safeguard initial step size
       dlen = dnrm2(n,d,1)
       if( dlen .gt. stepmx ) then
           lamhi  = stepmx / dlen
-          scstep = .true.
       else
           lamhi  = Rone
-          scstep = .false.
       endif
 
 c     compute slope  =  g-trans * d
@@ -84,10 +77,9 @@ c     parameter lambda ==> lamlo
       rsclen = nudnrm(n,d,xc)
       lamlo  = xtol / rsclen
 
-c     initialization of retcd, mxtake and lambda (linesearch length)
+c     initialization of retcd and lambda (linesearch length)
 
       retcd  = 2
-      mxtake = .false.
       lambda = lamhi
       gcnt   = 0
 
@@ -128,10 +120,6 @@ c        If not update lambda and compute a new next iterate
          endif
 
       enddo
-
-      if( lambda .eq. lamhi .and. scstep ) then
-         mxtake = .true.
-      endif
 
       return
       end

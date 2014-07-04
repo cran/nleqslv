@@ -87,7 +87,7 @@ c-----------------------------------------------------------------------
 
       integer gcnt,retcd,ierr
       double precision  dum(2),fcnorm,rcond
-      logical mxtake,fstjac
+      logical fstjac
       integer priter
 
       integer idamax
@@ -186,28 +186,28 @@ c           jacobian singular or too ill-conditioned
             call nweset(n,xc,fc,fcnorm,xp,fp,fpnorm,gcnt,priter,iter)
          elseif(global .eq. 0) then
             call nwpure(n,xc,dn,stepmx,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 1) then
             call nwclsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 2) then
             call nwqlsh(n,xc,fcnorm,dn,gp,stepmx,btol,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 3) then
             call nwglsh(n,xc,fcnorm,dn,gp,sigma,stepmx,btol,scalex,
-     *                  fvec,xp,fp,fpnorm,wrk1,mxtake,retcd,gcnt,
+     *                  fvec,xp,fp,fpnorm,wrk1,retcd,gcnt,
      *                  priter,iter)
          elseif(global .eq. 4) then
             call nwddlg(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
-     *                  btol,mxtake,delta,qtf,scalex,
+     *                  btol,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          elseif(global .eq. 5) then
             call nwpdlg(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
-     *                  btol,mxtake,delta,qtf,scalex,
+     *                  btol,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          endif

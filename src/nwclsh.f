@@ -1,13 +1,12 @@
 
       subroutine nwclsh(n,xc,fcnorm,d,g,stepmx,xtol,scalex,fvec,
-     *                  xp,fp,fpnorm,xw,mxtake,retcd,gcnt,priter,iter)
+     *                  xp,fp,fpnorm,xw,retcd,gcnt,priter,iter)
 
       integer n,retcd,gcnt
       double precision  stepmx,xtol,fcnorm,fpnorm
       double precision  xc(*)
       double precision  d(*),g(*),xp(*),fp(*),xw(*)
       double precision  scalex(*)
-      logical mxtake
       external fvec
 
       integer priter,iter
@@ -35,9 +34,6 @@ c     In       fp      Real(*)          new f(x)
 c     In       fpnorm  Real             .5*||fp||**2
 c     Out      xw      Real(*)           workspace for unscaling x(*)
 c
-c     Out      mxtake  Logical          .true. if maximum step taken
-c                                       else .false.
-c
 c     Out      retcd   Integer          return code
 c                                         0 new satisfactory x() found
 c                                         1 no  satisfactory x() found
@@ -54,28 +50,31 @@ c-------------------------------------------------------------------------
       double precision  lambda,lamhi,lamlo,t
       double precision  ddot,dnrm2, nudnrm, ftarg
       double precision  dlen
-      logical scstep
       double precision a, b, disc, fpt, fpt0, fpnorm0, lambda0
       integer idamax
       logical firstback
-      
+
       parameter (alpha = 1.0d-4)
 
-      double precision Rone, Rtwo, Rthree, Rten, Rzero
-      parameter(Rone=1.0d0, Rtwo=2.0d0, Rten=10.0d0, Rzero=0.0D0)
+      double precision Rhalf, Rone, Rtwo, Rthree, Rten, Rzero
+      parameter(Rzero=0.0d0)
+      parameter(Rhalf=0.5d0, Rone=1.0d0, Rtwo=2.0d0, Rten=10.0d0)
       parameter(Rthree=3.0d0)
-      
+
       double precision dlamch
-      
+
+c     silence warnings issued by ftncheck
+
+      lambda0 = Rzero
+      fpnorm0 = Rzero
+
 c     safeguard initial step size
 
       dlen = dnrm2(n,d,1)
       if( dlen .gt. stepmx ) then
           lamhi  = stepmx / dlen
-          scstep = .true.
       else
           lamhi  = Rone
-          scstep = .false.
       endif
 
 c     compute slope  =  g-trans * d
@@ -88,14 +87,13 @@ c     parameter lambda ==> lamlo
       rsclen = nudnrm(n,d,xc)
       lamlo  = xtol / rsclen
 
-c     initialization of retcd, mxtake and lambda (linesearch length)
+c     initialization of retcd and lambda (linesearch length)
 
       retcd  = 2
-      mxtake = .false.
       lambda = lamhi
       gcnt   = 0
       firstback = .true.
-      
+
       do while( retcd .eq. 2 )
 
 c        compute next x
@@ -127,7 +125,7 @@ c        If not update lambda and compute a new next iterate
              retcd = 0
          else
             if( fpnorm .gt. lamlo**2 * sqrt(dlamch('O')) ) then
-c               safety against overflow in what folows (use lamlo**2 for safety)
+c               safety against overflow in what follows (use lamlo**2 for safety)
                 lambda = lambda/Rten
                 firstback = .true.
             else
@@ -142,17 +140,17 @@ c               safety against overflow in what folows (use lamlo**2 for safety)
                    b = -lambda0*fpt/lambda**2 + lambda*fpt0/lambda0**2
                    a = a /(lambda - lambda0)
                    b = b /(lambda - lambda0)
-                   disc = b**2 - Rthree * a * slope  
+                   disc = b**2 - Rthree * a * slope
                    if( abs(a) .le. dlamch('E') ) then
                        t = -slope/(2*b)
                    elseif(disc .gt. b**2) then
-c                      a single positive solution                       
+c                      a single positive solution
                        t = (-b + sign(Rone,a)*sqrt(disc))/(Rthree*a)
                    else
 c                      both roots > 0, left one is minimum
                        t = (-b - sign(Rone,a)*sqrt(disc))/(Rthree*a)
                    endif
-                   t = min(t, .5*lambda)
+                   t = min(t, Rhalf*lambda)
                 endif
                 lambda0 = lambda
                 fpnorm0 = fpnorm
@@ -161,12 +159,8 @@ c                      both roots > 0, left one is minimum
                    retcd = 1
                 endif
             endif
-         endif 
+         endif
       enddo
-
-      if( lambda .eq. lamhi .and. scstep ) then
-         mxtake = .true.
-      endif
 
       return
       end

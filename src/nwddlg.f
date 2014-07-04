@@ -1,6 +1,6 @@
 
       subroutine nwddlg(n,rjac,ldr,dn,g,xc,fcnorm,stepmx,xtol,
-     *                  mxtake,delta,qtf,scalex,fvec,d,xprev,
+     *                  delta,qtf,scalex,fvec,d,xprev,
      *                  ssd,v,wa,fprev,xp,fp,fpnorm,retcd,gcnt,
      *                  priter,iter)
 
@@ -10,7 +10,6 @@
       double precision  scalex(*), d(*)
       double precision  xprev(*), xp(*), fp(*)
       double precision  ssd(*), v(*), wa(*), fprev(*)
-      logical mxtake
       external fvec
 
 c-------------------------------------------------------------------------
@@ -29,7 +28,6 @@ c     In       xc      Real(*)         current iterate
 c     In       fcnorm  Real            .5*||f(xc)||**2
 c     In       stepmx  Real            maximum stepsize
 c     In       xtol    Real            x-tolerance (stepsize)
-c     Out      mxtake  Logical         true if maximum step taken
 c     Inout    delta   Real            on input: initial trust region radius
 c                                                if -1 then set to something
 c                                                reasonable
@@ -66,7 +64,7 @@ c-------------------------------------------------------------------------
       double precision  dnlen,ssdlen,alpha,beta,lambda,fpred
       double precision  sqalpha,eta,gamma,fpnsav,oarg(7)
       double precision  dnrm2,ddot
-      logical nwtake
+      logical nwtstep
       integer dtype
 
       integer idamax
@@ -113,9 +111,9 @@ c     calculate double dogleg parameter
       do while( retcd .gt. 1 )
 c        find new step by double dogleg algorithm
 
-         call ddlgstp(n,dn,dnlen,delta,nwtake,v,
+         call ddlgstp(n,dn,dnlen,delta,v,
      *               ssd,ssdlen,eta,d,dtype,lambda)
-
+         nwtstep = dtype .eq. 4
 c        compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
 
          call dcopy(n,d,1,wa,1)
@@ -135,7 +133,7 @@ c        evaluate function at xp = xc + d
 c        check whether the global step is acceptable
 
          oarg(2) = delta
-         call nwtrup(n,fcnorm,g,d,nwtake,stepmx,xtol,delta,mxtake,
+         call nwtrup(n,fcnorm,g,d,nwtstep,stepmx,xtol,delta,
      *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm)
 
          if( priter .gt. 0 ) then
@@ -154,12 +152,11 @@ c        check whether the global step is acceptable
 
 c-----------------------------------------------------------------------
 
-      subroutine ddlgstp(n,dn,dnlen,delta,nwtake,v,
+      subroutine ddlgstp(n,dn,dnlen,delta,v,
      *                  ssd,ssdlen,eta,d,dtype,lambda)
       integer n
       double precision  dn(*), ssd(*), v(*), d(*)
       double precision  dnlen, delta, ssdlen, eta, lambda
-      logical nwtake
       integer dtype
 
 c-------------------------------------------------------------------------
@@ -173,7 +170,6 @@ c     In       n       Integer         size of problem
 c     In       dn      Real(*)         current newton step
 c     Out      dnlen   Real            length dn()
 c     In       delta     Real            current trust region radius
-c     Inout    nwtake  Logical         true if newton step taken
 c     Out      v       Real(*)         (internal) eta * dn() - ssd()
 c     In       ssd     Real(*)         (internal) steepest descent direction
 c     In       ssdlen  Real            (internal) length ssd
@@ -193,13 +189,10 @@ c-----------------------------------------------------------------------
       double precision vssd, vlen
       double precision dnrm2, ddot
       
-      nwtake = .false.
-
       if(dnlen .le. delta) then
 
 c        Newton step smaller than trust radius ==> take it
 
-         nwtake = .true.
          call dcopy(n, dn, 1, d, 1)
          delta = dnlen
          dtype = 4

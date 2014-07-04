@@ -5,7 +5,7 @@
 
 #include <R.h>
 
-static	int jacsng = -1;
+static  int jacsng = -1;
 static  int jacupd = -1;
 static  double jacond = 0.0;
 
@@ -21,13 +21,13 @@ void F77_SUB(nwckot)(int *i, int *j, double *aij, double *wi)
 
 void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
 {
-	/*
-	 * save for later printing
-	 */
+    /*
+     * save for later printing
+     */
 
-	jacsng = *ierr;
-	jacupd = *jtype;
-	jacond = *rcond;
+    jacsng = *ierr;
+    jacupd = *jtype;
+    jacond = *rcond;
 }
 
 /*
@@ -42,15 +42,15 @@ void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
 
 static void  nwrowhdr(int *iter)
 {
-	char jmethod;
+    char jmethod;
 
     Rprintf( "  %4d ", *iter);
-	if( jacupd < 0) {
-	    /* output padding */
+    if( jacupd < 0) {
+        /* output padding */
         Rprintf("%11s","");
     }
     else {
-    	jmethod = (jacupd == 0) ? 'N' : 'B';
+        jmethod = (jacupd == 0) ? 'N' : 'B';
 
         /*
          * meaning jacsng
@@ -61,19 +61,19 @@ static void  nwrowhdr(int *iter)
          * Indicate this after output of <jmethod>
          */
 
-    	if( jacsng == 0 )
-    		Rprintf(" %c(%7.1e)", jmethod, jacond);
-    	else if( jacsng == 1 )
-    		Rprintf("%ci(%7.1e)", jmethod, jacond);
+        if( jacsng == 0 )
+            Rprintf(" %c(%7.1e)", jmethod, jacond);
+        else if( jacsng == 1 )
+            Rprintf("%ci(%7.1e)", jmethod, jacond);
         else
-    		Rprintf("%cs%9s", jmethod,"");
+            Rprintf("%cs%9s", jmethod,"");
 
-    	/*
-    	 * avoid output of redundant information on next time called
-    	 */
+        /*
+         * avoid output of redundant information on next time called
+         */
 
-    	jacupd = -1;
-	}
+        jacupd = -1;
+    }
 }
 
 void F77_SUB(nwjerr)(int *iter)
@@ -99,27 +99,27 @@ void F77_SUB(nwprot)(int *iter, int *lstep, double *oarg)
      * None global method output
      */
      
-	double v;
+    double v;
 
-	if( *lstep <= 0 ) {
-		if( *lstep == -1)
-			Rprintf("  %4s %11s %8s  %13s %13s\n",
-						"Iter","Jac","Lambda","Fnorm","Largest |f|");
+    if( *lstep <= 0 ) {
+        if( *lstep == -1)
+            Rprintf("  %4s %11s %8s  %13s %13s\n",
+                        "Iter","Jac","Lambda","Fnorm","Largest |f|");
 
-		Rprintf("  %4d%22s %13.6e %13.6e\n" , *iter, "", oarg[0],oarg[1]);
-	}
-	else {
-		nwrowhdr(iter);
-		v = *oarg;
-		if( fabs(v) > 0.0001 )
-			Rprintf( " %8.4f ",v);
-		else
-			Rprintf( " %8.1e ",v);
+        Rprintf("  %4d%22s %13.6e %13.6e\n" , *iter, "", oarg[0],oarg[1]);
+    }
+    else {
+        nwrowhdr(iter);
+        v = *oarg;
+        if( fabs(v) > 0.0001 )
+            Rprintf( " %8.4f ",v);
+        else
+            Rprintf( " %8.1e ",v);
 
         enumout(oarg[1]);
         enumout(oarg[2]);
         Rprintf("\n");
-	}
+    }
 }
 
 void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
@@ -128,28 +128,28 @@ void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
      * Linesearch output
      */
 
-	double v;
+    double v;
 
-	if( *lstep <= 0 ) {
-		if( *lstep == -1)
-			Rprintf("  %4s %11s %8s  %13s %13s %13s\n",
-						"Iter","Jac","Lambda","Ftarg","Fnorm","Largest |f|");
+    if( *lstep <= 0 ) {
+        if( *lstep == -1)
+            Rprintf("  %4s %11s %8s  %13s %13s %13s\n",
+                        "Iter","Jac","Lambda","Ftarg","Fnorm","Largest |f|");
 
-		Rprintf("  %4d%36s %13.6e %13.6e\n" , *iter, "", oarg[0],oarg[1]);
-	}
-	else {
-		nwrowhdr(iter);
-		v = *oarg;
-		if( fabs(v) > 0.0001 )
-			Rprintf( " %8.4f ",v);
-		else
-			Rprintf( " %8.1e ",v);
+        Rprintf("  %4d%36s %13.6e %13.6e\n" , *iter, "", oarg[0],oarg[1]);
+    }
+    else {
+        nwrowhdr(iter);
+        v = *oarg;
+        if( fabs(v) > 0.0001 )
+            Rprintf( " %8.4f ",v);
+        else
+            Rprintf( " %8.1e ",v);
 
         enumout(oarg[1]);
         enumout(oarg[2]);
         enumout(oarg[3]);
         Rprintf("\n");
-	}
+    }
 }
 
 /*
@@ -171,34 +171,34 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
      * Double dogleg output
      */
 
-	char step;
+    char step;
 
-	/*
- 	 *  C gradient (cauchy) step
- 	 *  N newton step
- 	 *  P partial newton step
- 	 *  W convex combination of P and C
+    /*
+     *  C gradient (cauchy) step
+     *  N newton step
+     *  P partial newton step
+     *  W convex combination of P and C
      */
 
-	if( *lstep <= 0 ) {
-		if( *lstep == -1)
-			Rprintf("  %4s %11s   %8s %8s %8s %8s %13s %13s\n",
- 				       "Iter","Jac","Lambda", "Eta", "Dlt0", "Dltn", "Fnorm","Largest |f|");
+    if( *lstep <= 0 ) {
+        if( *lstep == -1)
+            Rprintf("  %4s %11s   %8s %8s %8s %8s %13s %13s\n",
+                       "Iter","Jac","Lambda", "Eta", "Dlt0", "Dltn", "Fnorm","Largest |f|");
 
-            Rprintf("  %4d%50s" , *iter, "");
-            enumout(oarg[0]);
-            enumout(oarg[1]);
-            Rprintf("\n");
-	}
-	else {
-		nwrowhdr(iter);
-		step = "CWPN"[*lstep-1];
-		Rprintf( " %c ", step);
+        Rprintf("  %4d%50s" , *iter, "");
+        enumout(oarg[0]);
+        enumout(oarg[1]);
+        Rprintf("\n");
+    }
+    else {
+        nwrowhdr(iter);
+        step = "CWPN"[*lstep-1];
+        Rprintf( " %c ", step);
 
-		if( *lstep == 2 )
-			Rprintf( "%8.4f", oarg[0]);
-		else
-			Rprintf( "%8s", "");
+        if( *lstep == 2 )
+            Rprintf( "%8.4f", oarg[0]);
+        else
+            Rprintf( "%8s", "");
 
         Rprintf(" %8.4f", oarg[3]);
         dnumout(oarg[1]);
@@ -206,7 +206,7 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
         enumout(oarg[4]);
         enumout(oarg[5]);
         Rprintf("\n");
- 	}
+    }
 }
 
 void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
@@ -215,38 +215,38 @@ void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
      * Single dogleg output
      */
 
-	char step;
+    char step;
 
-	/*
-	 *  C gradient (cauchy) step
-	 *  N newton step
-	 *  W convex combination of P and C
-	 */
+    /*
+     *  C gradient (cauchy) step
+     *  N newton step
+     *  W convex combination of P and C
+     */
 
-	if( *lstep <= 0 ) {
-		if( *lstep == -1)
-			Rprintf("  %4s %11s   %8s %8s %8s %13s %13s\n",
-						"Iter","Jac","Lambda", "Dlt0", "Dltn", "Fnorm","Largest |f|");
+    if( *lstep <= 0 ) {
+        if( *lstep == -1)
+            Rprintf("  %4s %11s   %8s %8s %8s %13s %13s\n",
+                        "Iter","Jac","Lambda", "Dlt0", "Dltn", "Fnorm","Largest |f|");
 
-            Rprintf("  %4d%41s", *iter, "");
-            enumout(oarg[0]);
-            enumout(oarg[1]);
-            Rprintf("\n");
-	}
-	else {
-		nwrowhdr(iter);
-		step = "CWN"[*lstep-1];
-		Rprintf( " %c ", step);
+        Rprintf("  %4d%41s", *iter, "");
+        enumout(oarg[0]);
+        enumout(oarg[1]);
+        Rprintf("\n");
+    }
+    else {
+        nwrowhdr(iter);
+        step = "CWN"[*lstep-1];
+        Rprintf( " %c ", step);
 
-		if( *lstep == 2 )
-			Rprintf( "%8.4f",oarg[0]);
-		else
-			Rprintf( "%8s", "");
+        if( *lstep == 2 )
+            Rprintf( "%8.4f",oarg[0]);
+        else
+            Rprintf( "%8s", "");
 
         dnumout(oarg[1]);
         dnumout(oarg[2]);
         enumout(oarg[3]);
         enumout(oarg[4]);
         Rprintf("\n");
- 	}
+    }
 }
