@@ -1,3 +1,9 @@
+2.3.1
+
+o allow strings "cauchy" and "newton" in control$delta argument
+o documentation for iteration report fixed
+o better comments trial steps when updating trust region
+
 2.3
 
 o clarified documentation for iteration report

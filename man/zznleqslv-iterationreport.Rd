@@ -19,9 +19,9 @@ This column will be blank when backtracking is active.}
 \item{\code{Fnorm}}{square of the euclidean norm of function values / 2}
 \item{\code{Largest |f|}}{infinity norm of \eqn{f(x)}{f(x)} at the current point}
 } 
+}
 
-\emph{Report for linesearch methods}
-\cr
+\section{Report for linesearch methods}{
 A sample iteration report for the linesearch global methods (\code{cline}, \code{qline} and \code{gline}) is
 (some intercolumn space has been removed to make the table fit)  
 \preformatted{
@@ -35,17 +35,17 @@ Iter        Jac Lambda        Ftarg         Fnorm   Largest |f|
 The column headed by \code{Lambda} shows the value of the line search parameter.
 The column headed by \code{Ftarg} follows from a sufficient decrease requirement and
 is the value below which \code{Fnorm} must drop if the current step is to be accepted.
+}
 
-\emph{Report for the pure method}
-\cr
+\section{Report for the pure method}{
 The iteration report for the global method \code{none} is almost the same as the above report, except that the column
 labelled  \code{Ftarg} is omitted. The column \code{Lambda} gives the ratio of
 the maximum stepsize and the length of the full Newton step.
 It is either exactly 1.0, indicating that the Newton step is smaller than the maximum stepsize and therefore used unmodified,
 or smaller than 1.0, indicating that the Newton step is larger than the maximum stepsize and therefore truncated.
+}
 
-\emph{Report for the double dogleg global method}
-\cr
+\section{Report for the double dogleg global method}{
 A sample iteration report for the global method \code{dbldog} is 
 (some intercolumn space has been removed to make the table fit)
 \preformatted{
@@ -94,10 +94,10 @@ Normally the initial trust region radius is the same as
 the final trust region radius of the previous iteration but the size of the trust region is
 restricted by the size of the current Newton step. So when full Newton steps
 are being taken, the trust region radius at the start of an iteration may be less than the
-final value of the previous iteration. 
+final value of the previous iteration.
+}
 
-\emph{Report for the single (Powell) dogleg global method}
-\cr
+\section{Report for the single (Powell) dogleg global method}{
 A sample iteration report for the global method \code{pwldog} is
 (some intercolumn space has been removed to make the table fit)  
 \preformatted{

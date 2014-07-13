@@ -143,11 +143,12 @@ progress of the iteration. For a description see \code{\link{Iteration report}}.
 supplied. The default value is \code{FALSE}. The first 10 errors are printed.
 The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
 \item{\code{delta}}{Initial (scaled) trust region radius.
-A value of \eqn{-1.0} is replaced by the length of the Cauchy step in the initial point.
-A value of \eqn{-2.0} is replaced by the length of the Newton step in the initial point.
-Any value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
-the algorithm will thus start with the length of the Cauchy step in the initial point.
-If it is positive it will be set to the smaller of the value supplied or the maximum stepsize.
+A value of \eqn{-1.0} or \code{"cauchy"} is replaced by the length of the Cauchy step in the initial point.
+A value of \eqn{-2.0} or \code{"newton"} is replaced by the length of the Newton step in the initial point.
+Any numeric value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
+the algorithm will then start with the length of the Cauchy step in the initial point.
+If it is numeric and positive it will be set to the smaller of the value supplied or the maximum stepsize.
+If it is not numeric and not one of the permitted character strings then an error message will be issued.
 The default is \eqn{-2.0}.}
 \item{\code{stepmax}}{Maximum scaled stepsize.
 If this is negative then the maximum stepsize is set to the largest positive representable number.

@@ -11,10 +11,10 @@
 nleqslv <- function(x, fn, jac = NULL, ...,
                     method = c("Broyden", "Newton"),
                     global = c("dbldog", "pwldog", "cline", "qline", "gline", "none"),
-                    xscalm = c("fixed","auto"), 
+                    xscalm = c("fixed","auto"),
                     jacobian=FALSE,
                     control = list())
-{   
+{
     fn1  <- function(par) fn(par, ...)
     jac1 <- if (!is.null(jac)) function(par) jac(par, ...)
 
@@ -33,16 +33,23 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 cndtol=1e-12,
                 dsub=-1L,
                 dsuper=-1L
-               )                       
+               )
 
     # limit maximum number of iterations for pure local strategy
     if( global == "none" ) con$maxit=20
-           
+
     # check names of control argument
     namc <- names(control)
-    if (!all(namc %in% names(con))) 
+    if (!all(namc %in% names(con)))
         stop("unknown names in control: ", paste(namc[!(namc %in% names(con))], collapse=", "))
     con[namc] <- control
+
+    tmp <- con[["delta"]]
+    if( is.character(tmp) ) {
+        k <- match(tolower(tmp), c("cauchy","newton"))
+        con[["delta"]] <- as.numeric(-k)
+    }
+    else if( !is.numeric(tmp) ) stop('control["delta"] should be either character or numeric')
 
     # to reset flag for checking recursive calls (not allowed for now)
     on.exit(.C("deactivatenleq",PACKAGE="nleqslv"))

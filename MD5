@@ -1,13 +1,13 @@
-adcb52d22315bd52a411b643efce0512 *DESCRIPTION
+bbcf65299665408ff558195c98c890d8 *DESCRIPTION
 4482686d9e81ebee9b4ff955ff2a6b26 *NAMESPACE
-d961b0b5a9e190a2ab9c110ae5cfb325 *NEWS
-cc525330df197a8becbf5f49de97d0f5 *R/nleqslv.R
+c3a285e2a683e56e0eef8586af62e3b5 *NEWS
+7075ec03a1233bb6b464d2443df9623d *R/nleqslv.R
 3c57e95e95b9328ed66d409a75bf0512 *R/testnslv.R
 8c9abddb185017635393c40137771e82 *man/nleqslv-package.Rd
-9584d852181e9b70c1d74ac60cc15bf8 *man/nleqslv.Rd
+0287fcf8b8b2179b9c5aa0e13990bcec *man/nleqslv.Rd
 799b48d0acf42e9c038ea42cc86f2385 *man/print.testnslv.Rd
 f9754a8cfbb6a83e05e1c52c8605d5a4 *man/testnslv.Rd
-8a99114dad0334e23d7d0cf3da721b1e *man/zznleqslv-iterationreport.Rd
+c508c5062affa4e01986ed763493be2b *man/zznleqslv-iterationreport.Rd
 1ed18cd8f15e511a405098ea1e6cc224 *src/Makevars
 9ddf400ab9fcbaa36b158ee9412cd7ee *src/lautil.f
 6bb33b8afa14e8bec2dad29c3b3be862 *src/liqrup.f
@@ -23,7 +23,7 @@ c92dd91c36e86c0b0e2cf4e1acfebb3a *src/nwout.c
 09a5df15837f857d02d07026e34f5407 *src/nwpdlg.f
 9985349091846e6b64fa22d01e804f8c *src/nwpure.f
 3c46fb5b438b0686fe8675edeca62f1f *src/nwqlsh.f
-7fb02e26831b0d457abb7e887916d376 *src/nwtrup.f
+6e6688c2ebd99c5a4ff99e5135615a7a *src/nwtrup.f
 a165eefb157ae6b5cc991882798a1dec *src/nwutil.f
 368145c17dea673fcce9e3de7a9c46ec *tests/brdban.R
 1b92b0b4a8877d51c098cb8a17dd0a11 *tests/brdban.Rout
@@ -43,6 +43,9 @@ b2b5bdfeab786db8dfb87cb15e3413c3 *tests/chquad.Rout.save
 cd5557ed8e1ce721664fcbac31a82f7d *tests/dslnex.R
 553b02e76681b88536dcd87a009ad0cb *tests/dslnex.Rout
 553b02e76681b88536dcd87a009ad0cb *tests/dslnex.Rout.save
+cfb8dfd9f4a32abdffee52bce6674370 *tests/dslnexCN.R
+320bd1466a381904a266ed2ba8330c03 *tests/dslnexCN.Rout
+320bd1466a381904a266ed2ba8330c03 *tests/dslnexCN.Rout.save
 e998068a1cb74e16c25ecb72ad82a62d *tests/dslnexauto.R
 5caa2468eb3f9c0adfc7665b57553ddf *tests/dslnexauto.Rout
 5caa2468eb3f9c0adfc7665b57553ddf *tests/dslnexauto.Rout.save

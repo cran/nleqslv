@@ -124,8 +124,9 @@ c           reduce trust region and continue current global step
       elseif(retcd .ne. 2 .and. (abs(pred-ared) .le. Rpten*abs(ared))
      *      .and. (.not. nwtstep) .and. (delta .le. Rp99*stepmx)) then
 
-c        pred predicts ared very well and ared is sufficiently small
-c        to attempt a doubling of the trust region and continue global step
+c        pred predicts ared very well
+c        attempt a doubling of the trust region and continue global step
+c        when not taking a newton step and trust region not at maximum
 
          call dcopy(n,xp,1,xprev,1)
          call dcopy(n,fp,1,fprev,1)
