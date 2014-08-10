@@ -3,7 +3,7 @@ library("nleqslv")
 
 # Dennis & Schnabel,1996,"Numerical methods for unconstrained optimization and nonlinear equations", SIAM
 # example 6.5.1 page 149
-    
+
 dslnex <- function(x) {
     y <- numeric(2)
     y[1] <- x[1]^2 + x[2]^2 - 2
@@ -23,13 +23,13 @@ print.result <- function(z) {
     if( do.print.xf ) {
         print(z$x)
         print(z$fvec)
-    }                           
+    }
     print(z$message)
     print(all(abs(z$fvec)<=1e-8))
 }
 
 sink("dslnexCN-num.txt")
-for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
         znlq <- nleqslv(xstart, dslnex, global=z, control=list(btol=.01,delta=delta, trace=1))
         print.result(znlq)
@@ -38,7 +38,7 @@ for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
 sink()
 
 sink("dslnexCN-char.txt")
-for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
     for( delta in c("cauchy", "newton") ) { # Cauchy step , Newton step
         znlq <- nleqslv(xstart, dslnex, global=z, control=list(btol=.01,delta=delta,trace=1))
         print.result(znlq)

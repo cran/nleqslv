@@ -34,7 +34,7 @@ c     In       n       Integer         dimensions of problem
 c     Inout    scalex  Real(*)         scaling factors x(*)
 c     In       maxit   Integer         maximum number of allowable iterations
 c     In       jacflg  Integer(*)      jacobian flag array
-c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded    
+c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
 c                                                  3: user supplied banded
 c     In       xtol    Real            tolerance at which successive iterates x()
 c                                      are considered close enough to
@@ -121,11 +121,11 @@ c     evaluate function
 
 c     evaluate user supplied or finite difference jacobian and check user supplied
 c     jacobian, if requested
-      
+
       fstjac = .false.
       if(mod(jacflg(1),2) .eq. 1) then
 
-        if( outopt(2) .eq. 1 ) then 
+        if( outopt(2) .eq. 1 ) then
            fstjac = .true.
            njcnt = njcnt + 1
            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
@@ -156,7 +156,7 @@ c     check stopping criteria for input xc
              njcnt = njcnt + 1
              call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *                   ldr,wrk1,wrk2,wrk3)
-          endif 
+          endif
           return
       endif
 
@@ -173,6 +173,8 @@ c     check stopping criteria for input xc
             call nwdgot(iter,-1,dum)
          elseif( global .eq. 5 ) then
             call nwpwot(iter,-1,dum)
+         elseif( global .eq. 6 ) then
+            call nwmhot(iter,-1,dum)
          endif
 
       endif
@@ -185,7 +187,7 @@ c     check stopping criteria for input xc
          if( jacevl ) then
 
             call nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
-     *                  wrk2,wrk3,       
+     *                  wrk2,wrk3,
      *                  xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *                  qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
@@ -247,6 +249,11 @@ c           jacobian singular or too ill-conditioned
      *                  btol,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
+         elseif(global .eq. 6) then
+            call nwmhlm(n,r,ldr,dn,gp,xc,fcnorm,stepmx,
+     *                  btol,delta,qtf,scalex,
+     *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
+     *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          endif
 
          nfcnt = nfcnt + gcnt
@@ -266,7 +273,7 @@ c           reset trust region radius
             termcd = 0
 
          elseif(termcd .gt. 0) then
-            jacupd = .false. 
+            jacupd = .false.
          else
             jacupd = .true.
             jacevl = .false.

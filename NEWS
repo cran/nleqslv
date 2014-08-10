@@ -1,3 +1,10 @@
+
+2.4
+
+o Dennis-Schnabel hookstep added as global strategy "hook"
+o testnslv adjusted for new extra global strategy
+o removed all trailing spaces from files (added in by editor)
+
 2.3.1
 
 o allow strings "cauchy" and "newton" in control$delta argument

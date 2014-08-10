@@ -50,9 +50,9 @@ c-------------------------------------------------------------------------
       double precision  lambda,lamhi,lamlo,t
       double precision  ddot,dnrm2, nudnrm, ftarg
       double precision  dlen
-      
+
       integer idamax
-      
+
       parameter (alpha = 1.0d-4)
 
       double precision Rone, Rtwo, Rten
@@ -86,7 +86,7 @@ c     initialization of retcd and lambda (linesearch length)
       do while( retcd .eq. 2 )
 
 c        compute next x
-     
+
          do i=1,n
             xp(i) = xc(i) + lambda*d(i)
          enddo
@@ -96,7 +96,7 @@ c        evaluate functions and the objective function at xp
          call nwfvec(xp,n,scalex,fvec,fp,fpnorm,xw)
          gcnt = gcnt + 1
          ftarg = fcnorm + alpha * lambda * slope
-         
+
          if( priter .gt. 0) then
             oarg(1) = lambda
             oarg(2) = ftarg
@@ -111,7 +111,7 @@ c        If not update lambda and compute a new next iterate
 
          if( fpnorm .le. ftarg ) then
             retcd = 0
-         else 
+         else
             t = ((-lambda**2)*slope/Rtwo)/(fpnorm-fcnorm-lambda*slope)
             lambda  = max(lambda / Rten , t)
             if(lambda .lt. lamlo) then

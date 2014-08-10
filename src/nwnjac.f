@@ -1,5 +1,5 @@
       subroutine nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
-     *                  wrk2,wrk3,       
+     *                  wrk2,wrk3,
      *                  xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *                  qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
@@ -24,7 +24,7 @@ c     In       epsm    Real            machine precision
 c     In       jacflg  Integer(*)      jacobian flag array
 c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
 c                                                  3: user supplied banded
-c     Wk       wrk1    Real(*)         workspace    
+c     Wk       wrk1    Real(*)         workspace
 c     Wk       wrk2    Real(*)         workspace
 c     Wk       wrk3    Real(*)         workspace
 c     In       xscalm  Integer         x scaling method
@@ -42,7 +42,7 @@ c     Out      rcond   Real            estimated inverse condition of R from QR
 c     In       qrwork  Real(*)         workspace for Lapack QR routines (call liqsiz)
 c     In       qrwsiz  Integer         size of qrwork
 c     Out      njcnt   Integer         number of jacobian evaluations
-c     In       iter    Integer         iteration counter (used in scaling)  
+c     In       iter    Integer         iteration counter (used in scaling)
 c     Inout    fstjac  logical         .true. if initial jacobian is available
 c                                      on exit set to .false.
 c     Out      ierr    Integer         error code
@@ -52,7 +52,7 @@ c
 c-----------------------------------------------------------------------
 
       integer ldr,n,iter, njcnt, ierr
-      integer jacflg(*),xscalm,qrwsiz  
+      integer jacflg(*),xscalm,qrwsiz
       logical fstjac
       double precision  epsm, cndtol, rcond
       double precision  rjac(ldr,*)
@@ -68,15 +68,15 @@ c-----------------------------------------------------------------------
       parameter(Rzero=0.0d0, Rone=1.0d0)
 
 c     evaluate the jacobian at the current iterate xc
-      
+
       if( .not. fstjac ) then
          call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *               ldr,wrk1,wrk2,wrk3)
-         njcnt = njcnt + 1 
+         njcnt = njcnt + 1
       else
-         fstjac = .false.    
-      endif            
-      
+         fstjac = .false.
+      endif
+
 c     if requested calculate x scale from jacobian column norms a la Minpack
 
       if( xscalm .eq. 1 ) then

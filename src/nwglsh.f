@@ -116,7 +116,7 @@ c        If not update lambda and compute a new next iterate
             lambda  = sigma * lambda
             if(lambda .lt. lamlo) then
                retcd = 1
-            endif  
+            endif
          endif
 
       enddo

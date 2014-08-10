@@ -1,7 +1,7 @@
 
 testnslv <- function(x, fn, jac=NULL, ...,
                             method=c("Newton", "Broyden"),
-                            global=c("cline", "qline", "gline", "pwldog", "dbldog", "none"),
+                            global=c("cline", "qline", "gline", "pwldog", "dbldog", "hook", "none"),
                             Nrep=0L, title=NULL
                           )
 {
@@ -37,7 +37,7 @@ testnslv <- function(x, fn, jac=NULL, ...,
     }
 
     methods <- match.arg(method, c("Newton", "Broyden"), several.ok=TRUE)
-    globals <- match.arg(global, c("cline", "qline", "gline", "pwldog", "dbldog", "none"), several.ok=TRUE)
+    globals <- match.arg(global, c("cline", "qline", "gline", "pwldog", "dbldog", "hook", "none"), several.ok=TRUE)
 
     my.call <- match.call()
     reslist <- vector("list", length(methods)*length(globals))

@@ -28,7 +28,7 @@ print.result <- function(z) {
     if( do.print.xf ) {
         print(z$x)
         print(z$fvec)
-    }                           
+    }
     print(z$message)
     print(all(abs(z$fvec)<=1e-8))
 }

@@ -81,6 +81,7 @@ static void trace_header(int method, int global, int xscalm, double sigma,
         case 3: Rprintf("geometric linesearch (reduction = %g)\n", sigma); break;
         case 4: Rprintf("double dogleg (initial trust region = %g)\n", delta); break;
         case 5: Rprintf("single dogleg (initial trust region = %g)\n", delta); break;
+        case 6: Rprintf("More/Hebden/Lev/Marquardt (initial trust region = %g)\n", delta); break;
         default: error("Internal: invalid global value in trace_header\n");
     }
 
@@ -153,7 +154,7 @@ void fcnval(double *xc, double *fc, int *n, int *flag)
                 else
                     error("Non-finite value(s) detected in banded jacobian (row=%d,col=%d)",i+1,
                            findcol(i+1,*n,*flag-*n));
-            }               
+            }
         }
     }
 
@@ -261,7 +262,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
                   "  Check initial x and/or correctness of function",i+1);
 
     UNPROTECT(1);
- 
+
     z = CHAR(STRING_ELT(rmethod, 0));
     if( strcmp(z,"Broyden") == 0 )
         method = 1;
@@ -295,7 +296,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     icdwrk  = int_vector(n);
     outopt  = int_vector(3);
     rjac    = real_vector(lrjac);
-    
+
     xtol    = asReal(getListElement(control, "xtol"));
     ftol    = asReal(getListElement(control, "ftol"));
     btol    = asReal(getListElement(control, "btol"));
@@ -332,6 +333,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         global = 4;
     else if( strcmp(z,"pwldog") == 0 )
         global = 5;
+    else if( strcmp(z,"hook") == 0 )
+        global = 6;
 
     z = CHAR(STRING_ELT(rxscalm, 0));
     if( strcmp(z,"fixed") == 0 )
@@ -346,7 +349,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     if(dsuper==NA_INTEGER || dsuper<-1 || dsuper>n-2) error("Invalid/impossible value for 'dsuper'");
     if( (dsub < 0 && dsuper >= 0) || (dsuper < 0 && dsub >= 0) ) error("Both dsub and dsuper must be specified");
     if(method==1 && dsub==0 && dsuper==0) error("method Broyden not implemented for dsub=dsuper=0!");
-    
+
     /*
      * setup calculation type of jacobian
      */
@@ -366,9 +369,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         jacflg[1] = OS->dsub   = -1;
         jacflg[2] = OS->dsuper = -1;
     }
-    
+
     jacflg[0] = jactype;
-    
+
     /* copied from code in <Rsource>/src/library/stats/src/optim.c */
     sexp_diag = getListElement(control, "scalex");
     if( LENGTH(sexp_diag) != n )

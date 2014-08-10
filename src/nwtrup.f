@@ -59,10 +59,10 @@ c-------------------------------------------------------------------------
       double precision  dnrm2,ddot,nudnrm
       logical ret3ok
 
-      double precision Rone, Rtwo, Rthree, Rfour, Rten 
+      double precision Rone, Rtwo, Rthree, Rfour, Rten
       double precision Rhalf, Rpten
       parameter(Rpten = 0.1d0)
-      parameter(Rhalf=0.5d0)    
+      parameter(Rhalf=0.5d0)
       parameter(Rone=1.0d0, Rtwo=2.0d0, Rthree=3.0d0, Rfour=4.0d0)
       parameter(Rten=10.0d0)
 

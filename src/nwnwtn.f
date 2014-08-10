@@ -115,12 +115,12 @@ c     evaluate function
 
 c     evaluate user supplied or finite difference jacobian and check user supplied
 c     jacobian, if requested
-      
+
       fstjac = .false.
       if(mod(jacflg(1),2) .eq. 1) then
 
         if( outopt(2) .eq. 1 ) then
-           fstjac = .true.  
+           fstjac = .true.
            njcnt = njcnt + 1
            call nwfjac(xc,scalex,fc,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *                 ldr,wrk1,wrk2,wrk3)
@@ -150,7 +150,7 @@ c     check stopping criteria for input xc
              njcnt = njcnt + 1
              call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *                   ldr,wrk1,wrk2,wrk3)
-          endif 
+          endif
           return
       endif
 
@@ -167,6 +167,8 @@ c     check stopping criteria for input xc
             call nwdgot(iter,-1,dum)
          elseif( global .eq. 5 ) then
             call nwpwot(iter,-1,dum)
+         elseif( global .eq. 6 ) then
+            call nwmhot(iter,-1,dum)
          endif
 
       endif
@@ -175,7 +177,7 @@ c     check stopping criteria for input xc
          iter = iter + 1
 
          call nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
-     *               wrk2,wrk3,       
+     *               wrk2,wrk3,
      *               xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *               qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
 
@@ -210,6 +212,11 @@ c           jacobian singular or too ill-conditioned
      *                  btol,delta,qtf,scalex,
      *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
      *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
+         elseif(global .eq. 6) then
+            call nwmhlm(n,rjac,ldr,dn,gp,xc,fcnorm,stepmx,
+     *                  btol,delta,qtf,scalex,
+     *                  fvec,d,fq,wrk1,wrk2,wrk3,wrk4,
+     *                  xp,fp,fpnorm,retcd,gcnt,priter,iter)
          endif
 
          nfcnt = nfcnt + gcnt
@@ -226,12 +233,12 @@ c           update xc, fc, and fcnorm
          endif
 
       enddo
-      
+
       if( outopt(3) .eq. 1 ) then
          call nwfjac(xp,scalex,fp,fq,n,epsm,jacflg,fvec,fjac,rjac,
      *               ldr,wrk1,wrk2,wrk3)
-      endif 
-      
+      endif
+
       call vunsc(n,xp,scalex)
 
       return

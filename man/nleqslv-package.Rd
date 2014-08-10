@@ -17,9 +17,9 @@ Both methods utilise global strategies such as line search or trust region metho
 whenever the standard Newton/Broyden step does not lead to a point closer to a root
 of the equation system.
 Line search may be either quadratic or geometric. The trust region methods are either
-the double dogleg or the Powell single dogleg method.
+the double dogleg, the Powell single dogleg method or a Levenberg-Marquardt type method.
 
-There is a facility for specifying that the jacobian is banded; this can significantly 
+There is a facility for specifying that the jacobian is banded; this can significantly
 speedup the calculation of a numerical Jacobian when the number of sub- and super diagonals is small
 compared to the size of the system of equations. For example the Jacobian of a tridiagonal system
 can be calculated with only three evaluations of the function.

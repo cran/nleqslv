@@ -10,7 +10,7 @@ for difficult systems.
 \usage{
 nleqslv(x, fn, jac=NULL,...,
                method = c("Broyden", "Newton"),
-               global = c("dbldog", "pwldog", "cline", "qline", "gline", "none"),
+               global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
                xscalm = c("fixed","auto"),
                jacobian=FALSE,
                control = list()
@@ -24,7 +24,7 @@ nleqslv(x, fn, jac=NULL,...,
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac}.}
  \item{method}{The method used for finding a solution. See \sQuote{Details}.}
  \item{global}{The global strategy to apply. See \sQuote{Details}.}
- \item{xscalm}{The type of x scaling to use. See \sQuote{Details}.}  
+ \item{xscalm}{The type of x scaling to use. See \sQuote{Details}.}
  \item{jacobian}{A logical indicating if the estimated (approximate) jacobian in the solution should be returned.
  See \sQuote{Details}.}
  \item{control}{A list of control parameters. See \sQuote{Details}.}
@@ -59,6 +59,10 @@ The \code{global} argument indicates which global strategy to use or to use no g
                              Dennis and Schnabel (1996)}
         \item{\code{pwldog}}{a trust region method using the Powell dogleg method
                              as developed by Powell (1970).}
+        \item{\code{hook}}{a trust region method described by Dennis and Schnabel (1996) as
+                           \emph{The locally constrained optimal (\dQuote{hook}) step}.
+                           It is equivalent to a Levenberg-Marquardt algorithm described in
+                           \enc{Moré}{More} (1978) and Nocedal and Wright (2006).}
         \item{\code{none}}{Only a pure local Newton or Broyden iteration is used.
                            The maximum stepsize (see below) is taken into account.
                            The default maximum number of iterations (see below) is set to 20.}
@@ -67,7 +71,7 @@ The double dogleg method is the default global strategy employed by this package
 
 Which global strategy to use in a particular situation is a matter of trial and error.
 When one of the trust region methods fails, one of the line search strategies should be tried.
-Sometimes a trust region will work and sometimes a line search method; neither has a clear advantage but 
+Sometimes a trust region will work and sometimes a line search method; neither has a clear advantage but
 in many cases the double dogleg method works quite well.
 
 The parameters \code{x} may be scaled during the search for a zero of \code{fn}.
@@ -124,10 +128,10 @@ than the backtracking tolerance, the backtracking is terminated.
 In the \code{Broyden} method a new Jacobian will be calculated if the Jacobian is outdated.
 The default value is \eqn{10^{-3}}{1e-3}.
 }
-\item{\code{cndtol}}{The tolerance of the test for ill conditioning of 
+\item{\code{cndtol}}{The tolerance of the test for ill conditioning of
 the Jacobian or Broyden approximation. If less than the machine precision it will
 be silently set to the machine precision.
-When the estimated inverse condition of the (approximated) Jacobian matrix is less than or equal to 
+When the estimated inverse condition of the (approximated) Jacobian matrix is less than or equal to
 the value of \code{cndtol} the matrix is deemed to be ill-conditioned.
 The default value is \eqn{10^{-12}}{1e-12}.
 }
@@ -152,7 +156,7 @@ If it is not numeric and not one of the permitted character strings then an erro
 The default is \eqn{-2.0}.}
 \item{\code{stepmax}}{Maximum scaled stepsize.
 If this is negative then the maximum stepsize is set to the largest positive representable number.
-The default is \eqn{-1.0}, so there is no default maximum stepsize.} 
+The default is \eqn{-1.0}, so there is no default maximum stepsize.}
 \item{\code{dsub}}{Number of non zero subdiagonals of a banded Jacobian.
 The default is to assume that the Jacobian is \emph{not} banded.
 Must be specified if \code{dsuper} has been specified and must be larger than zero when \code{dsuper} is zero.}
@@ -218,7 +222,7 @@ Lecture Notes in Mathematics 630, Springer-Verlag, pp. 105--116.
 
 Golub, G.H and C.F. Van Loan (1996), Matrix Computations (3rd edition), The John Hopkins University Press.
 
-%%Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
+Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
 
 Powell, M.J.D. (1970), A hybrid method for nonlinear algebraic equations,
 In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon \& Breach.
@@ -287,7 +291,7 @@ z$x
 z$jac
 jacdsln(z$x)
 
-# different initial start; not a very good final approximation   
+# different initial start; not a very good final approximation
 xstart <- c(0.5,2)
 z <- nleqslv(xstart, dslnex, jacobian=TRUE,control=list(btol=.01))
 z$x

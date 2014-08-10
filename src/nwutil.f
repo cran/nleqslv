@@ -243,7 +243,7 @@ c     In       n       Integer         size of x
 c     In       epsm    Real            machine precision
 c     In       scalex  Real(*)         scaling vector for x()
 c     Wk       fz      Real(*)         workspace
-c     Wk       wa      Real(*)         workspace 
+c     Wk       wa      Real(*)         workspace
 c     Wk       xw      Real(*)         workspace
 c     In       fvec    Name            name of routine to evaluate f(x)
 c     Out      termcd  Integer         return code
@@ -256,7 +256,7 @@ c-------------------------------------------------------------------------
       double precision  ndigit,p,h,dinf
       double precision  tol
       double precision w(n),xstep(n)
-      
+
       integer MAXERR
       parameter(MAXERR=10)
 
@@ -277,18 +277,18 @@ c     the user supplied one
       errcnt = 0
       call dcopy(n,xc,1,xw,1)
       call vunsc(n,xw,scalex)
-      
+
       do j=1,n
           xstep(j) = p + p * abs(xw(j))
           w(j) = xw(j)
-      enddo 
+      enddo
 
       do k=1,dsum
          do j=k,n,dsum
             xw(j) = xw(j) + xstep(j)
          enddo
 
-c        for non finite values error message will be wrong      
+c        for non finite values error message will be wrong
          call fvec(xw,fz,n,n+k)
 
          do j=k,n,dsum
@@ -296,10 +296,10 @@ c        for non finite values error message will be wrong
              xw(j) = w(j)
              dinf = Rzero
              do i=max(j-dsuper,1),min(j+dsub,n)
-                wa(i) = (fz(i)-fc(i)) / h 
+                wa(i) = (fz(i)-fc(i)) / h
                 if(abs(wa(i)).gt.dinf) dinf = abs(wa(i))
-             enddo 
-             
+             enddo
+
              do i=max(j-dsuper,1),min(j+dsub,n)
                 if(abs(A(i,j)-wa(i)).gt.tol*dinf) then
                    errcnt = errcnt + 1
@@ -308,7 +308,7 @@ c        for non finite values error message will be wrong
                       return
                    endif
                    call nwckot(i,j,A(i,j),wa(i))
-                endif   
+                endif
              enddo
          enddo
       enddo
@@ -359,7 +359,7 @@ c
 c-------------------------------------------------------------------------
 
       if(jacflg(1) .eq. 3) then
-c        user supplied and banded           
+c        user supplied and banded
          call chkjac2(A,lda,xc,fc,n,epsm,scalex,fz,wa,xw,fvec,termcd,
      *                jacflg(2),jacflg(3))
       else
@@ -368,7 +368,7 @@ c        user supplied and banded
 
       return
       end
-  
+
 c-----------------------------------------------------------------------
 
       subroutine fdjac0(xc,fc,n,epsm,fvec,fz,rjac,ldr)
@@ -436,7 +436,7 @@ c-----------------------------------------------------------------------
 
       integer ldr,n,dsub,dsuper
       double precision  epsm
-      double precision  rjac(ldr,*),fz(*),xc(*),fc(*) 
+      double precision  rjac(ldr,*),fz(*),xc(*),fc(*)
       double precision  w(*), xstep(*)
       external fvec
 
@@ -457,7 +457,7 @@ c                                        entry [i,j] is derivative of
 c                                        f(i) wrt to x(j)
 c     In       ldr     Integer         leading dimension of rjac
 c     In       dsub    Integer         number of subdiagonals
-c     In       dsuper  Integer         number of superdiagonals 
+c     In       dsuper  Integer         number of superdiagonals
 c     Internal w       Real(*)         for temporary saving of xc
 c     Internal xstep   Real(*)         stepsizes
 c
@@ -480,7 +480,7 @@ c-------------------------------------------------------------------------
       do k=1,n
          xstep(k) = p + p * abs(xc(k))
       enddo
-     
+
       do k=1,dsum
          do j=k,n,dsum
             w(j) = xc(j)
@@ -490,7 +490,7 @@ c-------------------------------------------------------------------------
          call fvec(xc,fz,n,n+k)
          do j=k,n,dsum
              call nuzero(n,rjac(1,j))
-c            fdjac0 for why      
+c            fdjac0 for why
 c            doing this ensures that results for fdjac2 and fdjac0 will be identical
              h = rnudif(xc(j),w(j))
              xc(j) = w(j)
@@ -509,7 +509,7 @@ c-----------------------------------------------------------------------
       integer n
       double precision  d(*), x(*)
       double precision nudnrm
-      
+
 c-------------------------------------------------------------------------
 c
 c     calculate  max( abs(d[*]) / max(x[*],1) )
@@ -543,7 +543,7 @@ c-----------------------------------------------------------------------
       integer n
       double precision  xn(*), xc(*)
       double precision nuxnrm
-      
+
 c-------------------------------------------------------------------------
 c
 c     calculate  max( abs(xn[*]-xc[*]) / max(xn[*],1) )
@@ -576,7 +576,7 @@ c-----------------------------------------------------------------------
       function rnudif(x, y)
       double precision x, y
       double precision rnudif
-      
+
 c-------------------------------------------------------------------------
 c
 c     Return difference of x and y (x - y)

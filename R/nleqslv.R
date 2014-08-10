@@ -1,16 +1,16 @@
 #
 # Interface to Fortran library for solving a system of non linear equations
 # with either a Broyden or a full Newton method
-# There a four global search methods:
-#   quadratic linesearch, geometric linesearch
+# There a six global search methods:
+#   cubic, quadratic and geometric linesearch
 #   double dogleg trust region a la Dennis Schnabel
 #   powell single dogleg a la Minpack
-#
+#   so-called hook step (Levenberg-Marquardt)
 #
 
 nleqslv <- function(x, fn, jac = NULL, ...,
                     method = c("Broyden", "Newton"),
-                    global = c("dbldog", "pwldog", "cline", "qline", "gline", "none"),
+                    global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
                     xscalm = c("fixed","auto"),
                     jacobian=FALSE,
                     control = list())

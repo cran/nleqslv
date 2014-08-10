@@ -66,7 +66,7 @@ c-------------------------------------------------------------------------
       double precision  dnrm2
       logical nwtstep
       integer dtype
-      
+
       integer idamax
 
       double precision Rone, Rtwo, Rhalf
@@ -133,12 +133,12 @@ c        check whether the global step is acceptable
 
          if( priter .gt. 0 ) then
             oarg(1) = lambda
-            oarg(3) = delta                            
+            oarg(3) = delta
             oarg(4) = fpnorm
             oarg(5) = abs(fp(idamax(n,fp,1)))
             call nwpwot(iter,dtype,oarg)
          endif
-      
+
       enddo
 
       return
@@ -176,11 +176,11 @@ c     Out      lambda  Real            weight of dn() in d()
 c                                      closer to 1 ==> more of dn()
 c
 c-----------------------------------------------------------------------
-      
+
       integer i
       double precision vssd, vlen
       double precision dnrm2, ddot
-      
+
       if(dnlen .le. delta) then
 
 c        Newton step smaller than trust radius ==> take it
@@ -204,7 +204,7 @@ c        calculate convex combination of ssd and dn with length delta
          do i=1,n
             v(i) = dn(i) - ssd(i)
          enddo
-         
+
          vssd = ddot(n,v,1,ssd,1)
          vlen = dnrm2(n,v,1)**2
 

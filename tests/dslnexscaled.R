@@ -1,7 +1,7 @@
 # Dennis Schnabel example
 
 library("nleqslv")
-    
+
 dslnex <- function(x) {
     y <- numeric(2)
     y[1] <- x[1]^2 + x[2]^2 - 2
@@ -25,7 +25,7 @@ fstart <- dslnex(xstart)
 xstart
 fstart
 
-# a solution is c(1,1) 
+# a solution is c(1,1)
 
 do.print.xf <- FALSE
 
@@ -44,7 +44,7 @@ znlq <- nleqslv(xstart, dslnex, jacdsln, global="dbldog", control=list(btol=.01,
 if(znlq$termcd == -10) stop("Internal error in check analytical jacobian")
 
 # Broyden analytical jacobian
-for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
         znlq <- nleqslv(xstart, dslnex, jacdsln, global=z, control=list(btol=.01,delta=delta,chkjac=TRUE,scalex=c(2,3)))
         print.result(znlq)
@@ -52,7 +52,7 @@ for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
 }
 
 # Newton analytical jacobian
-for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg        
+for( z in c("dbldog","pwldog") ) {  # double dogleg, Powell (single) dogleg
     for( delta in c(-1.0, -2.0) ) { # Cauchy step , Newton step
         znlq <- nleqslv(xstart, dslnex, jacdsln, method="Newton", global=z, control=list(btol=.01,delta=delta,chkjac=TRUE,scalex=c(2,3)))
         print.result(znlq)

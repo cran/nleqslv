@@ -62,21 +62,21 @@ c     safeguard initial step size
       gcnt   = 1
 
 c     compute the next iterate xp
-      
+
       do i=1,n
          xp(i) = xc(i) + lambda*d(i)
       enddo
-      
+
 c     evaluate functions and the objective function at xp
-      
+
       call nwfvec(xp,n,scalex,fvec,fp,fpnorm,xw)
-      
+
       if( priter .gt. 0) then
          oarg(1) = lambda
          oarg(2) = fpnorm
          oarg(3) = abs(fp(idamax(n,fp,1)))
          call nwprot(iter,1,oarg)
       endif
-      
+
       return
       end

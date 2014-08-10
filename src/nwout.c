@@ -94,11 +94,11 @@ void F77_SUB(xclshpar)(int *gcnt, double *slope, double *a, double *b, double *d
 }
 #endif
 void F77_SUB(nwprot)(int *iter, int *lstep, double *oarg)
-{   
+{
     /*
      * None global method output
      */
-     
+
     double v;
 
     if( *lstep <= 0 ) {
@@ -247,6 +247,48 @@ void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
         dnumout(oarg[2]);
         enumout(oarg[3]);
         enumout(oarg[4]);
+        Rprintf("\n");
+    }
+}
+
+void F77_SUB(nwmhot)(int *iter, int *lstep, double *oarg)
+{
+    /*
+     * More-Hebden-Levenberg-Marquardt output
+     */
+
+    char step;
+
+    /*
+     *  H MHLM (hook)step
+     *  N newton step
+     */
+
+    if( *lstep <= 0 ) {
+        if( *lstep == -1)
+            Rprintf("  %4s %11s   %8s %8s %8s %8s %13s %13s\n",
+                       "Iter","Jac","mu", "dnorm", "Dlt0", "Dltn", "Fnorm","Largest |f|");
+
+        Rprintf("  %4d%50s" , *iter, "");
+        enumout(oarg[0]);
+        enumout(oarg[1]);
+        Rprintf("\n");
+    }
+    else {
+        nwrowhdr(iter);
+        step = "HN"[*lstep-1];
+        Rprintf( " %c ", step);
+
+        if( *lstep == 1 )
+            Rprintf( "%8.4f", oarg[0]);
+        else
+            Rprintf( "%8s", "");
+
+        Rprintf(" %8.4f", oarg[3]);
+        dnumout(oarg[1]);
+        dnumout(oarg[2]);
+        enumout(oarg[4]);
+        enumout(oarg[5]);
         Rprintf("\n");
     }
 }

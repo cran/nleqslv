@@ -2,28 +2,28 @@
 \alias{Iteration report}
 \title{Detailed iteration report of nleqslv}
 \description{ The format of the iteration report
-provided by nleqslv when the \code{trace} component of the control parameter
+provided by nleqslv when the \code{trace} component of the \code{control} argument
 has been set to 1.
 }
-\details{ 
+\details{
 All iteration reports consist of a series of columns with a header summarising the contents.
 Common column headers are
 \describe{
 \item{\code{Iter}}{Iteration counter}
 \item{\code{Jac}}{Jacobian type. The Jacobian type is indicated by \code{N} for a Newton Jacobian
-or \code{B} for a Broyden updated matrix; optionally followed by the letter \code{s} 
+or \code{B} for a Broyden updated matrix; optionally followed by the letter \code{s}
 indicating a totally singular matrix or the letter \code{i} indicating an ill-conditioned matrix.
 Unless the Jacobian is singular, the Jacobian type is followed by an estimate
 of the inverse condition number of the Jacobian in parentheses as computed by Lapack.
 This column will be blank when backtracking is active.}
 \item{\code{Fnorm}}{square of the euclidean norm of function values / 2}
 \item{\code{Largest |f|}}{infinity norm of \eqn{f(x)}{f(x)} at the current point}
-} 
+}
 }
 
 \section{Report for linesearch methods}{
 A sample iteration report for the linesearch global methods (\code{cline}, \code{qline} and \code{gline}) is
-(some intercolumn space has been removed to make the table fit)  
+(some intercolumn space has been removed to make the table fit)
 \preformatted{
 Iter        Jac Lambda        Ftarg         Fnorm   Largest |f|
    0                                 2.886812e+00  2.250000e+00
@@ -46,7 +46,7 @@ or smaller than 1.0, indicating that the Newton step is larger than the maximum 
 }
 
 \section{Report for the double dogleg global method}{
-A sample iteration report for the global method \code{dbldog} is 
+A sample iteration report for the global method \code{dbldog} is
 (some intercolumn space has been removed to make the table fit)
 \preformatted{
 Iter        Jac   Lambda    Eta   Dlt0   Dltn        Fnorm  Largest |f|
@@ -75,7 +75,7 @@ The number in the column headed by \code{Lambda} is the weight of the partial
 Newton step.}
 \item{\code{P}}{a fraction (\eqn{\ge1.0}{>=1.0}) of the partial Newton step, equal to \code{eta}*(Newton step),
 is taken where
-the fraction is the ratio of the trust region radius and the partial Newton steplength.} 
+the fraction is the ratio of the trust region radius and the partial Newton steplength.}
 \item{\code{N}}{a normal full Newton step is taken.}
 }
 The number in the  column headed by \code{Eta} is calculated from an upper limit on the ratio
@@ -83,14 +83,14 @@ of the length of the steepest descent direction and the length of the Newton ste
 See Dennis and Schnabel (1996) pp.139ff for the details.
 
 The column headed by \code{Dlt0} gives the size of the trust region at the start of the current
-iteration. 
+iteration.
 The column headed by \code{Dltn} gives the size of the trust region when the current
-step has been accepted by the dogleg algorithm. 
+step has been accepted by the dogleg algorithm.
 The size of the trust region is decreased when the actual reduction of the function value norm
 does not agree well with the predicted reduction from the linear approximation of the function.
 And increased when the actual and predicted reduction are sufficiently close.
 
-Normally the initial trust region radius is the same as 
+Normally the initial trust region radius is the same as
 the final trust region radius of the previous iteration but the size of the trust region is
 restricted by the size of the current Newton step. So when full Newton steps
 are being taken, the trust region radius at the start of an iteration may be less than the
@@ -99,7 +99,7 @@ final value of the previous iteration.
 
 \section{Report for the single (Powell) dogleg global method}{
 A sample iteration report for the global method \code{pwldog} is
-(some intercolumn space has been removed to make the table fit)  
+(some intercolumn space has been removed to make the table fit)
 \preformatted{
 Iter        Jac   Lambda   Dlt0   Dltn        Fnorm  Largest |f|
    0                                   2.886812e+00 2.250000e+00
@@ -116,5 +116,36 @@ This is much simpler than the double dogleg report, since the (single) dogleg ta
 either a steepest descent step, a convex combination of the steepest descent and Newton steps
 or a full Newton step. The number in the column \code{Lambda} is the weight of the Newton step.
 The single dogleg method is a special case of the double dogleg method with \code{eta} equal to 1.
+}
+
+\section{Report for the hook step global method}{
+A sample iteration report for the global method \code{hook} is
+(some intercolumn space has been removed to make the table fit)
+\preformatted{
+Iter         Jac       mu  dnorm    Dlt0   Dltn         Fnorm   Largest |f|
+   0                                             2.886812e+00  2.250000e+00
+   1  N(9.6e-03) H 0.1968 0.4909  0.4671 0.9343  1.806293e-01  5.749418e-01
+   1             H 0.0366 0.9381  0.9343 0.4671  1.806293e-01  5.749418e-01
+   2  B(2.5e-02) H 0.1101 0.4745  0.4671 0.2336  1.797759e-01  5.635028e-01
+   3  B(1.4e-01) H 0.0264 0.2341  0.2336 0.4671  3.768809e-02  2.063234e-01
+   4  B(1.6e-01) N        0.0819  0.0819 0.1637  3.002274e-03  7.736213e-02
+   5  B(1.8e-01) N        0.0513  0.0513 0.1025  5.355533e-05  1.018879e-02
+   6  B(1.5e-01) N        0.0090  0.0090 0.0179  1.357039e-06  1.224357e-03
+   7  B(1.5e-01) N        0.0004  0.0004 0.0008  1.846111e-09  6.070166e-05
+   8  B(1.4e-01) N        0.0000  0.0000 0.0001  3.292896e-12  2.555851e-06
+   9  B(1.5e-01) N        0.0000  0.0000 0.0000  7.281583e-18  3.800552e-09
+}
+The column headed by \code{mu} shows the Levenberg-Marquardt parameter when the Newton step is
+larger than the trust region radius. The column headed by \code{dnorm} gives
+the Euclidean norm of the step (adjustment of the current \code{x}) taken by the algorithm.
+The absolute value of the difference with \code{Dlt0} is less than 0.1 times the trust region radius.
+
+After the column for the Jacobian the letters indicate the following
+\describe{
+\item{\code{H}}{a Levenberg-Marquardt restricted step is taken.}
+\item{\code{N}}{a normal full Newton step is taken.}
+}
+The meaning of the columns headed by \code{Dlt0} and \code{Dltn} is identical to that of the same
+columns for the double dogleg method.
 }
 \seealso{\code{\link{nleqslv}}}

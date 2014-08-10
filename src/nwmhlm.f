@@ -1,5 +1,5 @@
 
-      subroutine nwddlg(n,rjac,ldr,dn,g,xc,fcnorm,stepmx,xtol,
+      subroutine nwmhlm(n,rjac,ldr,dn,g,xc,fcnorm,stepmx,xtol,
      *                  delta,qtf,scalex,fvec,d,xprev,
      *                  ssd,v,wa,fprev,xp,fp,fpnorm,retcd,gcnt,
      *                  priter,iter)
@@ -14,7 +14,7 @@
 
 c-------------------------------------------------------------------------
 c
-c     Find a next iterate xp by the double dogleg method
+c     Find a next iterate xp by the More-Hebden-Levenberg-Marquardt method
 c
 c     Arguments
 c
@@ -61,27 +61,26 @@ c
 c-------------------------------------------------------------------------
 
       integer i
-      double precision  dnlen,ssdlen,alpha,beta,lambda,fpred
-      double precision  sqalpha,eta,gamma,fpnsav,oarg(7)
-      double precision  dnrm2,ddot
+      double precision  dnlen,glen,ssdlen,alpha,beta,mu,fpred
+      double precision  fpnsav,oarg(6)
+      double precision  dnrm2
       logical nwtstep
       integer dtype
 
       integer idamax
 
-      double precision Rone, Rtwo, Rten, Rhalf, Rp2, Rp8
+      double precision Rone, Rtwo, Rhalf
       parameter(Rhalf=0.5d0)
-      parameter(Rone=1.0d0, Rtwo=2.0d0, Rten=10.0d0)
-      parameter(Rp2 = Rtwo/Rten, Rp8 = Rone - Rp2)
+      parameter(Rone=1.0d0, Rtwo=2.0d0)
 
 c     length newton direction
 
       dnlen = dnrm2(n, dn, 1)
 
-c     steepest descent direction and length
+c     gradient length and steepest descent direction and length
 
-      sqalpha = dnrm2(n,g,1)
-      alpha   = sqalpha**2
+      glen  = dnrm2(n,g,1)
+      alpha = glen**2
 
       call dcopy(n, g, 1, d, 1)
       call dtrmv('U','N','N',n,rjac,ldr,d,1)
@@ -90,7 +89,7 @@ c     steepest descent direction and length
       call dcopy(n, g, 1, ssd, 1)
       call dscal(n, -(alpha/beta), ssd, 1)
 
-      ssdlen = alpha*sqalpha/beta
+      ssdlen = alpha*glen/beta
 
 c     set trust radius to ssdlen or dnlen if required
 
@@ -100,20 +99,16 @@ c     set trust radius to ssdlen or dnlen if required
          delta = min(dnlen, stepmx)
       endif
 
-c     calculate double dogleg parameter
-
-      gamma = alpha*alpha/(-beta*ddot(n,g,1,dn,1))
-      eta = Rp2 + Rp8*gamma
-
       retcd = 4
       gcnt  = 0
 
       do while( retcd .gt. 1 )
-c        find new step by double dogleg algorithm
+c        find new step by More Hebden LM  algorithm
+c        reuse ssd as sdiag
 
-         call ddlgstp(n,dn,dnlen,delta,v,
-     *               ssd,ssdlen,eta,d,dtype,lambda)
-         nwtstep = dtype .eq. 4
+         call nwmhstep(Rjac,ldr,n,ssd,qtf,dn,dnlen,glen,delta,mu,
+     *                 d, v, dtype)
+         nwtstep = dtype .eq. 2
 c        compute the model prediction 0.5*||F + J*d||**2 (L2-norm)
 
          call dcopy(n,d,1,wa,1)
@@ -137,12 +132,12 @@ c        check whether the global step is acceptable
      *               fpred,retcd,xprev,fpnsav,fprev,xp,fp,fpnorm)
 
          if( priter .gt. 0 ) then
-            oarg(1) = lambda
+            oarg(1) = mu
             oarg(3) = delta
-            oarg(4) = eta
+            oarg(4) = dnrm2(n, d, 1)
             oarg(5) = fpnorm
             oarg(6) = abs(fp(idamax(n,fp,1)))
-            call nwdgot(iter,dtype,oarg)
+            call nwmhot(iter,dtype,oarg)
          endif
 
       enddo
@@ -152,42 +147,41 @@ c        check whether the global step is acceptable
 
 c-----------------------------------------------------------------------
 
-      subroutine ddlgstp(n,dn,dnlen,delta,v,
-     *                  ssd,ssdlen,eta,d,dtype,lambda)
-      integer n
-      double precision  dn(*), ssd(*), v(*), d(*)
-      double precision  dnlen, delta, ssdlen, eta, lambda
+      subroutine nwmhstep(R,ldr,n,sdiag,qtf,dn,dnlen,glen,delta,mu,
+     *                  d, work, dtype)
+      integer ldr, n
+      double precision R(ldr,*)
+      double precision sdiag(*), qtf(*), dn(*), d(*), work(*)
+      double precision  dnlen, glen, delta, mu
       integer dtype
 
 c-------------------------------------------------------------------------
 c
-c     Find a new step by the double dogleg algorithm
-c     Internal routine for nwddlg
+c     Find a new step by the More Hebden Levemberg Marquardt algorithm
+c     Internal routine for nwmhlm
 c
 c     Arguments
 c
+c     In       R       Real(ldr,*)     R of QR-factored jacobian
+c     In       ldr     Integer         leading dimension of R
 c     In       n       Integer         size of problem
+c     Out      sdiag   Real(*)         diagonal of LM lower triangular modified R
+c     In       qtf     Real(*)         trans(Q)*f(xc)
 c     In       dn      Real(*)         current newton step
 c     Out      dnlen   Real            length dn()
+c     In       glen    Real            length gradient
 c     In       delta   Real            current trust region radius
-c     Out      v       Real(*)         (internal) eta * dn() - ssd()
-c     In       ssd     Real(*)         (internal) steepest descent direction
-c     In       ssdlen  Real            (internal) length ssd
-c     In       eta     Real            (internal) double dogleg parameter
+c     Inout    mu      Real            Levenberg-Marquardt parameter
 c     Out      d       Real(*)         new step for x()
+c     Work     work    Real(*)         work vector for limhpar
 c     Out      dtype   Integer         steptype
-c                                       1 steepest descent
-c                                       2 combination of dn and ssd
-c                                       3 partial newton step
-c                                       4 full newton direction
-c     Out      lambda  Real            weight of eta*dn() in d()
-c                                      closer to 1 ==> more of eta*dn()
+c                                       1 LM step
+c                                       2 full newton direction
 c
 c-----------------------------------------------------------------------
 
-      integer i
-      double precision vssd, vlen
-      double precision dnrm2, ddot
+      double precision Rone
+      parameter(Rone=1.0D0)
 
       if(dnlen .le. delta) then
 
@@ -195,40 +189,16 @@ c        Newton step smaller than trust radius ==> take it
 
          call dcopy(n, dn, 1, d, 1)
          delta = dnlen
-         dtype = 4
-
-      elseif(eta*dnlen .le. delta) then
-
-c        take partial step in newton direction
-
-         call dcopy(n, dn, 1, d, 1)
-         call dscal(n, delta / dnlen, d, 1)
-         dtype = 3
-
-      elseif(ssdlen .ge. delta) then
-
-c        take step in steepest descent direction
-
-         call dcopy(n, ssd, 1, d, 1)
-         call dscal(n, delta / ssdlen, d, 1)
-         dtype = 1
+         dtype = 2
 
       else
 
-c        calculate convex combination of ssd and eta*dn with length delta
-
-         do i=1,n
-            v(i) = eta*dn(i) - ssd(i)
-         enddo
-
-         vssd = ddot(n,v,1,ssd,1)
-         vlen = dnrm2(n,v,1)**2
-
-         lambda =(-vssd+sqrt(vssd**2-vlen*(ssdlen**2-delta**2)))/vlen
-         call dcopy(n, ssd, 1, d, 1)
-         call daxpy(n, lambda, v, 1, d, 1)
-         dtype = 2
-
+c        calculate LM step
+         call limhpar(R, ldr, n, sdiag, qtf, dn, dnlen, glen, delta,
+     *                mu, d, work)
+c        change sign of step d (limhpar solves for trans(R)*R+mu*I)=qtf instead of -qtf)
+         call dscal(n,-Rone,d,1)
+         dtype = 1
       endif
 
       return

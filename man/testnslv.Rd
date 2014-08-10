@@ -8,7 +8,7 @@ The function tests different methods and global strategies for solving a system 
 \usage{
 testnslv(x, fn, jac=NULL,...,
           method = c("Newton", "Broyden"),
-          global = c("cline", "qline", "gline", "pwldog", "dbldog", "none"),
+          global = c("cline", "qline", "gline", "pwldog", "dbldog", "hook", "none"),
           Nrep=0L, title=NULL
         )
 }
@@ -20,21 +20,21 @@ testnslv(x, fn, jac=NULL,...,
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac} and \code{\link{nleqslv}}.}
  \item{method}{The methods to use for finding a solution.}
  \item{global}{The global strategies to test. The argument may consist of several possibly abbreviated items.}
- \item{Nrep}{Number of repetitions to apply. Default is no repetitions.}   
- \item{title}{a description of this experiment.}   
+ \item{Nrep}{Number of repetitions to apply. Default is no repetitions.}
+ \item{title}{a description of this experiment.}
 }
 \details{The function solves the function \code{fn} with \code{\link{nleqslv}} for the specified methods and global strategies.
 When argument \code{Nrep} has been set to a number greater than or equal to 1,
-repetitions of the solving process are performed and the used CPU time in seconds is recorded.     
+repetitions of the solving process are performed and the used CPU time in seconds is recorded.
 
 If checking a user supplied jacobian is enabled, then \code{testnslv} will stop immediately when a possibly
 incorrect jacobian is detected.
 }
 \value{
-\code{testnslv} returns an object of class \code{"test.nleqslv"} which is a list containing the following elements  
+\code{testnslv} returns an object of class \code{"test.nleqslv"} which is a list containing the following elements
 \describe{
     \item{\code{call}}{the matched call}
-    \item{\code{out}}{ a dataframe containing the results with the following columns          
+    \item{\code{out}}{ a dataframe containing the results with the following columns
         \describe{
           \item{\code{method}}{method used.}
           \item{\code{global}}{global strategy used.}
@@ -44,7 +44,7 @@ incorrect jacobian is detected.
           \item{\code{itercnt}}{number of outer iterations used by the algorithm.}
           \item{\code{message}}{a string describing the termination code in an abbreviated form.}
           \item{\code{fnorm}}{square of the euclidean norm of the vector of function results divided by 2.}
-          \item{\code{cpusecs}}{CPU seconds used by the requested number of repetitions (only present when 
+          \item{\code{cpusecs}}{CPU seconds used by the requested number of repetitions (only present when
           argument \code{Nrep} is not 0).}
         }
     }

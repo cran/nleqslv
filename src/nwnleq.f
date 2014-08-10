@@ -30,7 +30,7 @@ c                                      jacflg[1]:  0 numeric; 1 user supplied; 2
 c                                                  3: user supplied banded
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
-c     Inout    btol    Real            x tolerance for backtracking 
+c     Inout    btol    Real            x tolerance for backtracking
 c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     Inout    method  Integer         method to use
 c                                        0 Newton
@@ -73,7 +73,7 @@ c     Out      xp      Real(*)         final values for x()
 c     Out      fp      Real(*)         final values for f(x)
 c     Out      gp      Real(*)         gradient of f() at xp()
 c     Out      njcnt   Integer         number of jacobian evaluations
-c     Out      nfcnt   Integer         number of function evaluations 
+c     Out      nfcnt   Integer         number of function evaluations
 c     Out      iter    Integer         number of (outer) iterations
 c     Out      termcd  Integer         termination code
 c                                       > 0 process terminated
@@ -184,7 +184,7 @@ c     In       n       Integer         dimension of problem
 c     In       lrwk    Integer         size real workspace
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
-c     Inout    btol    Real            x tolerance for backtracking 
+c     Inout    btol    Real            x tolerance for backtracking
 c     Inout    cndtol  Real            tolerance of test for ill conditioning
 c     Inout    maxit   Integer         maximum number iterations
 c     Inout    jacflg  Integer(*)      jacobian flag
@@ -245,7 +245,7 @@ c     check jacflg, method, and global
 
       if(method .lt. 0 .or. method .gt. 1) method = 0
 
-      if(global .lt. 0 .or. global .gt. 5) global = 4
+      if(global .lt. 0 .or. global .gt. 6) global = 4
 
 c     set outopt to correct values
 
@@ -258,14 +258,14 @@ c     set outopt to correct values
       endif
 
 c     check scaling scale matrices
-      
+
       if(xscalm .eq. 0) then
          do i = 1,n
             if(scalex(i) .lt. Rzero) scalex(i) = -scalex(i)
             if(scalex(i) .eq. Rzero) scalex(i) = Rone
          enddo
       else
-         xscalm = 1     
+         xscalm = 1
          do i = 1,n
             scalex(i) = Rone
          enddo
@@ -281,9 +281,9 @@ c     check step and function tolerances
       endif
 
       if( btol .lt. xtol ) btol = xtol
-      
+
       cndtol = max(cndtol, epsm)
-      
+
 c     check reduction in geometric linesearch
 
       if( sigma .le. Rzero .or. sigma .ge. Rone ) then

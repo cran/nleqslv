@@ -8,10 +8,10 @@ brdtri <- function(x) {
 
     # y[1] <- (3-2*x[1])*x[1] - 2*x[2] + 1
     # y[n] <- (3-2*x[n])*x[n] - x[n-1] + 1
-    # 
+    #
     # k <- 2:(n-1)
     # y[k] <- (3-2*x[k])*x[k] - x[k-1] - 2 * x[k+1] + 1
-    # 
+    #
     y <- (3-2*x)*x - c(0,x[-n]) - 2*c(x[-1],0) + 1
 	y
 }
@@ -19,8 +19,8 @@ brdtri <- function(x) {
 brdtrijac <- function(x) {
     n <- length(x)
     J <- diag(3-4*x,n,n)
-    J[row(J)==col(J)+1] <- -1 
-    J[row(J)==col(J)-1] <- -2 
+    J[row(J)==col(J)+1] <- -1
+    J[row(J)==col(J)-1] <- -2
     J
 }
 
