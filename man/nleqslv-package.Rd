@@ -1,12 +1,12 @@
-\name{nleqlsv-package}
-\alias{nleqlsv-package}
-\alias{nleqlsv.Intro}
+\name{nleqslv-package}
+\alias{nleqslv-package}
+\alias{nleqslv.Intro}
 \docType{package}
 
 \title{Solving Nonlinear Systems of Equations}
 
 \description{
-The \pkg{nleqlsv} package provides two algorithms for solving (dense) non linear systems of equations.
+The \pkg{nleqslv} package provides two algorithms for solving (dense) non linear systems of equations.
 The methods provided are
   \itemize{
     \item a Broyden Secant method where the matrix of derivatives is updated after each major iteration
@@ -15,8 +15,8 @@ The methods provided are
   }
 Both methods utilise global strategies such as line search or trust region methods
 whenever the standard Newton/Broyden step does not lead to a point closer to a root
-of the equation system.
-Line search may be either quadratic or geometric. The trust region methods are either
+of the equation system. Both methods can also be used without a norm reducing global strategy.
+Line search may be either cubic, quadratic or geometric. The trust region methods are either
 the double dogleg, the Powell single dogleg method or a Levenberg-Marquardt type method.
 
 There is a facility for specifying that the jacobian is banded; this can significantly

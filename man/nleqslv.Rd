@@ -222,6 +222,8 @@ Lecture Notes in Mathematics 630, Springer-Verlag, pp. 105--116.
 
 Golub, G.H and C.F. Van Loan (1996), Matrix Computations (3rd edition), The John Hopkins University Press.
 
+Higham, N.J. (2002), Accuracy and Stability of Numerical Algorithms, 2nd ed., SIAM, pp. 10--11.
+
 Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
 
 Powell, M.J.D. (1970), A hybrid method for nonlinear algebraic equations,

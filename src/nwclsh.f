@@ -60,7 +60,7 @@ c-------------------------------------------------------------------------
       parameter(Rzero=0.0d0)
       parameter(Rhalf=0.5d0, Rone=1.0d0, Rtwo=2.0d0, Rten=10.0d0)
       parameter(Rthree=3.0d0)
-
+      double precision t1,t2
       double precision dlamch
 
 c     silence warnings issued by ftncheck
@@ -140,15 +140,23 @@ c               safety against overflow in what follows (use lamlo**2 for safety
                    b = -lambda0*fpt/lambda**2 + lambda*fpt0/lambda0**2
                    a = a /(lambda - lambda0)
                    b = b /(lambda - lambda0)
-                   disc = b**2 - Rthree * a * slope
                    if( abs(a) .le. dlamch('E') ) then
+c                      not quadratic but linear
                        t = -slope/(2*b)
-                   elseif(disc .gt. b**2) then
-c                      a single positive solution
-                       t = (-b + sign(Rone,a)*sqrt(disc))/(Rthree*a)
                    else
-c                      both roots > 0, left one is minimum
-                       t = (-b - sign(Rone,a)*sqrt(disc))/(Rthree*a)
+c                      use Higham procedure to compute roots acccurately
+c                      Higham: Accuracy and Stability of Numerical Algorithms, second edition,2002, page 10.    
+c                      Actually solving 3*a*x^2+2*b*x+c=0 ==> (3/2)*a*x^2+b*x+(c/2)=0
+                       disc = b**2 - Rthree * a * slope
+                       t1 = -(b+sign(Rone,b)*sqrt(disc))/(Rthree*a)
+                       t2 = slope/(Rthree*a)/t1
+                       if(a .gt. Rzero ) then
+c                          upward opening parabola ==> rightmost is solution
+                           t = max(t1,t2)
+                       else
+c                          downward opening parabola ==> leftmost is solution
+                           t = min(t1,t2)
+                       endif
                    endif
                    t = min(t, Rhalf*lambda)
                 endif

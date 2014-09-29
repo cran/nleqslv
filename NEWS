@@ -1,4 +1,12 @@
-
+2.5
+                                         
+o corrected nasty bug in cubic linesearch.
+  Use Higham procedure to calculate roots of a quadratic accurately.
+  The correct test of the shape of a quadratic is the sign of the coefficient of x^2 
+  and not a test involving the discrimant. Some results may change.
+o corrected package name typo (reported by Kurt Hornik)
+o minor changes in documentation
+ 
 2.4
 
 o Dennis-Schnabel hookstep added as global strategy "hook"
@@ -173,7 +181,7 @@ o code cleaning to get rid of fortran statement labels.
 
 1.5
 
-o corrected missing/superfluous closing brackets in nleqlsv.Rd.
+o corrected missing/superfluous closing brackets in nleqslv.Rd.
 
 1.4
 

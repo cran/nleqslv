@@ -1,10 +1,10 @@
-d894f3cceff344635ec4ae5ff31552b3 *DESCRIPTION
+4ec8ded1d29de31baddea773eec0d6b4 *DESCRIPTION
 4482686d9e81ebee9b4ff955ff2a6b26 *NAMESPACE
-5cdf098dbbaaa5fca9c1ef3922a0f55f *NEWS
+6533b37a6a82999fe8001daf89f09462 *NEWS
 387a326aab059b4717c71dd73a0487d8 *R/nleqslv.R
 4c73524601f9db4a365fa7074f6da99f *R/testnslv.R
-308433d1bafe8ee019941bc0ee2041ed *man/nleqslv-package.Rd
-a3a3ff65dfac8c2a9a1aa7748e577af7 *man/nleqslv.Rd
+3f690ddc7b3da65e8845a94ef9c7a208 *man/nleqslv-package.Rd
+e45c6f62e5d352293488440098b0aa22 *man/nleqslv.Rd
 799b48d0acf42e9c038ea42cc86f2385 *man/print.testnslv.Rd
 54ea6f1eae8963170987435b9eb85154 *man/testnslv.Rd
 06ab0d82fbf3be4edcf20cf88ec26252 *man/zznleqslv-iterationreport.Rd
@@ -15,7 +15,7 @@ a40d39a0c41cfa7deece63d5b6132e5a *src/liqrev.f
 6bb33b8afa14e8bec2dad29c3b3be862 *src/liqrup.f
 7f28b7da41890d992ad1713d72a83a5c *src/nleqslv.c
 9700cfc7da84103db157aa735774abac *src/nwbrdn.f
-01f902a77058f3c1b05b5d2281311edd *src/nwclsh.f
+8addf8de63f1b9690f67fb53a99dd929 *src/nwclsh.f
 cd00fbdce5c966fe9e1e8db36cf4e57c *src/nwddlg.f
 1fdfc01ee9482bddab455ec464fa0f1f *src/nwglsh.f
 1e97b0e11a82340001cd79e5c7cc203a *src/nwmhlm.f
