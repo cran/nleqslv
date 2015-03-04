@@ -1,12 +1,21 @@
+2.6
+
+o display a marker in the trust region iteration report when a trial step will be taken
+o better documentation of the iteration reports
+o added input and output files used for the documentation of the iterations reports
+  in a subdirectory of directory inst
+o more detailed comments in several source files
+o spelling
+
 2.5
-                                         
+
 o corrected nasty bug in cubic linesearch.
   Use Higham procedure to calculate roots of a quadratic accurately.
-  The correct test of the shape of a quadratic is the sign of the coefficient of x^2 
+  The correct test of the shape of a quadratic is the sign of the coefficient of x^2
   and not a test involving the discrimant. Some results may change.
 o corrected package name typo (reported by Kurt Hornik)
 o minor changes in documentation
- 
+
 2.4
 
 o Dennis-Schnabel hookstep added as global strategy "hook"
@@ -23,7 +32,7 @@ o better comments trial steps when updating trust region
 
 o clarified documentation for iteration report
 o removed redundant fortran code
-o modified nwclsh.f to avoid ftnchek warnings   
+o modified nwclsh.f to avoid ftnchek warnings
 o use Lapack dlacpy to copy upper triangular part of a QR decomposition
 o modified some fortran code for easier conversion with f2f to fortran 95
 o modified nwnleq and brsolv to split rjac into Q and R at higher level

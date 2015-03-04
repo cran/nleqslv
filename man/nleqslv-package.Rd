@@ -6,7 +6,7 @@
 \title{Solving Nonlinear Systems of Equations}
 
 \description{
-The \pkg{nleqslv} package provides two algorithms for solving (dense) non linear systems of equations.
+The \pkg{nleqslv} package provides two algorithms for solving (dense) nonlinear systems of equations.
 The methods provided are
   \itemize{
     \item a Broyden Secant method where the matrix of derivatives is updated after each major iteration

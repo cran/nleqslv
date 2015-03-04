@@ -82,9 +82,30 @@ void F77_SUB(nwjerr)(int *iter)
     Rprintf("\n");
 }
 
+/*
+ * output trust region size within width 8
+ * (sometimes it is too large for %8.4f)
+ */
+
+static void dnumout(double x)
+{
+    if(x >= 1000.0)
+        Rprintf(" %8.*e", x >= 1e100? 1 : 2, x);
+    else
+        Rprintf(" %8.4f",x);
+}
+
 static void enumout(double x)
 {
     Rprintf(" %13.*e", fabs(x) >= 1e100? 5 : 6, x);
+}
+
+static void znumout(int retcd, double x)
+{
+    char marker;
+
+    marker = (retcd == 3) ? '*' : ' ';
+    Rprintf("%c%13.*e", marker, fabs(x) >= 1e100? 5 : 6, x);
 }
 
 #if 0
@@ -152,20 +173,7 @@ void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
     }
 }
 
-/*
- * output trust region size within width 8
- * (sometimes it is too large for %8.4f)
- */
-
-void dnumout(double x)
-{
-    if(x >= 1000.0)
-        Rprintf(" %8.*e", x >= 1e100? 1 : 2, x);
-    else
-        Rprintf(" %8.4f",x);
-}
-
-void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
+void F77_SUB(nwdgot)(int *iter, int *lstep, int *retcd, double *oarg)
 {
     /*
      * Double dogleg output
@@ -203,13 +211,13 @@ void F77_SUB(nwdgot)(int *iter, int *lstep, double *oarg)
         Rprintf(" %8.4f", oarg[3]);
         dnumout(oarg[1]);
         dnumout(oarg[2]);
-        enumout(oarg[4]);
+        znumout(*retcd, oarg[4]);
         enumout(oarg[5]);
         Rprintf("\n");
     }
 }
 
-void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
+void F77_SUB(nwpwot)(int *iter, int *lstep, int *retcd, double *oarg)
 {
     /*
      * Single dogleg output
@@ -245,13 +253,13 @@ void F77_SUB(nwpwot)(int *iter, int *lstep, double *oarg)
 
         dnumout(oarg[1]);
         dnumout(oarg[2]);
-        enumout(oarg[3]);
+        znumout(*retcd, oarg[3]);
         enumout(oarg[4]);
         Rprintf("\n");
     }
 }
 
-void F77_SUB(nwmhot)(int *iter, int *lstep, double *oarg)
+void F77_SUB(nwmhot)(int *iter, int *lstep, int *retcd, double *oarg)
 {
     /*
      * More-Hebden-Levenberg-Marquardt output
@@ -287,7 +295,7 @@ void F77_SUB(nwmhot)(int *iter, int *lstep, double *oarg)
         Rprintf(" %8.4f", oarg[3]);
         dnumout(oarg[1]);
         dnumout(oarg[2]);
-        enumout(oarg[4]);
+        znumout(*retcd, oarg[4]);
         enumout(oarg[5]);
         Rprintf("\n");
     }

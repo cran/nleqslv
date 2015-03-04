@@ -36,6 +36,8 @@ c     In       maxit   Integer         maximum number of allowable iterations
 c     In       jacflg  Integer(*)      jacobian flag array
 c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
 c                                                  3: user supplied banded
+c                                      jacflg[2]: number of sub diagonals or -1 if not banded
+c                                      jacflg[3]: number of super diagonals or -1 if not banded
 c     In       xtol    Real            tolerance at which successive iterates x()
 c                                      are considered close enough to
 c                                      terminate algorithm
@@ -49,6 +51,7 @@ c                                        2 quadratic linesearch
 c                                        3 geometric linesearch
 c                                        4 double dogleg
 c                                        5 powell dogleg
+c                                        6 hookstep (More-Hebden Levenberg-Marquardt)
 c     In       xscalm  Integer         x scaling method
 c                                        1 from column norms of first jacobian
 c                                          increased if needed after first iteration
@@ -164,11 +167,11 @@ c     check stopping criteria for input xc
          elseif( global .le. 3 ) then
             call nwlsot(iter,-1,dum)
          elseif( global .eq. 4 ) then
-            call nwdgot(iter,-1,dum)
+            call nwdgot(iter,-1,0,dum)
          elseif( global .eq. 5 ) then
-            call nwpwot(iter,-1,dum)
+            call nwpwot(iter,-1,0,dum)
          elseif( global .eq. 6 ) then
-            call nwmhot(iter,-1,dum)
+            call nwmhot(iter,-1,0,dum)
          endif
 
       endif

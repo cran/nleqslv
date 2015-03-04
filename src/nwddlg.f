@@ -142,7 +142,7 @@ c        check whether the global step is acceptable
             oarg(4) = eta
             oarg(5) = fpnorm
             oarg(6) = abs(fp(idamax(n,fp,1)))
-            call nwdgot(iter,dtype,oarg)
+            call nwdgot(iter,dtype,retcd,oarg)
          endif
 
       enddo

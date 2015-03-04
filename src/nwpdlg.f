@@ -136,7 +136,7 @@ c        check whether the global step is acceptable
             oarg(3) = delta
             oarg(4) = fpnorm
             oarg(5) = abs(fp(idamax(n,fp,1)))
-            call nwpwot(iter,dtype,oarg)
+            call nwpwot(iter,dtype,retcd,oarg)
          endif
 
       enddo

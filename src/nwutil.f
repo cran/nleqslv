@@ -347,6 +347,8 @@ c     In       epsm    Real            machine precision
 c     In       jacflg  Integer(*)      indicates how to compute jacobian
 c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
 c                                                  3: user supplied banded
+c                                      jacflg[2]: number of sub diagonals or -1 if not banded
+c                                      jacflg[3]: number of super diagonals or -1 if not banded
 c     In       scalex  Real(*)         scaling vector for x()
 c     Wk       fz      Real(*)         workspace
 c     Wk       wa      Real(*)         workspace
@@ -674,6 +676,8 @@ c     In       epsm    Real            machine precision
 c     In       jacflg  Integer(*)      indicates how to compute jacobian
 c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
 c                                                  3: user supplied banded
+c                                      jacflg[2]: number of sub diagonals or -1 if not banded
+c                                      jacflg[3]: number of super diagonals or -1 if not banded
 c     In       fvec    Name            name of routine to evaluate f()
 c     In       mkjac   Name            name of routine to evaluate jacobian
 c     Out      rjac    Real(ldr,*)     jacobian matrix (unscaled)

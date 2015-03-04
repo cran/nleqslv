@@ -137,7 +137,7 @@ c        check whether the global step is acceptable
             oarg(4) = dnrm2(n, d, 1)
             oarg(5) = fpnorm
             oarg(6) = abs(fp(idamax(n,fp,1)))
-            call nwmhot(iter,dtype,oarg)
+            call nwmhot(iter,dtype,retcd,oarg)
          endif
 
       enddo

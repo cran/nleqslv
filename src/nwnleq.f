@@ -28,6 +28,8 @@ c     Inout    maxit   Integer         maximum number iterations
 c     Inout    jacflg  Integer(*)      jacobian flag array
 c                                      jacflg[1]:  0 numeric; 1 user supplied; 2 numerical banded
 c                                                  3: user supplied banded
+c                                      jacflg[2]: number of sub diagonals or -1 if not banded
+c                                      jacflg[3]: number of super diagonals or -1 if not banded
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
 c     Inout    btol    Real            x tolerance for backtracking
@@ -41,6 +43,7 @@ c                                        2 quadratic linesearch
 c                                        3 geometric linesearch
 c                                        4 double dogleg
 c                                        5 powell dogleg
+c                                        6 hookstep (More-Hebden Levenberg-Marquardt)
 c     In       xscalm  Integer         scaling method
 c                                        0 scale fixed and supplied by user
 c                                        1 for scale from jac. columns a la Minpack

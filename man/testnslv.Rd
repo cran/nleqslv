@@ -3,7 +3,7 @@
 \encoding{UTF-8}
 \title{Test different methods for solving with \code{nleqslv}}
 \description{
-The function tests different methods and global strategies for solving a system of non linear equations with \code{nleqslv}
+The function tests different methods and global strategies for solving a system of nonlinear equations with \code{nleqslv}
 }
 \usage{
 testnslv(x, fn, jac=NULL,...,

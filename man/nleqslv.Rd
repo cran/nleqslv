@@ -1,9 +1,9 @@
 \name{nleqslv}
 \alias{nleqslv}
 \encoding{UTF-8}
-\title{Solving systems of non linear equations with Broyden or Newton}
+\title{Solving systems of nonlinear equations with Broyden or Newton}
 \description{
-The function solves a system of non linear equations with either a Broyden or a
+The function solves a system of nonlinear equations with either a Broyden or a
 full Newton method. It provides line search and trust region global strategies
 for difficult systems.
 }

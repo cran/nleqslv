@@ -1,5 +1,5 @@
 #
-# Interface to Fortran library for solving a system of non linear equations
+# Interface to Fortran library for solving a system of nonlinear equations
 # with either a Broyden or a full Newton method
 # There a six global search methods:
 #   cubic, quadratic and geometric linesearch

@@ -92,6 +92,12 @@ c        reset xp,fp,fpnorm to saved values and terminate global step
          call dcopy(n,xprev,1,xp,1)
          call dcopy(n,fprev,1,fp,1)
          fpnorm = fpnsav
+c        reset delta to initial value
+c        but beware
+c           if the trial step was a Newton step then delta is reset to
+c           .5 * length(Newton step) which will be smaller
+c           because delta is set to length(Newton step) elsewhere
+c           see nwddlg.f and nwpdlg.f
          delta  = Rhalf*delta
 
       elseif(ared .gt. alpha * slope) then
