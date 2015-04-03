@@ -1,16 +1,17 @@
 Package: nleqslv
 Type: Package
 Title: Solve Systems of Nonlinear Equations
-Version: 2.6
-Date: 2015-03-05
+Version: 2.7
+Date: 2015-04-03
 Author: Berend Hasselman
 Maintainer: Berend Hasselman <bhh@xs4all.nl>
 Description: Solve a system of nonlinear equations using a Broyden or a Newton method
              with a choice of global strategies such as line search and trust region.
-             There are options for using a numerical or user supplied Jacobian and
-             for specifying that a numerical Jacobian is banded.
+             There are options for using a numerical or user supplied Jacobian,
+             for specifying a banded numerical Jacobian and for allowing
+             a singular or ill-conditioned Jacobian.
 License: GPL (>= 2)
-Packaged: 2015-03-04 18:05:48 UTC; berendhasselman
 NeedsCompilation: yes
+Packaged: 2015-04-02 18:31:32 UTC; berendhasselman
 Repository: CRAN
-Date/Publication: 2015-03-04 21:32:58
+Date/Publication: 2015-04-03 02:00:50

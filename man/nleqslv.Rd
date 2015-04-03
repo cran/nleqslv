@@ -32,6 +32,8 @@ nleqslv(x, fn, jac=NULL,...,
 \details{
 The algorithms implemented in \code{nleqslv} are based on Dennis and Schnabel (1996).
 
+\subsection{Methods}{
+
 Method \code{Broyden} starts with a computed Jacobian of the function and
 then updates this Jacobian after each successful iteration using the so-called Broyden update.
 This method often shows super linear convergence towards a solution.
@@ -42,30 +44,37 @@ Method \code{Newton} calculates a Jacobian of the function \code{fn} at each ite
 Close to a solution this method will usually show quadratic convergence.
 
 Both methods apply a so-called (backtracking) global strategy to find
-a better (more acceptable) iterate.  The function criterion used by the algorithm is the
-sum of squares of the function values and \dQuote{acceptable} means sufficient decrease
+a better (more acceptable) iterate.  The function criterion used by the algorithm is half of
+the sum of squares of the function values and \dQuote{acceptable} means sufficient decrease
 of the current function criterion value compared to that of the previous iteration.
 A comprehensive discussion of these issues can be found in Dennis and Schnabel (1996).
-Both methods apply a QR-decomposition to the Jacobian as implemented in Lapack.
+Both methods apply an unpivoted QR-decomposition to the Jacobian as implemented in Lapack.
 The Broyden method applies a rank-1 update to the Jacobian at the end of each iteration
 and uses a modified version of the algorithm described in Dennis and Schnabel (1996).
+}
+
+\subsection{Global strategies}{
+
+When applying a full Newton or Broyden step does not yield a sufficiently smaller
+function criterion value \code{nleqslv} will attempt to decrease the steplength using
+one of several so-called global strategies.
 
 The \code{global} argument indicates which global strategy to use or to use no global strategy
 \describe{
-        \item{\code{cline}}{a cubic line search}
-        \item{\code{qline}}{a quadratic line search}
-        \item{\code{gline}}{a geometric line search}
-        \item{\code{dbldog}}{a trust region method using the double dogleg method as described in
-                             Dennis and Schnabel (1996)}
-        \item{\code{pwldog}}{a trust region method using the Powell dogleg method
-                             as developed by Powell (1970).}
-        \item{\code{hook}}{a trust region method described by Dennis and Schnabel (1996) as
-                           \emph{The locally constrained optimal (\dQuote{hook}) step}.
-                           It is equivalent to a Levenberg-Marquardt algorithm described in
-                           \enc{Moré}{More} (1978) and Nocedal and Wright (2006).}
-        \item{\code{none}}{Only a pure local Newton or Broyden iteration is used.
-                           The maximum stepsize (see below) is taken into account.
-                           The default maximum number of iterations (see below) is set to 20.}
+    \item{\code{cline}}{a cubic line search}
+    \item{\code{qline}}{a quadratic line search}
+    \item{\code{gline}}{a geometric line search}
+    \item{\code{dbldog}}{a trust region method using the double dogleg method as described in
+                         Dennis and Schnabel (1996)}
+    \item{\code{pwldog}}{a trust region method using the Powell dogleg method
+                         as developed by Powell (1970).}
+    \item{\code{hook}}{a trust region method described by Dennis and Schnabel (1996) as
+                       \emph{The locally constrained optimal (\dQuote{hook}) step}.
+                       It is equivalent to a Levenberg-Marquardt algorithm described in
+                       \enc{Moré}{More} (1978) and Nocedal and Wright (2006).}
+    \item{\code{none}}{Only a pure local Newton or Broyden iteration is used.
+                       The maximum stepsize (see below) is taken into account.
+                       The default maximum number of iterations (see below) is set to 20.}
 }
 The double dogleg method is the default global strategy employed by this package.
 
@@ -74,35 +83,36 @@ When one of the trust region methods fails, one of the line search strategies sh
 Sometimes a trust region will work and sometimes a line search method; neither has a clear advantage but
 in many cases the double dogleg method works quite well.
 
-The parameters \code{x} may be scaled during the search for a zero of \code{fn}.
-The  \code{xscalm} argument provides two possibilities for scaling
-\describe{
-\item{\code{fixed}}{the scaling factors are set to the values supplied in
-the \code{control} argument and remain unchanged during the iterations.
-The scaling factor of any element of \code{x}  should be set
-to the inverse of the typical value of that element of \code{x},
-ensuring that all elements of \code{x} are approximately equal in size.}
-
-\item{\code{auto}}{the scaling factors
-are calculated from the euclidean norms of the columns of the Jacobian matrix.
-When a new Jacobian is computed, the scaling values will be set to the
-euclidean norm of the corresponding column if that is larger than the current scaling value.
-Thus the scaling values will not decrease during the iteration.
-This is the method described in \enc{Moré}{More} (1978).
-Usually manual scaling is preferable.}
-}
-
-The algorithm cannot cope with a singular or ill-conditioned Jacobian.
-When a Jacobian becomes singular or very ill-conditioned
-the algorithm will return an error. A Jacobian is considered to be very ill-conditioned
-when the estimated inverse condition is less than or equal to a specified tolerance with a default value
-equal to \eqn{10^{-12}}{1e-12}.
-
 When the function to be solved returns non-finite function values for a parameter vector \code{x}
 and the algorithm is \emph{not} evaluating a numerical Jacobian, then any non-finite
 values will be replaced by a large number forcing the algorithm to backtrack,
 i.e. decrease the line search factor or decrease the trust region radius.
-When the algorithm is evaluating a numerical Jacobian, it will stop with an error message
+}
+
+\subsection{Scaling}{
+
+The elements of vector \code{x} may be scaled during the search for a zero of \code{fn}.
+The  \code{xscalm} argument provides two possibilities for scaling
+\describe{
+    \item{\code{fixed}}{the scaling factors are set to the values supplied in
+    the \code{control} argument and remain unchanged during the iterations.
+    The scaling factor of any element of \code{x}  should be set
+    to the inverse of the typical value of that element of \code{x},
+    ensuring that all elements of \code{x} are approximately equal in size.}
+
+    \item{\code{auto}}{the scaling factors
+    are calculated from the euclidean norms of the columns of the Jacobian matrix.
+    When a new Jacobian is computed, the scaling values will be set to the
+    euclidean norm of the corresponding column if that is larger than the current scaling value.
+    Thus the scaling values will not decrease during the iteration.
+    This is the method described in \enc{Moré}{More} (1978).
+    Usually manual scaling is preferable.}
+}
+}
+
+\subsection{Jacobian}{
+
+When evaluating a numerical Jacobian, an error message will be issued
 on detecting non-finite function values.
 An error message will also be issued when a user supplied jacobian contains non-finite entries.
 
@@ -111,65 +121,100 @@ will be returned in the return list.
 The default value is \code{FALSE}; i.e. to not return the final matrix.
 There is no guarantee that the final Broyden matrix resembles the actual Jacobian.
 
+The package can cope with a singular or ill-conditioned Jacobian if needed
+by setting the \code{allowSingular} component of the \code{control} argument.
+The method used is described in Dennis and Schnabel (1996).
+By default \code{nleqslv} returns an error
+if a Jacobian becomes singular or very ill-conditioned.
+A Jacobian is considered to be very ill-conditioned when the estimated inverse
+condition is less than or equal to a specified tolerance with a default value
+equal to \eqn{10^{-12}}{1e-12}.
+\emph{There is no guarantee that this method will be succesfull.}
+}
+
+\subsection{Control options}{
+
 The \code{control} argument is a list that can supply any of the
 following components:
 \describe{
-\item{\code{xtol}}{The relative steplength tolerance.
-When the relative  steplength of all scaled x values is smaller than this value
-convergence is declared. The default value is \eqn{10^{-8}}{1e-8}.
+    \item{\code{xtol}}{The relative steplength tolerance.
+    When the relative  steplength of all scaled x values is smaller than this value
+    convergence is declared. The default value is \eqn{10^{-8}}{1e-8}.
+    }
+
+    \item{\code{ftol}}{The function value tolerance.
+    Convergence is declared when the largest absolute function value is smaller than \code{ftol}.
+    The default value is \eqn{10^{-8}}{1e-8}.
+    }
+
+    \item{\code{btol}}{The backtracking tolerance.
+    When the relative steplength in a backtracking step to find an acceptable point is smaller
+    than the backtracking tolerance, the backtracking is terminated.
+    In the \code{Broyden} method a new Jacobian will be calculated if the Jacobian is outdated.
+    The default value is \eqn{10^{-3}}{1e-3}.
+    }
+
+    \item{\code{cndtol}}{The tolerance of the test for ill conditioning of
+    the Jacobian or Broyden approximation. If less than the machine precision it will
+    be silently set to the machine precision.
+    When the estimated inverse condition of the (approximated) Jacobian matrix is less than or equal to
+    the value of \code{cndtol} the matrix is deemed to be ill-conditioned,
+    in which case an error will be reported if the \code{allowSingular} component is set to \code{FALSE}.
+    The default value is \eqn{10^{-12}}{1e-12}.
+    }
+
+    \item{\code{sigma}}{Reduction factor for the geometric line search. The default value is 0.5.}
+
+    \item{\code{scalex}}{a vector of scaling values for the parameters.
+    The inverse of a scale value is an indication of the size of a parameter.
+    The default value is 1.0 for all scale values.}
+
+    \item{\code{maxit}}{The maximum number of major iterations.
+    The default value is 150 if a global strategy has been specified.
+    If no global strategy has been specified the default is 20.}
+
+    \item{\code{trace}}{Non-negative integer. A value of 1 will give a detailed report of the
+    progress of the iteration. For a description see \code{\link{Iteration report}}.}
+
+    \item{\code{chkjac}}{A logical value indicating whether to check a user supplied Jacobian, if
+    supplied. The default value is \code{FALSE}. The first 10 errors are printed.
+    The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
+
+    \item{\code{delta}}{Initial (scaled) trust region radius.
+    A value of \eqn{-1.0} or \code{"cauchy"} is replaced by the length of the Cauchy step in the initial point.
+    A value of \eqn{-2.0} or \code{"newton"} is replaced by the length of the Newton step in the initial point.
+    Any numeric value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
+    the algorithm will then start with the length of the Cauchy step in the initial point.
+    If it is numeric and positive it will be set to the smaller of the value supplied or the maximum stepsize.
+    If it is not numeric and not one of the permitted character strings then an error message will be issued.
+    The default is \eqn{-2.0}.}
+
+    \item{\code{stepmax}}{Maximum scaled stepsize.
+    If this is negative then the maximum stepsize is set to the largest positive representable number.
+    The default is \eqn{-1.0}, so there is no default maximum stepsize.}
+
+    \item{\code{dsub}}{Number of non zero subdiagonals of a banded Jacobian.
+    The default is to assume that the Jacobian is \emph{not} banded.
+    Must be specified if \code{dsuper} has been specified and must be larger than zero when \code{dsuper} is zero.}
+
+    \item{\code{dsuper}}{Number of non zero super diagonals of a banded Jacobian.
+    The default is to assume that the Jacobian is \emph{not} banded.
+    Must be specified if \code{dsub} has been specified and must be larger than zero when \code{dsub} is zero.}
+
+    \item{\code{allowSingular}}{A logical value indicating whether to apply a small correction
+    to the Jacobian when it is singular or too ill-conditioned. The method used
+    is similar to a Levenberg-Marquardt correction and is explained in Dennis and Schnabel (1996) on page 151.
+    It may be necessary to choose a higher value for \code{cndtol}.
+    The default value is \code{FALSE}.
+    }
 }
-\item{\code{ftol}}{The function value tolerance.
-Convergence is declared when the largest absolute function value is smaller than \code{ftol}.
-The default value is \eqn{10^{-8}}{1e-8}.
-}
-\item{\code{btol}}{The backtracking tolerance.
-When the relative steplength in a backtracking step to find an acceptable point is smaller
-than the backtracking tolerance, the backtracking is terminated.
-In the \code{Broyden} method a new Jacobian will be calculated if the Jacobian is outdated.
-The default value is \eqn{10^{-3}}{1e-3}.
-}
-\item{\code{cndtol}}{The tolerance of the test for ill conditioning of
-the Jacobian or Broyden approximation. If less than the machine precision it will
-be silently set to the machine precision.
-When the estimated inverse condition of the (approximated) Jacobian matrix is less than or equal to
-the value of \code{cndtol} the matrix is deemed to be ill-conditioned.
-The default value is \eqn{10^{-12}}{1e-12}.
-}
-\item{\code{sigma}}{Reduction factor for the geometric line search. The default value is 0.5.}
-\item{\code{scalex}}{a vector of scaling values for the parameters.
-The inverse of a scale value is an indication of the size of a parameter.
-The default value is 1.0 for all scale values.}
-\item{\code{maxit}}{The maximum number of major iterations. The default value is 150 if a global strategy has been specified.
-If no global strategy has been specified the default is 20.}
-\item{\code{trace}}{Non-negative integer. A value of 1 will give a detailed report of the
-progress of the iteration. For a description see \code{\link{Iteration report}}.}
-\item{\code{chkjac}}{A logical value indicating whether to check a user supplied Jacobian, if
-supplied. The default value is \code{FALSE}. The first 10 errors are printed.
-The code for this check is derived from the code in Bouaricha and Schnabel (1997).}
-\item{\code{delta}}{Initial (scaled) trust region radius.
-A value of \eqn{-1.0} or \code{"cauchy"} is replaced by the length of the Cauchy step in the initial point.
-A value of \eqn{-2.0} or \code{"newton"} is replaced by the length of the Newton step in the initial point.
-Any numeric value less than or equal to 0 and not equal to \eqn{-2.0}, will be replaced by \eqn{-1.0};
-the algorithm will then start with the length of the Cauchy step in the initial point.
-If it is numeric and positive it will be set to the smaller of the value supplied or the maximum stepsize.
-If it is not numeric and not one of the permitted character strings then an error message will be issued.
-The default is \eqn{-2.0}.}
-\item{\code{stepmax}}{Maximum scaled stepsize.
-If this is negative then the maximum stepsize is set to the largest positive representable number.
-The default is \eqn{-1.0}, so there is no default maximum stepsize.}
-\item{\code{dsub}}{Number of non zero subdiagonals of a banded Jacobian.
-The default is to assume that the Jacobian is \emph{not} banded.
-Must be specified if \code{dsuper} has been specified and must be larger than zero when \code{dsuper} is zero.}
-\item{\code{dsuper}}{Number of non zero super diagonals of a banded Jacobian.
-The default is to assume that the Jacobian is \emph{not} banded.
-Must be specified if \code{dsub} has been specified and must be larger than zero when \code{dsub} is zero.}
 }
 }
 \value{
 A list containing components
-  \item{x}{final values for x}
-  \item{fvec}{function values}
-  \item{termcd}{termination code as integer.
+    \item{x}{final values for x}
+    \item{fvec}{function values}
+    \item{termcd}{termination code as integer.
          The values returned are
          \describe{
          \item{\code{1}}{Function criterion is near zero.
@@ -184,20 +229,20 @@ A list containing components
          \item{\code{6}}{Jacobian is singular.}
          \item{\code{-10}}{User supplied Jacobian is most likely incorrect.}
          }
-   }
-  \item{message}{a string describing the termination code}
-  \item{scalex}{a vector containing the scaling factors,
+    }
+    \item{message}{a string describing the termination code}
+    \item{scalex}{a vector containing the scaling factors,
                 which will be the final values when automatic scaling was selected}
-  \item{njcnt}{number of Jacobian evaluations}
-  \item{nfcnt}{number of function evaluations, excluding those required for calculating a Jacobian and
+    \item{njcnt}{number of Jacobian evaluations}
+    \item{nfcnt}{number of function evaluations, excluding those required for calculating a Jacobian and
                excluding the initial function evaluation (at iteration 0)}
-  \item{iter}{number of outer iterations used by the algorithm. This excludes the initial iteration.
-  The number of backtracks can be calculated as the difference between items \code{nfcnt} and \code{iter}
-  of the outputlist.}
-  \item{jac}{the final Jacobian or the Broyden approximation if \code{jacobian} was set to \code{TRUE}.
-  If no iterations were executed, as may happen when the initial starting values are sufficiently close
-  the solution, there is no Broyden approximation and the returned matrix will always be the actual Jacobian.
-  If the matrix is singular or too ill-conditioned the returned matrix is of no value.}
+    \item{iter}{number of outer iterations used by the algorithm. This excludes the initial iteration.
+    The number of backtracks can be calculated as the difference between items \code{nfcnt} and \code{iter}
+    of the outputlist.}
+    \item{jac}{the final Jacobian or the Broyden approximation if \code{jacobian} was set to \code{TRUE}.
+    If no iterations were executed, as may happen when the initial starting values are sufficiently close
+    the solution, there is no Broyden approximation and the returned matrix will always be the actual Jacobian.
+    If the matrix is singular or too ill-conditioned the returned matrix is of no value.}
 }
 
 %\note{
@@ -282,10 +327,10 @@ fstart
 nleqslv(xstart, dslnex, control=list(btol=.01))
 
 # Cauchy start
-nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-1.0))
+nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta="cauchy"))
 
 # Newton start
-nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta=-2.0))
+nleqslv(xstart, dslnex, control=list(trace=1,btol=.01,delta="newton"))
 
 # final Broyden approximation of Jacobian (quite good)
 z <- nleqslv(xstart, dslnex, jacobian=TRUE,control=list(btol=.01))
@@ -310,7 +355,37 @@ nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,ste
 
 # Broyden also finds the c(1,1) solution when the stepsize is limited
 nleqslv(xstart, dslnex, jacdsln, method="Broyden", global="none", control=list(trace=1,stepmax=2))
-}}
+}
+
+# example with a singular jacobian in the starting point
+f <- function(x) {
+    y <- numeric(3)
+    y[1] <- x[1] + x[2] - x[1]*x[2] - 2
+    y[2] <- x[1] + x[3] - x[1]*x[3] - 3
+    y[3] <- x[2] + x[3] - 4
+    return(y)
+}
+
+Jac <- function(x) {
+    J <- matrix(0,nrow=3,ncol=3)
+    J[,1] <- c(1-x[2],1-x[3],0)
+    J[,2] <- c(1-x[1],0,1)
+    J[,3] <- c(0,1-x[1],1)
+    J
+}
+
+# exact solution
+xsol <- c(-.5, 5/3 , 7/3)
+xsol
+
+xstart <- c(1,2,3)
+J <- Jac(xstart)
+J
+rcond(J)
+
+z <- nleqslv(xstart,f,Jac, method="Newton",control=list(trace=1,allowSingular=TRUE))
+all.equal(z$x,xsol)
+}
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

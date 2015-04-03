@@ -173,6 +173,10 @@ void F77_SUB(nwlsot)(int *iter, int *lstep, double *oarg)
     }
 }
 
+void F77_SUB(dgdbg)(double *gamma, double *numerator, double *denominator) {
+    Rprintf("gamma=%g numerator=%g denominator=%g\n", *gamma, *numerator, *denominator);
+}
+
 void F77_SUB(nwdgot)(int *iter, int *lstep, int *retcd, double *oarg)
 {
     /*

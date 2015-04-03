@@ -17,12 +17,16 @@ Both methods utilise global strategies such as line search or trust region metho
 whenever the standard Newton/Broyden step does not lead to a point closer to a root
 of the equation system. Both methods can also be used without a norm reducing global strategy.
 Line search may be either cubic, quadratic or geometric. The trust region methods are either
-the double dogleg, the Powell single dogleg method or a Levenberg-Marquardt type method.
+the double dogleg method, the Powell single dogleg method or a Levenberg-Marquardt type method.
 
-There is a facility for specifying that the jacobian is banded; this can significantly
+There is a facility for specifying that the Jacobian is banded; this can significantly
 speedup the calculation of a numerical Jacobian when the number of sub- and super diagonals is small
 compared to the size of the system of equations. For example the Jacobian of a tridiagonal system
 can be calculated with only three evaluations of the function.
+
+The package provides an option to attempt to solve the system of equations
+when the Jacobian is singular or ill-conditioned using an approximation to the
+Moore-Penrose pseudoinverse of the Jacobian.
 
 The algorithms provided in this package are derived from Dennis and Schnabel (1996).
 The code is written in Fortran 77 and Fortran 95

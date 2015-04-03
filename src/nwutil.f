@@ -349,6 +349,8 @@ c                                      jacflg[1]:  0 numeric; 1 user supplied; 2
 c                                                  3: user supplied banded
 c                                      jacflg[2]: number of sub diagonals or -1 if not banded
 c                                      jacflg[3]: number of super diagonals or -1 if not banded
+c                                      jacflg[4]: 1 if adjusting jacobian allowed when
+c                                                   singular or illconditioned
 c     In       scalex  Real(*)         scaling vector for x()
 c     Wk       fz      Real(*)         workspace
 c     Wk       wa      Real(*)         workspace
@@ -596,6 +598,51 @@ c-------------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
+      subroutine compmu(r,ldr,n,mu,y)
+
+      integer ldr,n
+      double precision r(ldr,*),mu,y(*)
+
+c-------------------------------------------------------------------------
+c
+c     Compute a small perturbation mu for the (almost) singular matrix R.
+c     mu is used in the computation of the levenberg-marquardt step.
+c
+c     Arguments
+c
+c     In       R       Real(ldr,*)     upper triangular matrix from QR
+c     In       ldr     Integer         leading dimension of R
+c     In       n       Integer         column dimension of R
+c     Out      mu      Real            sqrt(l1 norm of R * infinity norm of R
+c                                      * n * epsm * 100) designed to make
+c                                        trans(R)*R + mu * I not singular
+c     Wk       y       Real(*)         workspace for dlange
+c
+c-------------------------------------------------------------------------
+
+      double precision  aifnrm,al1nrm,epsm
+      double precision dlantr
+      double precision epsmch
+
+      double precision Rhund
+      parameter(Rhund=100d0)
+
+c     get the infinity norm of R
+c     get the l1 norm of R
+
+      aifnrm = dlantr('I','U','N',n,n,r,ldr,y)
+      al1nrm = dlantr('1','U','N',n,n,r,ldr,y)
+
+c     compute mu
+      epsm = epsmch()
+      mu = sqrt(n*epsm*Rhund)*aifnrm*al1nrm
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+
       subroutine cndjac(n,r,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
       integer n,ldr,icdwrk(*),ierr
       double precision cndtol,rcond,r(ldr,*),rcdwrk(*)
@@ -678,6 +725,8 @@ c                                      jacflg[1]:  0 numeric; 1 user supplied; 2
 c                                                  3: user supplied banded
 c                                      jacflg[2]: number of sub diagonals or -1 if not banded
 c                                      jacflg[3]: number of super diagonals or -1 if not banded
+c                                      jacflg[4]: 1 if adjusting jacobian allowed when
+c                                                   singular or illconditioned
 c     In       fvec    Name            name of routine to evaluate f()
 c     In       mkjac   Name            name of routine to evaluate jacobian
 c     Out      rjac    Real(ldr,*)     jacobian matrix (unscaled)

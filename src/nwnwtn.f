@@ -38,6 +38,8 @@ c                                      jacflg[1]:  0 numeric; 1 user supplied; 2
 c                                                  3: user supplied banded
 c                                      jacflg[2]: number of sub diagonals or -1 if not banded
 c                                      jacflg[3]: number of super diagonals or -1 if not banded
+c                                      jacflg[4]: 1 if adjusting step allowed when
+c                                                   singular or illconditioned
 c     In       xtol    Real            tolerance at which successive iterates x()
 c                                      are considered close enough to
 c                                      terminate algorithm

@@ -1,4 +1,4 @@
-      subroutine nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,
+      subroutine nwbjac(rjac,r,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,
      *                  wrk1,wrk2,wrk3,
      *                  xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *                  qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
@@ -11,7 +11,8 @@ c     calculate Newton step
 c
 c     Arguments
 c
-c     Out      rjac    Real(ldr,*)     jacobian (n columns)
+c     Out      rjac    Real(ldr,*)     jacobian (n columns) and used for storing full Q from Q
+c     Out      r       Real(ldr,*)     used for storing R from QR factorization
 c     In       ldr     Integer         leading dimension of rjac
 c     In       n       Integer         dimensions of problem
 c     In       xc      Real(*)         initial estimate of solution
@@ -59,7 +60,7 @@ c-----------------------------------------------------------------------
       integer jacflg(*),xscalm,qrwsiz
       logical fstjac
       double precision  epsm, cndtol, rcond
-      double precision  rjac(ldr,*)
+      double precision  rjac(ldr,*),r(ldr,*)
       double precision  xc(*),fc(*),dn(*)
       double precision  wrk1(*),wrk2(*),wrk3(*)
       double precision  qtf(*),gp(*),fq(*)
@@ -96,10 +97,10 @@ c     evaluate the gradient at the current iterate xc
 c     gp = trans(Rjac) * fc
       call dgemv('T',n,n,Rone,rjac,ldr,fc,1,Rzero,gp,1)
 
-c     get newton step
+c     get broyden (newton) step
       stepadj = jacflg(4) .eq. 1
       call dcopy(n,fc,1,fq,1)
-      call nwnstp(rjac,ldr,fq,n,cndtol, stepadj,
+      call brdstp(rjac,r,ldr,fq,n,cndtol, stepadj,
      *            wrk1,dn,qtf,ierr,rcond,
      *            rcdwrk,icdwrk,qrwork,qrwsiz)
 
@@ -111,12 +112,12 @@ c     save some data about jacobian for later output
 
 c-----------------------------------------------------------------------
 
-      subroutine nwnstp(rjac,ldr,fn,n,cndtol, stepadj,
+      subroutine brdstp(rjac,r,ldr,fn,n,cndtol, stepadj,
      *                  qraux,dn,qtf,ierr,rcond,
      *                  rcdwrk,icdwrk,qrwork,qrwsiz)
 
       integer ldr,n,ierr,qrwsiz
-      double precision  cndtol,rjac(ldr,*),qraux(*),fn(*)
+      double precision  cndtol,rjac(ldr,*),r(ldr,*),qraux(*),fn(*)
       double precision  dn(*),qtf(*)
       double precision  rcdwrk(*),qrwork(*)
       integer           icdwrk(*)
@@ -129,8 +130,8 @@ c     Calculate the newton step
 c
 c     Arguments
 c
-c     Inout    rjac    Real(ldr,*)     jacobian matrix at current iterate
-c                                      overwritten with QR decomposition
+c     Inout    rjac    Real(ldr,*)     jacobian matrix at current iterate; on return full Q
+c     Inout    r       Real(ldr,*)     jacobian matrix at current iterate; on return R fom QR
 c     In       ldr     Integer         leading dimension of rjac
 c     In       fn      Real(*)         function values at current iterate
 c     In       n       Integer         dimension of problem
@@ -171,13 +172,23 @@ c     compute qtf = trans(Q)*fn
       call dcopy(n,fn,1,qtf,1)
       call liqrqt(rjac, ldr, n, qraux, qtf, qrwork, qrwsiz, info)
 
+c     copy the upper triangular part of the QR decomposition
+c     contained in Rjac into R[*, 1..n].
+c     form Q from the QR decomposition (taur/qraux in wrk1)
+
+      call dlacpy('U',n,n,rjac,ldr,r,ldr)
+      call liqrqq(rjac,ldr,qraux,n,qrwork,qrwsiz,info)
+
+c     now Rjac[* ,1..n] holds expanded Q
+c     now R[* ,1..n] holds full upper triangle R
+
       if( ierr .eq. 0 ) then
 c         Normal Newton step
-c         solve rjac*dn  =  -fn
+c         solve Jacobian*dn  =  -fn
 c         ==> R*dn = - qtf
 
           call dcopy(n,qtf,1,dn,1)
-          call dtrsv('U','N','N',n,rjac,ldr,dn,1)
+          call dtrsv('U','N','N',n,r,ldr,dn,1)
           call dscal(n, -Rone, dn, 1)
 
       elseif( stepadj ) then
@@ -190,15 +201,15 @@ c         approximately from pseudoinverse(Jac+)
 c         use mu to solve (trans(R)*R + mu*I*mu*I) * x = - trans(R) * fn
 c         directly from the QR decomposition of R stacked with mu*I
 c         a la Levenberg-Marquardt
-          call compmu(rjac,ldr,n,mu,rcdwrk)
-          call liqrev(n,rjac,ldr,mu,qtf,dn,
+          call compmu(r,ldr,n,mu,rcdwrk)
+          call liqrev(n,r,ldr,mu,qtf,dn,
      *                rcdwrk(1+n),rcdwrk(2*n+1))
           call dscal(n, -Rone, dn, 1)
 
-c         copy lower triangular Rjac to upper triangular
+c         copy lower triangular R to upper triangular
           do k=1,n
-             call dcopy (n-k+1,rjac(k,k),1,rjac(k,k),ldr)
-             rjac(k,k) = rcdwrk(1+n+k-1)
+             call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
+             r(k,k) = rcdwrk(1+n+k-1)
          enddo
 
       endif

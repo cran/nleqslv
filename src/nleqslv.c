@@ -100,8 +100,8 @@ static char *fcn_message(char *msg, int termcd)
         case 2: sprintf(msg, "x-values within tolerance `xtol'"); break;
         case 3: sprintf(msg, "No better point found (algorithm has stalled)"); break;
         case 4: sprintf(msg, "Iteration limit exceeded"); break;
-        case 5: sprintf(msg, "Jacobian is too ill-conditioned"); break;
-        case 6: sprintf(msg, "Jacobian is singular"); break;
+        case 5: sprintf(msg, "Jacobian is too ill-conditioned (see allowSingular option)"); break;
+        case 6: sprintf(msg, "Jacobian is singular (see allowSingular option)"); break;
         case -10: sprintf(msg, "User supplied Jacobian most likely incorrect"); break;
         default: sprintf(msg, "`termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
     }
@@ -219,7 +219,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     int     i, j, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz, lrjac, ldr;
     int     maxit, method, global, xscalm;
-    int     jactype, jacflg[3], dsub, dsuper;
+    int     jactype, jacflg[4], dsub, dsuper;
     double  xtol, ftol, btol, stepmx, delta, sigma, cndtol;
 
     if( activeflag )
@@ -371,6 +371,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     }
 
     jacflg[0] = jactype;
+
+    /* for adjusting step when singular or illconditioned */
+    jacflg[3] = asLogical(getListElement(control, "allowSingular")) ? 1 : 0;
 
     /* copied from code in <Rsource>/src/library/stats/src/optim.c */
     sexp_diag = getListElement(control, "scalex");

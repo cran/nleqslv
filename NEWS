@@ -1,3 +1,8 @@
+2.7
+
+o reintroduced the Levenberg-Marquardt correction for ill-conditioned or singular jacobians.
+  It now works as desired.
+
 2.6
 
 o display a marker in the trust region iteration report when a trial step will be taken

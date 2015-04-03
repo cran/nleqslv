@@ -31,6 +31,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                 trace=0,
                 chkjac=FALSE,
                 cndtol=1e-12,
+                allowSingular=FALSE,
                 dsub=-1L,
                 dsuper=-1L
                )

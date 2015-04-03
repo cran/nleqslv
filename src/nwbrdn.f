@@ -38,6 +38,8 @@ c                                      jacflg[1]:  0 numeric; 1 user supplied; 2
 c                                                  3: user supplied banded
 c                                      jacflg[2]: number of sub diagonals or -1 if not banded
 c                                      jacflg[3]: number of super diagonals or -1 if not banded
+c                                      jacflg[4]: 1 if adjusting step allowed when
+c                                                   singular or illconditioned
 c     In       xtol    Real            tolerance at which successive iterates x()
 c                                      are considered close enough to
 c                                      terminate algorithm
@@ -93,6 +95,7 @@ c-----------------------------------------------------------------------
       double precision  dum(2),dlt0,fcnorm,rcond
       logical fstjac
       logical jacevl,jacupd
+      logical stepadj
       integer priter
 
       integer idamax
@@ -182,29 +185,18 @@ c     check stopping criteria for input xc
 
       endif
 
-      jacevl = .true.
+      jacevl  = .true.
+      stepadj = jacflg(4) .eq. 1
 
       do while( termcd .eq. 0 )
          iter = iter+1
 
          if( jacevl ) then
 
-            call nwnjac(rjac,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,wrk1,
-     *                  wrk2,wrk3,
+            call nwbjac(rjac,r,ldr,n,xc,fc,fq,fvec,fjac,epsm,jacflg,
+     *                  wrk1,wrk2,wrk3,
      *                  xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *                  qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
-
-            if( ierr .eq. 0 ) then
-c              copy the upper triangular part of the QR decomposition
-c              contained in Rjac into R(*, n+1).
-c              form Q from the QR decomposition (taur/qraux in wrk1)
-
-               call dlacpy('U',n,n,rjac,ldr,r,ldr)
-               call liqrqq(rjac,ldr,wrk1,n,qrwork,qrwsiz,ierr)
-            endif
-
-c           now Rjac[*  ,1..n] holds expanded Q
-c           now R[*  ,1..n] holds full upper triangle R
 
          else
 
@@ -212,7 +204,7 @@ c          - get broyden step
 c          - calculate approximate gradient
 
             call dcopy(n,fc,1,fq,1)
-            call brodir(rjac,ldr,r,fq,n,cndtol,
+            call brodir(rjac,ldr,r,fq,n,cndtol, stepadj,
      *                  dn,qtf,ierr,rcond,rcdwrk,icdwrk)
 
             if( ierr .eq. 0 ) then
@@ -395,7 +387,7 @@ c        equation 8.3.1 from Dennis and Schnabel (page 187)(Siam edition)
 
 c-----------------------------------------------------------------------
 
-      subroutine brodir(q,ldr,r,fn,n,cndtol,dn,qtf,
+      subroutine brodir(q,ldr,r,fn,n,cndtol,stepadj,dn,qtf,
      *                  ierr,rcond,rcdwrk,icdwrk)
 
       integer ldr,n,ierr
@@ -404,6 +396,7 @@ c-----------------------------------------------------------------------
       double precision  rcdwrk(*)
       integer           icdwrk(*)
       double precision  rcond
+      logical           stepadj
 
 c-----------------------------------------------------------------------
 c
@@ -417,6 +410,7 @@ c     In       R       Real(ldr,*)     upper triangular R from QR decomposition
 c     In       fn      Real(*)         function values at current iterate
 c     In       n       Integer         dimension of problem
 c     In       cndtol  Real            tolerance of test for ill conditioning
+c     In       stepadj Logical         allow adjusting step for singular/illconditioned jacobian
 c     Out      dn      Real(*)         Newton direction
 c     Out      qtf     Real(*)         trans(Q)*f()
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
@@ -430,27 +424,57 @@ c     QR decomposition with no pivoting.
 c
 c-----------------------------------------------------------------------
 
+      integer k
       double precision Rzero, Rone
       parameter(Rzero=0.0d0, Rone=1.0d0)
+      double precision mu
 
 c     check for singularity or ill conditioning
 
       call cndjac(n,r,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
-      call nwsnot(1,ierr,rcond)
-      if( ierr .ne. 0 ) then
-          return
+
+      if( ierr .eq. 0 ) then
+c         form qtf = trans(Q) * fn
+
+          call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
+
+c         solve rjac*dn  =  -fn
+c         ==> R*dn = - qtf
+
+          call dcopy(n,qtf,1,dn,1)
+          call dtrsv('U','N','N',n,r,ldr,dn,1)
+          call dscal(n, -Rone, dn, 1)
+
+      elseif( stepadj ) then
+
+c         Adjusted Newton step
+c         approximately from pseudoinverse(Jac+)
+c         compute qtf = trans(Q)*fn
+
+          ierr = 0
+c         form qtf = trans(Q) * fn
+
+          call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
+
+c         use mu to solve (trans(R)*R + mu*I*mu*I) * x = - trans(R) * fn
+c         directly from the QR decomposition of R stacked with mu*I
+c         a la Levenberg-Marquardt
+          call compmu(r,ldr,n,mu,rcdwrk)
+c          do k=1,n
+c              rcdwrk(k) = mu
+c          enddo
+          call liqrev(n,r,ldr,mu,qtf,dn,
+     *                rcdwrk(1+n),rcdwrk(2*n+1))
+          call dscal(n, -Rone, dn, 1)
+
+c         copy lower triangular Rjac to upper triangular
+          do k=1,n
+             call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
+             r(k,k) = rcdwrk(1+n+k-1)
+          enddo
+
       endif
-
-c     form qtf = trans(Q) * fn
-
-      call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
-
-c     solve rjac*dn  =  -fn
-c       ==> R*dn = - qtf
-
-      call dcopy(n,qtf,1,dn,1)
-      call dtrsv('U','N','N',n,r,ldr,dn,1)
-      call dscal(n, -Rone, dn, 1)
+      call nwsnot(1,ierr,rcond)
 
       return
       end

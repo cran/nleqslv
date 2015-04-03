@@ -73,6 +73,8 @@ c-------------------------------------------------------------------------
       parameter(Rhalf=0.5d0)
       parameter(Rone=1.0d0, Rtwo=2.0d0, Rten=10.0d0)
       parameter(Rp2 = Rtwo/Rten, Rp8 = Rone - Rp2)
+      double precision Rzero
+      parameter(Rzero=0.0d0)
 
 c     length newton direction
 
@@ -103,7 +105,9 @@ c     set trust radius to ssdlen or dnlen if required
 c     calculate double dogleg parameter
 
       gamma = alpha*alpha/(-beta*ddot(n,g,1,dn,1))
-      eta = Rp2 + Rp8*gamma
+c      call dgdbg(gamma, alpha*alpha, -beta*ddot(n,g,1,dn,1))
+c     precautionary (just in case)
+      eta = max(Rzero, min(Rone,Rp2 + Rp8*gamma))
 
       retcd = 4
       gcnt  = 0

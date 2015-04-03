@@ -30,6 +30,8 @@ c                                      jacflg[1]:  0 numeric; 1 user supplied; 2
 c                                                  3: user supplied banded
 c                                      jacflg[2]: number of sub diagonals or -1 if not banded
 c                                      jacflg[3]: number of super diagonals or -1 if not banded
+c                                      jacflg[4]: 1 if adjusting step allowed when
+c                                                   singular or illconditioned
 c     Inout    xtol    Real            x tolerance
 c     Inout    ftol    Real            f tolerance
 c     Inout    btol    Real            x tolerance for backtracking
