@@ -12,9 +12,9 @@ testnslv <- function(x, fn, jac=NULL, ...,
 
     makeerrlist <- function(m,g,cpusecs=NULL) {
         if(is.null(cpusecs)) {
-            z <- list(method=m, global=g, termcd=NA, fctcall=NA, jaccall=NA, itercnt=NA, message="ERROR",fnorm=NA)
+            z <- list(Method=m, Global=g, termcd=NA, Fcnt=NA, Jcnt=NA, Tcnt=NA, Iter=NA, Message="ERROR",Fnorm=NA)
         } else {
-            z <- list(method=m, global=g, termcd=NA, fctcall=NA, jaccall=NA, itercnt=NA, message="ERROR",fnorm=NA,
+            z <- list(Method=m, Global=g, termcd=NA, Fcnt=NA, Jcnt=NA, Tcnt=NA, Iter=NA, Message="ERROR",Fnorm=NA,
                              cpusecs=cpusecs)
         }
         z
@@ -22,18 +22,20 @@ testnslv <- function(x, fn, jac=NULL, ...,
 
     makereslist <- function(m,g,res,cpusecs=NULL) {
         fnorm <- sum(res$fvec^2)/2
+        # necessary to test for termcd<0 and >6 otherwise R errors later in output
+        # see R-help about switch
         if(res$termcd < 0 ) stop("User supplied jacobian most likely incorrect: cannot continue") else
-            message <- switch(res$termcd, "Fcrit", "Xcrit", "Stalled", "Maxiter", "Illcond", "Singular")
-        
+        if(res$termcd > 7 ) message <- "BADCD" else
+            message <- switch(res$termcd, "Fcrit", "Xcrit", "Stalled", "Maxiter", "Illcond", "Singular", "BadJac")
+
         if(is.null(cpusecs)) {
-           z <- list(method=m, global=g, termcd=res$termcd, fctcall=res$nfcnt, jaccall=res$njcnt, itercnt=res$iter,
-                            message=message, fnorm=fnorm)
-
+           z <- list(Method=m, Global=g, termcd=res$termcd, Fcnt=res$nfcnt, Jcnt=res$njcnt,
+                            Tcnt=NA, Iter=res$iter, Message=message, Fnorm=fnorm)
         } else {
-           z <- list(method=m, global=g, termcd=res$termcd, fctcall=res$nfcnt, jaccall=res$njcnt, itercnt=res$iter,
-                            message=message, fnorm=fnorm, cpusecs=cpusecs)
+           z <- list(Method=m, Global=g, termcd=res$termcd, Fcnt=res$nfcnt, Jcnt=res$njcnt,
+                            Tcnt=NA, Iter=res$iter, Message=message, Fnorm=fnorm, cpusecs=cpusecs)
         }
-
+        z
     }
 
     methods <- match.arg(method, c("Newton", "Broyden"), several.ok=TRUE)
@@ -60,6 +62,7 @@ testnslv <- function(x, fn, jac=NULL, ...,
                 z <- makeerrlist(m,g,cpus)
             } else {
                 z <- makereslist(m,g,res,cpus)
+                if( is.null(jac) ) z$Tcnt <- z$Fcnt + z$Jcnt*length(x)
             }
             reslist[[idx]] <- z
             idx <- idx+1
@@ -79,12 +82,13 @@ testnslv <- function(x, fn, jac=NULL, ...,
     res
 }
 
-
-print.test.nleqslv <- function(x, digits=4, ...) {
+print.test.nleqslv <- function(x, digits=4, width.cutoff=45L, ...) {
     if(!inherits(x, "test.nleqslv"))
         stop("method is only for test.nleqslv objects")
 
-    cat("Call:\n",paste0(deparse(x$call), collapse = "\n"), "\n\n", sep = "")
+    # calculate total number of function evaluations if numeric jacobian used
+
+    cat("Call:\n",paste0(deparse(x$call, width.cutoff=width.cutoff), collapse = "\n"), "\n\n", sep = "")
     if(is.null(x$title)) cat("Results:\n") else cat("Results: ",x$title,"\n", sep="")
     print(x$out, digits=digits,...)
     invisible(x)

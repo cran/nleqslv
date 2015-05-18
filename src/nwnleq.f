@@ -86,7 +86,9 @@ c                                             1  function criterion near zero
 c                                             2  no better point found
 c                                             3  x-values within tolerance
 c                                             4  iteration limit exceeded
-c                                             5  singular jacobian
+c                                             5  singular/ill-conditioned jacobian
+c                                             6  totally singular jacobian
+c                                                (when allowSingular=TRUE)
 c
 c                                       < 0 invalid input parameters
 c                                            -1  n not positive

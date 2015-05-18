@@ -36,14 +36,17 @@ incorrect jacobian is detected.
     \item{\code{call}}{the matched call}
     \item{\code{out}}{ a dataframe containing the results with the following columns
         \describe{
-          \item{\code{method}}{method used.}
-          \item{\code{global}}{global strategy used.}
+          \item{\code{Method}}{method used.}
+          \item{\code{Global}}{global strategy used.}
           \item{\code{termcd}}{termination code of \code{nleqslv}.}
-          \item{\code{fctcall}}{number of function evaluations used by the method and global strategy.}
-          \item{\code{jaccall}}{number of Jacobian evaluations.}
-          \item{\code{itercnt}}{number of outer iterations used by the algorithm.}
-          \item{\code{message}}{a string describing the termination code in an abbreviated form.}
-          \item{\code{fnorm}}{square of the euclidean norm of the vector of function results divided by 2.}
+          \item{\code{Fcnt}}{number of function evaluations used by the method and global strategy.
+                                This excludes function evaluations made when computing a numerical Jacobian.}
+          \item{\code{Jcnt}}{number of Jacobian evaluations.}
+          \item{\code{Tcnt}}{total number of function evaluations including those used for computing
+                               a numerical Jacobian. If no numerical Jacobian was generated then \code{NA}.}
+          \item{\code{Iter}}{number of outer iterations used by the algorithm.}
+          \item{\code{Message}}{a string describing the termination code in an abbreviated form.}
+          \item{\code{Fnorm}}{square of the euclidean norm of the vector of function results divided by 2.}
           \item{\code{cpusecs}}{CPU seconds used by the requested number of repetitions (only present when
           argument \code{Nrep} is not 0).}
         }
@@ -59,6 +62,7 @@ consecutive x-values is smaller than \code{xtol}.}
 \item{\code{Maxiter}}{Iteration limit \code{maxit} exceeded.}
 \item{\code{Illcond}}{Jacobian is too ill-conditioned.}
 \item{\code{Singular}}{Jacobian is singular.}
+\item{\code{BadJac}}{Jacobian is unusable.}
 }
 }
 \section{Warning}{

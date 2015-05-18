@@ -19,6 +19,22 @@ void F77_SUB(nwckot)(int *i, int *j, double *aij, double *wi)
             "                         Estimated[%d,%d] = %20.13e\n", *i, *j, *aij, *i, *j, *wi);
 }
 
+#if 0
+/* for debugging */
+void F77_SUB(prmunjac)(double *mu)
+{
+    Rprintf("nwnjac mu=%g\n",*mu);
+}
+void F77_SUB(prmubjac)(double *mu)
+{
+    Rprintf("nwbjac mu=%g\n",*mu);
+}
+void F77_SUB(praifal1)(double *aifnrm, double *al1nrm)
+{
+    Rprintf("aifnrm=%g al1nrm=%g\n",*aifnrm,*al1nrm);
+}
+#endif
+
 void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
 {
     /*
@@ -109,6 +125,7 @@ static void znumout(int retcd, double x)
 }
 
 #if 0
+/* for debugging */
 void F77_SUB(xclshpar)(int *gcnt, double *slope, double *a, double *b, double *disc, double *dbp2, double *t, double *t1,double *t2)
 {
     Rprintf("Clsh: gcnt=%d, slope=%g, a=%g, b=%g, disc=%g, disc-b^2= %d, t=%g t1=%g t2=%g\n",*gcnt, *slope, *a, *b, *disc, *dbp2>0, *t,*t1,*t2);

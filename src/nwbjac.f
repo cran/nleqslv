@@ -143,6 +143,7 @@ c     Out      qtf     Real(*)         trans(Q)*f()
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
 c                                      1 indicating Jacobian ill-conditioned
 c                                      2 indicating Jacobian completely singular
+c                                      3 indicating almost zero LM correction
 c     Out      rcond   Real            inverse condition of upper triangular R of QR
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
@@ -192,26 +193,23 @@ c         ==> R*dn = - qtf
           call dscal(n, -Rone, dn, 1)
 
       elseif( stepadj ) then
-
 c         Adjusted Newton step
 c         approximately from pseudoinverse(Jac+)
-
-          ierr = 0
-
 c         use mu to solve (trans(R)*R + mu*I*mu*I) * x = - trans(R) * fn
 c         directly from the QR decomposition of R stacked with mu*I
 c         a la Levenberg-Marquardt
-          call compmu(r,ldr,n,mu,rcdwrk)
-          call liqrev(n,r,ldr,mu,qtf,dn,
-     *                rcdwrk(1+n),rcdwrk(2*n+1))
-          call dscal(n, -Rone, dn, 1)
+          call compmu(r,ldr,n,mu,rcdwrk,ierr)
+          if( ierr .eq. 0 ) then
+             call liqrev(n,r,ldr,mu,qtf,dn,
+     *                   rcdwrk(1+n),rcdwrk(2*n+1))
+             call dscal(n, -Rone, dn, 1)
 
-c         copy lower triangular R to upper triangular
-          do k=1,n
-             call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
-             r(k,k) = rcdwrk(1+n+k-1)
-         enddo
-
+c            copy lower triangular R to upper triangular
+             do k=1,n
+                call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
+                r(k,k) = rcdwrk(1+n+k-1)
+             enddo
+          endif
       endif
 
       return

@@ -50,9 +50,10 @@ c
 c     The routine could also be used when the matrix R from the QR decomposition of a Jacobian
 c     is ill-conditioned (or singular). Then it is difficult to calculate a Newton step
 c     accurately (Dennis and Schnabel). D&S advise perturbing trans(J)*J with a positive
-c     diagonal matrix. My attempts in the past have not been succesful.
+c     diagonal matrix.
 c
 c     The idea is  to solve (J^T * J + mu*I)x=b where mu is a small positive number.
+c     Calculation of mu must be done in the calling routine.
 c     Using a QR decomposition of J solving this system
 c     is equivalent solving (R^T*R + mu*I)x=b, where R comes from the QR decomposition.
 c     Solving this system is equivalent to solving the above least squares problem with the
@@ -87,7 +88,7 @@ c
 
 c     eliminate the diagonal matrix D using givens rotations.
 c     Nocedal method: start at the bottom right
-c     after 100 loop had finished R contains diagonal of S
+c     at end of loop R contains diagonal of S
 c     save in sdiag and restore original diagonal of R
 
       do j=n,1,-1
@@ -110,7 +111,7 @@ c           eliminate the diagonal element in row j of D
 c           this generates fill-in in columns [j+1 .. n] of row j of D
 c           successively eliminate the fill-in with givens rotations
 c           for R[j+1,j+1] and D[j,j+1].
-c           rows of R have been copied into the columns of R in 10 loop
+c           rows of R have been copied into the columns of R initially (see above)
 c           perform all operations on those columns to preserve the original R
 
             if (sdiag(k) .ne. Rzero) then
@@ -142,7 +143,8 @@ c     restore original diagonal of R
 
 c     x now contains modified b
 c     solve trans(S)*x = x
-
+c     still to be done: guard against division by 0 to be absolutely safe
+c     call dblepr('liqrev sdiag', 12, sdiag, n)
       x(n) = x(n) / sdiag(n)
       do j=n-1,1,-1
          sum  = ddot(n-j,r(j+1,j),1,x(j+1),1)

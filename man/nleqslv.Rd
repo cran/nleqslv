@@ -10,15 +10,17 @@ for difficult systems.
 \usage{
 nleqslv(x, fn, jac=NULL,...,
                method = c("Broyden", "Newton"),
-               global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
+               global = c("dbldog", "pwldog",
+                          "cline", "qline", "gline", "hook", "none"),
                xscalm = c("fixed","auto"),
                jacobian=FALSE,
                control = list()
 	)
 }
 \arguments{
- \item{x}{A list or numeric vector of starting estimates.}
- \item{fn}{A function of \code{x} returning the function values.}
+ \item{x}{A numeric vector of starting estimates.}
+ \item{fn}{A function of \code{x} returning a vector of function values
+           with the same length as the vector \code{x}.}
  \item{jac}{A function to return the Jacobian for the \code{fn} function.
             If not supplied numerical derivatives will be used.}
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac}.}
@@ -70,7 +72,7 @@ The \code{global} argument indicates which global strategy to use or to use no g
                          as developed by Powell (1970).}
     \item{\code{hook}}{a trust region method described by Dennis and Schnabel (1996) as
                        \emph{The locally constrained optimal (\dQuote{hook}) step}.
-                       It is equivalent to a Levenberg-Marquardt algorithm described in
+                       It is equivalent to a Levenberg-Marquardt algorithm as described in
                        \enc{Moré}{More} (1978) and Nocedal and Wright (2006).}
     \item{\code{none}}{Only a pure local Newton or Broyden iteration is used.
                        The maximum stepsize (see below) is taken into account.
@@ -201,10 +203,13 @@ following components:
     The default is to assume that the Jacobian is \emph{not} banded.
     Must be specified if \code{dsub} has been specified and must be larger than zero when \code{dsub} is zero.}
 
-    \item{\code{allowSingular}}{A logical value indicating whether to apply a small correction
-    to the Jacobian when it is singular or too ill-conditioned. The method used
-    is similar to a Levenberg-Marquardt correction and is explained in Dennis and Schnabel (1996) on page 151.
-    It may be necessary to choose a higher value for \code{cndtol}.
+    \item{\code{allowSingular}}{A logical value indicating if a small correction
+    to the Jacobian when it is singular or too ill-conditioned is allowed.
+    If the correction is less than \code{100*.Machine$double.eps} the correction
+    cannot be applied and an unusable Jacobian will be reported.
+    The method used is similar to a Levenberg-Marquardt correction and
+    is explained in Dennis and Schnabel (1996) on page 151.
+    It may be necessary to choose a higher value for \code{cndtol} to enforce the correction.
     The default value is \code{FALSE}.
     }
 }
@@ -227,6 +232,7 @@ A list containing components
          \item{\code{4}}{Iteration limit \code{maxit} exceeded.}
          \item{\code{5}}{Jacobian is too ill-conditioned.}
          \item{\code{6}}{Jacobian is singular.}
+         \item{\code{7}}{Jacobian is unusable.}
          \item{\code{-10}}{User supplied Jacobian is most likely incorrect.}
          }
     }

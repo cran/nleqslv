@@ -185,7 +185,6 @@ c     check stopping criteria for input xc
      *               wrk2,wrk3,
      *               xscalm,scalex,gp,cndtol,rcdwrk,icdwrk,dn,
      *               qtf,rcond,qrwork,qrwsiz,njcnt,iter,fstjac,ierr)
-
 c        - choose the next iterate xp by a global strategy
 
          if( ierr .gt. 0 ) then

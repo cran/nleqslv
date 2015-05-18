@@ -7,11 +7,12 @@
   Print method for \code{test.nleqslv} objects.
 }
 \usage{
-\method{print}{test.nleqslv}(x, digits=4, \dots)
+\method{print}{test.nleqslv}(x, digits=4, width.cutoff=45L, \dots)
 }
 \arguments{
   \item{x}{a \code{test.nleqslv} object}
   \item{digits}{specifies the minimum number of significant digits to be printed in values.}
+  \item{width.cutoff}{integer passed to \code{\link{deparse}} which sets the cutoff at which line-breaking is tried.}
   \item{\dots}{additional arguments to \code{print}.}
 }
 \details{

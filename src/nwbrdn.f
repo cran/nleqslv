@@ -212,7 +212,6 @@ c          - calculate approximate gradient
                call dtrmv('U','T','N',n,r,ldr,gp,1)
             endif
          endif
-
 c      - choose the next iterate xp by a global strategy
 
          if( ierr .gt. 0 ) then
@@ -416,6 +415,7 @@ c     Out      qtf     Real(*)         trans(Q)*f()
 c     Out      ierr    Integer         0 indicating Jacobian not ill-conditioned or singular
 c                                      1 indicating Jacobian ill-conditioned
 c                                      2 indicating Jacobian completely singular
+c                                      3 indicating almost zero LM correction
 c     Out      rcond   Real            inverse condition of matrix
 c     Wk       rcdwrk  Real(*)         workspace
 c     Wk       icdwrk  Integer(*)      workspace
@@ -446,12 +446,11 @@ c         ==> R*dn = - qtf
           call dscal(n, -Rone, dn, 1)
 
       elseif( stepadj ) then
-
+c         call intpr('ierr brodir', 12,ierr,1)
 c         Adjusted Newton step
 c         approximately from pseudoinverse(Jac+)
 c         compute qtf = trans(Q)*fn
 
-          ierr = 0
 c         form qtf = trans(Q) * fn
 
           call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
@@ -459,20 +458,18 @@ c         form qtf = trans(Q) * fn
 c         use mu to solve (trans(R)*R + mu*I*mu*I) * x = - trans(R) * fn
 c         directly from the QR decomposition of R stacked with mu*I
 c         a la Levenberg-Marquardt
-          call compmu(r,ldr,n,mu,rcdwrk)
-c          do k=1,n
-c              rcdwrk(k) = mu
-c          enddo
-          call liqrev(n,r,ldr,mu,qtf,dn,
-     *                rcdwrk(1+n),rcdwrk(2*n+1))
-          call dscal(n, -Rone, dn, 1)
+          call compmu(r,ldr,n,mu,rcdwrk,ierr)
+          if( ierr .eq. 0 ) then
+             call liqrev(n,r,ldr,mu,qtf,dn,
+     *                   rcdwrk(1+n),rcdwrk(2*n+1))
+             call dscal(n, -Rone, dn, 1)
 
-c         copy lower triangular Rjac to upper triangular
-          do k=1,n
-             call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
-             r(k,k) = rcdwrk(1+n+k-1)
-          enddo
-
+c            copy lower triangular Rjac to upper triangular
+             do k=1,n
+                call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
+                r(k,k) = rcdwrk(1+n+k-1)
+             enddo
+          endif
       endif
       call nwsnot(1,ierr,rcond)
 

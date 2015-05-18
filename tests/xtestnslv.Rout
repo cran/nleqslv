@@ -1,0 +1,94 @@
+
+R version 3.1.3 (2015-03-09) -- "Smooth Sidewalk"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin10.8.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> library(nleqslv)
+> 
+> # function to replace small number with OK or if not with NZ
+> # this is to avoid differences in the Fnorm column between machines/cpu/os/compilers
+> 
+> # the test is for checking that testnslv (still) works as expected
+> 
+> fixsmall <- function(x) {
++     z <- ifelse(x < .Machine$double.eps^(2/3), "OK","NZ")
++     z <- ifelse(is.na(z), "NA", z)
++     z
++ }
+> 
+> dslnex <- function(x) {
++     y <- numeric(2)
++     y[1] <- x[1]^2 + x[2]^2 - 2
++     y[2] <- exp(x[1]-1) + x[2]^3 - 2
++     y
++ }
+> xstart <- c(0.5,0.5)
+> fstart <- dslnex(xstart)
+> z <- testnslv(xstart,dslnex)
+> zfn <- z$out[,"Fnorm"]
+> z$out[,"Fnorm"] <- fixsmall(zfn)
+> z
+Call:
+testnslv(x = xstart, fn = dslnex)
+
+Results:
+    Method Global termcd Fcnt Jcnt Tcnt Iter Message Fnorm
+1   Newton  cline      1    7    6   19    6   Fcrit    OK
+2   Newton  qline      1    7    6   19    6   Fcrit    OK
+3   Newton  gline      1    9    5   19    5   Fcrit    OK
+4   Newton pwldog      1    7    6   19    6   Fcrit    OK
+5   Newton dbldog      1    7    6   19    6   Fcrit    OK
+6   Newton   hook      1    7    6   19    6   Fcrit    OK
+7   Newton   none      1    8    8   24    8   Fcrit    OK
+8  Broyden  cline      1   12    1   14    9   Fcrit    OK
+9  Broyden  qline      1   12    1   14    9   Fcrit    OK
+10 Broyden  gline      1   14    1   16   10   Fcrit    OK
+11 Broyden pwldog      1   12    1   14   10   Fcrit    OK
+12 Broyden dbldog      1   12    1   14   10   Fcrit    OK
+13 Broyden   hook      1   12    1   14   10   Fcrit    OK
+14 Broyden   none      1   13    1   15   13   Fcrit    OK
+> 
+> # this will encounter an error
+> xstart <- c(2.0,0.5)
+> fstart <- dslnex(xstart)
+> z <- testnslv(xstart,dslnex)
+Error (method=Newton global=none): Non-finite value(s) detected in jacobian (row=2,col=1)
+> zfn <- z$out[,"Fnorm"]
+> z$out[,"Fnorm"] <- fixsmall(zfn)
+> z
+Call:
+testnslv(x = xstart, fn = dslnex)
+
+Results:
+    Method Global termcd Fcnt Jcnt Tcnt Iter Message Fnorm
+1   Newton  cline      1   11    7   25    7   Fcrit    OK
+2   Newton  qline      1   10    7   24    7   Fcrit    OK
+3   Newton  gline      1   17    7   31    7   Fcrit    OK
+4   Newton pwldog      1    6    5   16    5   Fcrit    OK
+5   Newton dbldog      1    6    5   16    5   Fcrit    OK
+6   Newton   hook      1   11    7   25    7   Fcrit    OK
+7   Newton   none     NA   NA   NA   NA   NA   ERROR    NA
+8  Broyden  cline      1   17    1   19   11   Fcrit    OK
+9  Broyden  qline      1   18    1   20   13   Fcrit    OK
+10 Broyden  gline      1   25    1   27   11   Fcrit    OK
+11 Broyden pwldog      1   12    1   14   10   Fcrit    OK
+12 Broyden dbldog      1   12    1   14   10   Fcrit    OK
+13 Broyden   hook      1   16    1   18   12   Fcrit    OK
+14 Broyden   none      4   20    1   22   20 Maxiter    NZ
+> 
+> proc.time()
+   user  system elapsed 
+  0.169   0.020   0.181 

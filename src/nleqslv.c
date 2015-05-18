@@ -102,6 +102,7 @@ static char *fcn_message(char *msg, int termcd)
         case 4: sprintf(msg, "Iteration limit exceeded"); break;
         case 5: sprintf(msg, "Jacobian is too ill-conditioned (see allowSingular option)"); break;
         case 6: sprintf(msg, "Jacobian is singular (see allowSingular option)"); break;
+        case 7: sprintf(msg, "Jacobian is completely unusable (all zero entries?)"); break;
         case -10: sprintf(msg, "User supplied Jacobian most likely incorrect"); break;
         default: sprintf(msg, "`termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
     }

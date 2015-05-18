@@ -2,6 +2,8 @@
 # example 6.5.1 page 149
 
 library(nleqslv)
+packageVersion("nleqslv")
+.libPaths()
 
 dslnex <- function(x) {
     y <- numeric(2)
