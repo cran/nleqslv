@@ -1,3 +1,7 @@
+2.9
+
+o added searchZeros function to search for zeros given a matrix of initial points
+
 2.8
 
 o added a column to the testnslv output giving the total number of function evaluations

@@ -1,7 +1,8 @@
-f2f285d45ebc8f671a1f9af42b315581 *DESCRIPTION
-4482686d9e81ebee9b4ff955ff2a6b26 *NAMESPACE
-ba949308cf055f75ce09c5a669515a16 *NEWS
+de631b362039c455a86d2643d03c329e *DESCRIPTION
+33fbdf15197803cd9b89706fbff463c7 *NAMESPACE
+c0d25e4dc466d7401e546a240776b9b1 *NEWS
 dd07b7a818e3f61649c568ea8fdb7c8e *R/nleqslv.R
+65db1a550cb93e5d115b3d408f6e615e *R/searchzeros.R
 e207bf9c0db2288aa08cafb3f3734975 *R/testnslv.R
 d83d9760570892edbd870bdfd7159284 *inst/iterationreport/00readme.txt
 591a0cf58669fdef0daffaa577b91188 *inst/iterationreport/dsdbldog.R
@@ -22,6 +23,7 @@ e93eba5f1640e0cbe7521cd7c05f6b6c *inst/iterationreport/dspure.Rout.txt
 7e0de6c032f35b7af5149d6b9c1bc1d3 *man/nleqslv-package.Rd
 934803e9fd384078ffa652084275a317 *man/nleqslv.Rd
 3daad4ddd6cbf326478a613c86c93015 *man/print.testnslv.Rd
+1791974bdcdb17bb44de9d7cf3db1857 *man/searchzeros.Rd
 31b8569df03f1faf4ab784e57b77f28e *man/testnslv.Rd
 9290ebb081a2f9def80826a6555f3fb6 *man/zznleqslv-iterationreport.Rd
 1ed18cd8f15e511a405098ea1e6cc224 *src/Makevars
@@ -90,9 +92,15 @@ f64ed3d70411778ff401bbb0bd971eca *tests/singular2.R
 10b302612369be6b1a79ddd840372e84 *tests/trig.R
 fa2f21ae5b939656b511c6a607501006 *tests/trig.Rout
 fa2f21ae5b939656b511c6a607501006 *tests/trig.Rout.save
+def7eacef89c7d7f2fa3fe86b2446dd3 *tests/xcutlip1p2.R
+fff5000fc4fbf5a274566e5303d7d17f *tests/xcutlip1p2.Rout
+fff5000fc4fbf5a274566e5303d7d17f *tests/xcutlip1p2.Rout.save
 158fda4c71941217d8e103c1cc226a15 *tests/xnames.R
 d683267facc948825e43c369996a234d *tests/xnames.Rout
 d683267facc948825e43c369996a234d *tests/xnames.Rout.save
+3e391b54bac8010ed266358aa27db16e *tests/xsearchzeros.R
+3419b95a27623e48fc92d59c3ad938f8 *tests/xsearchzeros.Rout
+3419b95a27623e48fc92d59c3ad938f8 *tests/xsearchzeros.Rout.save
 d813f02c8815c5514474ed38f63978da *tests/xtestnslv.R
 596d333e78e27907a8477a38b33d9ebf *tests/xtestnslv.Rout
 596d333e78e27907a8477a38b33d9ebf *tests/xtestnslv.Rout.save
