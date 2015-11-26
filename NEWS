@@ -1,3 +1,8 @@
+2.9.1
+
+o strict validity test of control argument
+o documentation tweaks
+
 2.9
 
 o added searchZeros function to search for zeros given a matrix of initial points

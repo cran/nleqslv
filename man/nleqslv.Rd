@@ -29,7 +29,7 @@ nleqslv(x, fn, jac=NULL,...,
  \item{xscalm}{The type of x scaling to use. See \sQuote{Details}.}
  \item{jacobian}{A logical indicating if the estimated (approximate) jacobian in the solution should be returned.
  See \sQuote{Details}.}
- \item{control}{A list of control parameters. See \sQuote{Details}.}
+ \item{control}{A named list of control parameters. See \sQuote{Details}.}
 }
 \details{
 The algorithms implemented in \code{nleqslv} are based on Dennis and Schnabel (1996).
@@ -136,7 +136,7 @@ equal to \eqn{10^{-12}}{1e-12}.
 
 \subsection{Control options}{
 
-The \code{control} argument is a list that can supply any of the
+The \code{control} argument is a named list that can supply any of the
 following components:
 \describe{
     \item{\code{xtol}}{The relative steplength tolerance.
@@ -243,8 +243,8 @@ A list containing components
     \item{nfcnt}{number of function evaluations, excluding those required for calculating a Jacobian and
                excluding the initial function evaluation (at iteration 0)}
     \item{iter}{number of outer iterations used by the algorithm. This excludes the initial iteration.
-    The number of backtracks can be calculated as the difference between items \code{nfcnt} and \code{iter}
-    of the outputlist.}
+    The number of backtracks can be calculated as the difference between the \code{nfcnt} and \code{iter}
+    components.}
     \item{jac}{the final Jacobian or the Broyden approximation if \code{jacobian} was set to \code{TRUE}.
     If no iterations were executed, as may happen when the initial starting values are sufficiently close
     the solution, there is no Broyden approximation and the returned matrix will always be the actual Jacobian.

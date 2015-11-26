@@ -39,11 +39,17 @@ nleqslv <- function(x, fn, jac = NULL, ...,
     # limit maximum number of iterations for pure local strategy
     if( global == "none" ) con$maxit=20
 
-    # check names of control argument
-    namc <- names(control)
-    if (!all(namc %in% names(con)))
-        stop("unknown names in control: ", paste(namc[!(namc %in% names(con))], collapse=", "))
-    con[namc] <- control
+    # strict validity test of control
+    # based on test of control argument in nlminb
+    if( length(control) ) {
+        namc <- names(control)
+        if( !is.list(control) || is.null(namc) )
+            stop("'control' argument must be a named list")
+        # check names of control argument
+        if( !all(namc %in% names(con)) )
+            stop("unknown names in control: ", paste(sQuote(namc[!(namc %in% names(con))]), collapse=", "))
+        con[namc] <- control
+    }
 
     tmp <- con[["delta"]]
     if( is.character(tmp) ) {

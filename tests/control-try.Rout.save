@@ -1,0 +1,41 @@
+
+R version 3.2.2 Patched (2015-10-19 r69552) -- "Fire Safety"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+>
+> library(nleqslv)
+>
+> # Dennis Schnabel example 6.5.1 page 149
+> f <- function(x) {
++     y <- numeric(2)
++     y[1] <- x[1]^2 + x[2]^2 - 2
++     y[2] <- exp(x[1]-1) + x[2]^3 - 2
++     y
++ }
+>
+> # check error handling in control argument
+> try(nleqslv(f,control=list(1e-3)))
+Error in nleqslv(f, control = list(0.001)) :
+  'control' argument must be a named list
+> try(nleqslv(f,control=list(f=1e-3)))
+Error in nleqslv(f, control = list(f = 0.001)) :
+  unknown names in control: 'f'
+> try(nleqslv(f,control=list(f=1e-7,b=1e-3)))
+Error in nleqslv(f, control = list(f = 1e-07, b = 0.001)) :
+  unknown names in control: 'f', 'b'
+>
