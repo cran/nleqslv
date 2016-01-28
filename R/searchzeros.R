@@ -7,9 +7,14 @@ searchZeros <- function(x, fn, digits=4L, ... )
     if( is.na(digits)  ) digits <- 4L
 
     N <- nrow(x)
+    if( N < 1 ) stop("Matrix 'x' must have at least 1 row")
+
     tcode <- numeric(N)
     fnorm <- numeric(N)
     xmat  <- matrix(NA, nrow=N, ncol=ncol(x))
+
+    kerr <- numeric(N)
+    kptr <- 0
 
     # for k==1 check that all arguments are correct --> no try
 
@@ -17,8 +22,12 @@ searchZeros <- function(x, fn, digits=4L, ... )
         if( k == 1 ) {
             z <- nleqslv(x[k, ], fn=fn, ...)
         } else {
-            z <- try(nleqslv(x[k, ], fn=fn, ...))
-            if( inherits(z, "try-error") ) next
+            z <- try(nleqslv(x[k, ], fn=fn, ...), silent=TRUE)
+            if( inherits(z, "try-error") ) {
+                kptr <- kptr+1
+                kerr[kptr] <- k
+                next
+            }
         }
         tcode[k]  <- z$termcd
         fnorm[k]  <- norm(z$fvec,"2")^2/2 # criterion for global methods
@@ -48,12 +57,16 @@ searchZeros <- function(x, fn, digits=4L, ... )
         zidxo <- 1
     }
 
+    idxfatal <- if(kptr) kerr[1:kptr] else integer(0)
+    idxxtol   <- which(tcode==2)
+    idxnocvg <- which(tcode>2)
     # original unrounded solutions with duplicates (above) removed
     xsol <- xmat[idxcvg,,drop=FALSE][notdups,,drop=FALSE]
 
     # return full precision solutions ordered with rounded ordering
     res <- list(x=xsol[zidxo,,drop=FALSE], xfnorm=fnorm[idxcvg][notdups][zidxo],
-                fnorm=fnorm[idxcvg], idxcvg=idxcvg,
+                fnorm=fnorm[idxcvg], idxcvg=idxcvg, idxxtol=idxxtol,
+                idxnocvg=idxnocvg, idxfatal=idxfatal,
                 xstart=solstart[zidxo,,drop=FALSE],cvgstart=xstartcvg)
     res
 }

@@ -1,15 +1,16 @@
 \name{searchZeros}
 \alias{searchZeros}
 \encoding{UTF-8}
-\title{Solve a nonlinear equation system with multiple starting values}
+\title{Solve a nonlinear equation system with multiple roots
+       from multiple initial estimates}
 \description{This function solves a system of nonlinear equations with \code{nleqlsv}
-for multiple starting values.
+for multiple initial estimates of the roots.
 }
 \usage{
 searchZeros(x, fn, digits=4, ... )
 }
 \arguments{
- \item{x}{A matrix of starting estimates.}
+ \item{x}{A matrix with each row containing an initial guess of the roots.}
  \item{fn}{A function of \code{x} returning a vector of function values
            with the same length as the vector \code{x}.}
  \item{digits}{integer passed to \code{\link{round}}
@@ -17,14 +18,15 @@ searchZeros(x, fn, digits=4, ... )
  \item{\dots}{Further arguments to be passed to \code{\link{nleqslv}}, \code{fn} and \code{jac}.}
 }
 \details{
-Each row of \code{x} is a vector of starting estimates for the argument \code{x} of \code{nleqslv}.
+Each row of \code{x} is a vector of initial estimates for the argument
+\code{x} of \code{nleqslv}.
 The function runs \code{nleqslv} for each row of the matrix \code{x}.
-The first starting value is treated separately and slightly differently from the
-other starting values. It is used to check if all
+The first initial value is treated separately and slightly differently from the
+other initial estimates. It is used to check if all
 arguments in \code{...} are valid arguments for \code{nleqslv} and the function
 to be solved. This is done by running \code{nleqslv} with no condition handling.
 If an error is then detected an error message is issued and the function stops.
-For the remaining starting values \code{nleqslv} is executed silently.
+For the remaining initial estimates \code{nleqslv} is executed silently.
 Only solutions for which the \code{nleqslv} termination code \code{tcode} equals \code{1}
 are regarded as valid solutions. The rounded solutions (after removal of duplicates)
 are used to order the solutions in increasing order.
@@ -37,10 +39,21 @@ A list containing components
     \item{\code{xfnorm}}{a vector of the function criterion associated with each row of
                   the solution matrix \code{x}.}
     \item{\code{fnorm}}{a vector containing the function criterion for every converged result}
-    \item{\code{idxcvg}}{a vector containing the row indices of the starting value matrix
+    \item{\code{idxcvg}}{a vector containing the row indices of the matrix
+                  of initial estimates for which function value convergence
+                  was achieved}
+    \item{\code{idxxtol}}{a vector containing the row indices of the matrix
+                  of initial estimates for which x-value convergence was achieved}
+    \item{\code{idxnocvg}}{a vector containing the row indices of the matrix
+                  of initial estimates which lead to an \code{nleqslv}
+                  termination code > 2}
+    \item{\code{idxfatal}}{a vector containing the row indices of the matrix
+                  of initial estimates for which a fatal error occurred
+                  that made \code{nleqslv} stop}
+    \item{\code{xstart}}{a matrix of the initial estimates
+                  corresponding to the solution matrix}
+    \item{\code{cvgstart}}{a matrix of all initial estimates
                   for which convergence was achieved}
-    \item{\code{xstart}}{a matrix containing the starting values corresponding to the solution matrix}
-    \item{\code{cvgstart}}{a matrix containing all the starting values for which convergence was achieved}
     }
 }
 
@@ -84,7 +97,7 @@ hdp <- function(x) {
 
 N <- 40 # at least to find all 12 roots
 set.seed(123)
-xstart <- matrix(runif(3*N,min=-1,max=1), N, 3)  # N starting values, each of length 3
+xstart <- matrix(runif(3*N,min=-1,max=1), N, 3)  # N initial guesses, each of length 3
 ans <- searchZeros(xstart,hdp, method="Broyden",global="dbldog")
 ans$x
 }

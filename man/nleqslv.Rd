@@ -18,7 +18,7 @@ nleqslv(x, fn, jac=NULL,...,
 	)
 }
 \arguments{
- \item{x}{A numeric vector of starting estimates.}
+ \item{x}{A numeric vector with an initial guess of the root of the function.}
  \item{fn}{A function of \code{x} returning a vector of function values
            with the same length as the vector \code{x}.}
  \item{jac}{A function to return the Jacobian for the \code{fn} function.
@@ -246,7 +246,7 @@ A list containing components
     The number of backtracks can be calculated as the difference between the \code{nfcnt} and \code{iter}
     components.}
     \item{jac}{the final Jacobian or the Broyden approximation if \code{jacobian} was set to \code{TRUE}.
-    If no iterations were executed, as may happen when the initial starting values are sufficiently close
+    If no iterations were executed, as may happen when the initial guess are sufficiently close
     the solution, there is no Broyden approximation and the returned matrix will always be the actual Jacobian.
     If the matrix is singular or too ill-conditioned the returned matrix is of no value.}
 }
@@ -363,7 +363,7 @@ nleqslv(xstart, dslnex, method="Newton", global="none", control=list(trace=1,ste
 nleqslv(xstart, dslnex, jacdsln, method="Broyden", global="none", control=list(trace=1,stepmax=2))
 }
 
-# example with a singular jacobian in the starting point
+# example with a singular jacobian in the initial guess
 f <- function(x) {
     y <- numeric(3)
     y[1] <- x[1] + x[2] - x[1]*x[2] - 2

@@ -16,7 +16,13 @@ nleqslv <- function(x, fn, jac = NULL, ...,
                     control = list())
 {
     fn1  <- function(par) fn(par, ...)
-    jac1 <- if (!is.null(jac)) function(par) jac(par, ...)
+
+    if( is.null(jac ) ) {
+        jacfunc <- NULL
+    } else {
+        if(!is.function(jac)) stop("argument 'jac' is not a function!")
+        jacfunc <- function(par) jac(par, ...)
+    }
 
     method <- match.arg(method)
     global <- match.arg(global)
@@ -60,7 +66,7 @@ nleqslv <- function(x, fn, jac = NULL, ...,
 
     # to reset flag for checking recursive calls (not allowed for now)
     on.exit(.C("deactivatenleq",PACKAGE="nleqslv"))
-    out <- .Call("nleqslv", x, fn1, jac1, method, global, xscalm, jacobian, con, new.env(), PACKAGE = "nleqslv")
+    out <- .Call("nleqslv", x, fn1, jacfunc, method, global, xscalm, jacobian, con, new.env(), PACKAGE = "nleqslv")
 
     out
 }

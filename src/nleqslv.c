@@ -97,14 +97,14 @@ static char *fcn_message(char *msg, int termcd)
     switch(termcd)
     {
         case 1: sprintf(msg, "Function criterion near zero"); break;
-        case 2: sprintf(msg, "x-values within tolerance `xtol'"); break;
+        case 2: sprintf(msg, "x-values within tolerance 'xtol'"); break;
         case 3: sprintf(msg, "No better point found (algorithm has stalled)"); break;
         case 4: sprintf(msg, "Iteration limit exceeded"); break;
         case 5: sprintf(msg, "Jacobian is too ill-conditioned (see allowSingular option)"); break;
         case 6: sprintf(msg, "Jacobian is singular (see allowSingular option)"); break;
         case 7: sprintf(msg, "Jacobian is completely unusable (all zero entries?)"); break;
         case -10: sprintf(msg, "User supplied Jacobian most likely incorrect"); break;
-        default: sprintf(msg, "`termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
+        default: sprintf(msg, "'termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
     }
     return msg;
 }
@@ -229,20 +229,23 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
-    if( isReal(xstart) )
+    if( LENGTH(xstart) < 1 ) error("Length initial estimates must be >= 1");
+    else if( isReal(xstart) )
         PROTECT(OS->x = duplicate(xstart));
     else if(isInteger(xstart) || isLogical(xstart) )
         PROTECT(OS->x = coerceVector(xstart,REALSXP));
     else
-        error("`x' cannot be converted to numeric!");
+        error("Argument 'x' cannot be converted to numeric!");
 
     OS->names = getAttrib(xstart, R_NamesSymbol);
 
+    /* paranoid check */
     n = length(OS->x);
+    if( n < 1 ) error("(Internal) length OS->x should be >= 1");
 
     for (i = 0; i < n; i++)
         if( !R_FINITE(REAL(OS->x)[i]) )
-            error("`x' contains a non-finite value at index=%d\n",i+1);
+            error("'x' contains a non-finite value at index=%d\n",i+1);
 
     if (!isFunction(fn)) error("fn is not a function!");
     PROTECT(OS->fcall = lang2(fn, OS->x));

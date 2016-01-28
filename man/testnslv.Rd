@@ -13,7 +13,7 @@ testnslv(x, fn, jac=NULL,...,
         )
 }
 \arguments{
- \item{x}{A list or numeric vector of starting estimates.}
+ \item{x}{A numeric vector with an initial guess of the root.}
  \item{fn}{A function of \code{x} returning the function values.}
  \item{jac}{A function to return the Jacobian for the \code{fn} function.
             If not supplied numerical derivatives will be used.}

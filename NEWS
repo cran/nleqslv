@@ -1,3 +1,13 @@
+3.0
+
+o documentation tweaks
+o check length of initial estimates to avoid Lapack error messages (bug)
+o check number of rows of matrix in searchZeros (bug)
+o check correctly that user supplied jacobian function is actually a function (bug)
+o searchZeros now uses try with silent=TRUE
+o searchZeros returns additional indices providing more information
+  about bad/invalid initial estimates
+
 2.9.1
 
 o strict validity test of control argument
@@ -39,7 +49,7 @@ o spelling
 o corrected nasty bug in cubic linesearch.
   Use Higham procedure to calculate roots of a quadratic accurately.
   The correct test of the shape of a quadratic is the sign of the coefficient of x^2
-  and not a test involving the discrimant. Some results may change.
+  and not a test involving the discriminant. Some results may change.
 o corrected package name typo (reported by Kurt Hornik)
 o minor changes in documentation
 
