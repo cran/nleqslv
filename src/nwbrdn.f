@@ -424,53 +424,14 @@ c     QR decomposition with no pivoting.
 c
 c-----------------------------------------------------------------------
 
-      integer k
       double precision Rzero, Rone
       parameter(Rzero=0.0d0, Rone=1.0d0)
-      double precision mu
 
-c     check for singularity or ill conditioning
+c     form qtf = trans(Q) * fn
+      call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
 
-      call cndjac(n,r,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
-
-      if( ierr .eq. 0 ) then
-c         form qtf = trans(Q) * fn
-
-          call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
-
-c         solve rjac*dn  =  -fn
-c         ==> R*dn = - qtf
-
-          call dcopy(n,qtf,1,dn,1)
-          call dtrsv('U','N','N',n,r,ldr,dn,1)
-          call dscal(n, -Rone, dn, 1)
-
-      elseif( stepadj ) then
-c         call intpr('ierr brodir', 12,ierr,1)
-c         Adjusted Newton step
-c         approximately from pseudoinverse(Jac+)
-c         compute qtf = trans(Q)*fn
-
-c         form qtf = trans(Q) * fn
-
-          call dgemv('T',n,n,Rone,q,ldr,fn,1,Rzero,qtf,1)
-
-c         use mu to solve (trans(R)*R + mu*I*mu*I) * x = - trans(R) * fn
-c         directly from the QR decomposition of R stacked with mu*I
-c         a la Levenberg-Marquardt
-          call compmu(r,ldr,n,mu,rcdwrk,ierr)
-          if( ierr .eq. 0 ) then
-             call liqrev(n,r,ldr,mu,qtf,dn,
-     *                   rcdwrk(1+n),rcdwrk(2*n+1))
-             call dscal(n, -Rone, dn, 1)
-
-c            copy lower triangular Rjac to upper triangular
-             do k=1,n
-                call dcopy (n-k+1,r(k,k),1,r(k,k),ldr)
-                r(k,k) = rcdwrk(1+n+k-1)
-             enddo
-          endif
-      endif
+      call lirslv(R,ldr,n,cndtol, stepadj,
+     *                  qtf,dn,ierr,rcond, rcdwrk,icdwrk)
       call nwsnot(1,ierr,rcond)
 
       return

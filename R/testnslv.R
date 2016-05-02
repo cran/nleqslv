@@ -12,9 +12,9 @@ testnslv <- function(x, fn, jac=NULL, ...,
 
     makeerrlist <- function(m,g,cpusecs=NULL) {
         if(is.null(cpusecs)) {
-            z <- list(Method=m, Global=g, termcd=NA, Fcnt=NA, Jcnt=NA, Tcnt=NA, Iter=NA, Message="ERROR",Fnorm=NA)
+            z <- list(Method=m, Global=g, termcd=NA, Fcnt=NA, Jcnt=NA, Iter=NA, Message="ERROR",Fnorm=NA)
         } else {
-            z <- list(Method=m, Global=g, termcd=NA, Fcnt=NA, Jcnt=NA, Tcnt=NA, Iter=NA, Message="ERROR",Fnorm=NA,
+            z <- list(Method=m, Global=g, termcd=NA, Fcnt=NA, Jcnt=NA, Iter=NA, Message="ERROR",Fnorm=NA,
                              cpusecs=cpusecs)
         }
         z
@@ -30,10 +30,10 @@ testnslv <- function(x, fn, jac=NULL, ...,
 
         if(is.null(cpusecs)) {
            z <- list(Method=m, Global=g, termcd=res$termcd, Fcnt=res$nfcnt, Jcnt=res$njcnt,
-                            Tcnt=NA, Iter=res$iter, Message=message, Fnorm=fnorm)
+                            Iter=res$iter, Message=message, Fnorm=fnorm)
         } else {
            z <- list(Method=m, Global=g, termcd=res$termcd, Fcnt=res$nfcnt, Jcnt=res$njcnt,
-                            Tcnt=NA, Iter=res$iter, Message=message, Fnorm=fnorm, cpusecs=cpusecs)
+                            Iter=res$iter, Message=message, Fnorm=fnorm, cpusecs=cpusecs)
         }
         z
     }
@@ -44,6 +44,9 @@ testnslv <- function(x, fn, jac=NULL, ...,
     my.call <- match.call()
     reslist <- vector("list", length(methods)*length(globals))
 
+    # use try to avoid process stopping for Jacobian with non-finite values
+    # if that happens, go to next method/global
+    # avoidable fatal user errors will also lead to useless next method/global
     idx <- 1
     for(m in methods)
         for(g in globals) {
@@ -62,7 +65,6 @@ testnslv <- function(x, fn, jac=NULL, ...,
                 z <- makeerrlist(m,g,cpus)
             } else {
                 z <- makereslist(m,g,res,cpus)
-                if( is.null(jac) ) z$Tcnt <- z$Fcnt + z$Jcnt*length(x)
             }
             reslist[[idx]] <- z
             idx <- idx+1

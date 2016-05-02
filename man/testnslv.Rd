@@ -40,10 +40,8 @@ incorrect jacobian is detected.
           \item{\code{Global}}{global strategy used.}
           \item{\code{termcd}}{termination code of \code{nleqslv}.}
           \item{\code{Fcnt}}{number of function evaluations used by the method and global strategy.
-                                This excludes function evaluations made when computing a numerical Jacobian.}
+                             This excludes function evaluations made when computing a numerical Jacobian.}
           \item{\code{Jcnt}}{number of Jacobian evaluations.}
-          \item{\code{Tcnt}}{total number of function evaluations including those used for computing
-                               a numerical Jacobian. If no numerical Jacobian was generated then \code{NA}.}
           \item{\code{Iter}}{number of outer iterations used by the algorithm.}
           \item{\code{Message}}{a string describing the termination code in an abbreviated form.}
           \item{\code{Fnorm}}{square of the euclidean norm of the vector of function results divided by 2.}
@@ -63,10 +61,11 @@ consecutive x-values is smaller than \code{xtol}.}
 \item{\code{Illcond}}{Jacobian is too ill-conditioned.}
 \item{\code{Singular}}{Jacobian is singular.}
 \item{\code{BadJac}}{Jacobian is unusable.}
+\item{\code{ERROR}}{\code{nleqslv} stopped because of a fatal error.}
 }
 }
 \section{Warning}{
-Any \code{nleqslv} error message will be shown immediately and
+Any \code{nleqslv} error message will be displayed immediately and
 an error for the particular combination of method and global strategy will be recorded in the final dataframe.
 }
 \examples{

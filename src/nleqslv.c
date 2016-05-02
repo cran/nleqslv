@@ -151,9 +151,9 @@ void fcnval(double *xc, double *fc, int *n, int *flag)
             fc[i] = sqrt(DBL_MAX / (double)(*n)); /* should force backtracking */
             if( *flag ) {
                 if( *flag <= *n )
-                    error("Non-finite value(s) detected in jacobian (row=%d,col=%d)",i+1,*flag);
+                    error("non-finite value(s) detected in jacobian (row=%d,col=%d)",i+1,*flag);
                 else
-                    error("Non-finite value(s) detected in banded jacobian (row=%d,col=%d)",i+1,
+                    error("non-finite value(s) detected in banded jacobian (row=%d,col=%d)",i+1,
                            findcol(i+1,*n,*flag-*n));
             }
         }
@@ -179,7 +179,7 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 
     for (i = 0; i < *n; i++) {
          if (!R_FINITE(x[i]))
-             error("non-finite value supplied by Nwnleq!");
+             error("non-finite value for `x[%d]` supplied to jacobian function\n",i);
          REAL(OS->x)[i] = x[i];
     }
 
@@ -194,7 +194,7 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
     for (j = 0; j < *n; j++)
         for (i = 0; i < *n; i++) {
             if( !R_FINITE(REAL(sexp_fjac)[(*n)*j + i]) )
-                error("Non-finite value(s) returned by jacobian (row=%d,col=%d)",i+1,j+1);
+                error("non-finite value(s) returned by jacobian (row=%d,col=%d)",i+1,j+1);
             rjac[(*ldr)*j + i] = REAL(sexp_fjac)[(*n)*j + i];
         }
 
@@ -207,7 +207,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     double  *x, *rwork, *rcdwrk, *qrwork, *rjac;
     double  *xp, *fp, *gp, *scalex;
     double  *pjac;
-    int     *icdwrk, *outopt;
+    int     *icdwrk;
     const char *z;
 
     SEXP    eval_test;
@@ -221,6 +221,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     int     i, j, n, njcnt, nfcnt, iter, termcd, lrwork, qrwsiz, lrjac, ldr;
     int     maxit, method, global, xscalm;
     int     jactype, jacflg[4], dsub, dsuper;
+    int     outopt[3];
     double  xtol, ftol, btol, stepmx, delta, sigma, cndtol;
 
     if( activeflag )
@@ -273,47 +274,19 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     else
         method = 0;
 
-    /*
-     * query the optimal amount of memory Lapack needs
-     * to execute blocked QR code
-     * for largish n (500+) this speeds up significantly
-     */
-
-    F77_CALL(liqsiz)(&n, &qrwsiz);
-
-    if( qrwsiz <= 0 )
-        error("Error in querying amount of workspace for QR routines\n");
-
-    qrwork  = real_vector(qrwsiz);
-
-    lrwork = 9*n;
-    ldr    = n;                             /* leading dimension of rjac */
-    lrjac  = method==1? 2*ldr*n : ldr*n;    /* Broyden needs 2*n columns; Newton needs n columns */
-
-    x       = real_vector(n);
-    xp      = real_vector(n);
-    fp      = real_vector(n);
-    gp      = real_vector(n);
-    scalex  = real_vector(n);
-    rwork   = real_vector(lrwork);
-    rcdwrk  = real_vector(3*n);
-    icdwrk  = int_vector(n);
-    outopt  = int_vector(3);
-    rjac    = real_vector(lrjac);
-
     xtol    = asReal(getListElement(control, "xtol"));
     ftol    = asReal(getListElement(control, "ftol"));
     btol    = asReal(getListElement(control, "btol"));
     sigma   = asReal(getListElement(control, "sigma"));
     stepmx  = asReal(getListElement(control, "stepmax"));
-    delta     = asReal(getListElement(control, "delta"));
+    delta   = asReal(getListElement(control, "delta"));
     cndtol  = asReal(getListElement(control, "cndtol"));
 
     if(!R_FINITE(xtol)) error("'xtol' is not a valid finite number");
     if(!R_FINITE(ftol)) error("'ftol' is not a valid finite number");
     if(!R_FINITE(btol)) error("'btol' is not a valid finite number");
     if(!R_FINITE(sigma)) error("'sigma' is not a valid finite number");
-    if(!R_FINITE(stepmx)) error("'stepmx' is not a valid finite number");
+    if(!R_FINITE(stepmx)) error("'stepmax' is not a valid finite number");
     if(!R_FINITE(delta)) error("'delta' is not a valid finite number");
     if(!R_FINITE(cndtol)) error("'cndtol' is not a valid finite number");
 
@@ -349,10 +322,10 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     dsub   = asInteger(getListElement(control, "dsub"));
     dsuper = asInteger(getListElement(control, "dsuper"));
     /* -1 means not specified i.e. not active */
-    if(dsub==NA_INTEGER || dsub<-1 || dsub>n-2) error("Invalid/impossible value for 'dsub'");
-    if(dsuper==NA_INTEGER || dsuper<-1 || dsuper>n-2) error("Invalid/impossible value for 'dsuper'");
+    if(dsub == NA_INTEGER || dsub < -1 || dsub > n-2) error("Invalid/impossible value for 'dsub'");
+    if(dsuper == NA_INTEGER || dsuper < -1 || dsuper > n-2) error("Invalid/impossible value for 'dsuper'");
     if( (dsub < 0 && dsuper >= 0) || (dsuper < 0 && dsub >= 0) ) error("Both dsub and dsuper must be specified");
-    if(method==1 && dsub==0 && dsuper==0) error("method Broyden not implemented for dsub=dsuper=0!");
+    if(method == 1 && dsub == 0 && dsuper == 0) error("method Broyden not implemented for dsub=dsuper=0!");
 
     /*
      * setup calculation type of jacobian
@@ -379,14 +352,55 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     /* for adjusting step when singular or illconditioned */
     jacflg[3] = asLogical(getListElement(control, "allowSingular")) ? 1 : 0;
 
+    /*
+     * query the optimal amount of memory Lapack needs
+     * to execute blocked QR code
+     * for largish n (500+) this speeds up significantly
+     */
+
+    F77_CALL(liqsiz)(&n, &qrwsiz);
+
+    if( qrwsiz <= 0 )
+        error("Error in querying amount of workspace for QR routines\n");
+
+    /*
+     * allocate memory for Fortran routines
+     */
+
+    qrwork  = real_vector(qrwsiz);
+
+    lrwork = 9*n;
+    ldr    = n;                             /* leading dimension of rjac */
+    lrjac  = method == 1? 2*ldr*n : ldr*n;  /* Broyden needs 2*n columns; Newton needs n columns */
+
+    x       = real_vector(n);
+    xp      = real_vector(n);
+    fp      = real_vector(n);
+    gp      = real_vector(n);
+    scalex  = real_vector(n);
+    rwork   = real_vector(lrwork);
+    rcdwrk  = real_vector(3*n);
+    icdwrk  = int_vector(n);
+    rjac    = real_vector(lrjac);
+
+    /*
+     * setup scaling if specified
+     */
+
     /* copied from code in <Rsource>/src/library/stats/src/optim.c */
     sexp_diag = getListElement(control, "scalex");
     if( LENGTH(sexp_diag) != n )
         error("'scalex' is of the wrong length");
     PROTECT(sexp_diag = coerceVector(sexp_diag,REALSXP));
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i++) {
         scalex[i] = REAL(sexp_diag)[i];
+        if( !R_FINITE(scalex[i]) )
+            error("'scalex' contains a non-finite value at index=%d\n",i+1);
+    }
 
+    /*
+     * initialize initial point
+     */
     for (i = 0; i < n; i++)
         x[i] = REAL(OS->x)[i];
 

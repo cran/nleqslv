@@ -257,6 +257,11 @@ A list containing components
 \section{Warning}{You cannot use this function recursively.
 Thus function \code{fn} should not in its turn call \code{nleqslv}.
 }
+
+\seealso{If this function cannot solve the supplied function then it is
+a good idea to try the function \link{testnslv} in this package.
+For detecting multiple solutions see \link{searchZeros}.}
+
 \references{
 Bouaricha, A. and Schnabel, R.B. (1997),
 Algorithm 768: TENSOLVE: A Software Package for
@@ -289,9 +294,7 @@ In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed
 Reichel, L. and W.B. Gragg (1990), Algorithm 686: FORTRAN subroutines for updating the QR decomposition,
 \emph{ACM Trans. Math. Softw.}, \bold{16}, 4, pp. 369--377.
 }
-%
-%\seealso{\code{\link{"BB"}}}
-%
+
 \examples{
 # Dennis Schnabel example 6.5.1 page 149
 dslnex <- function(x) {

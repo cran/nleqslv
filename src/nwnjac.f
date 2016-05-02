@@ -151,55 +151,24 @@ c     In       qrwsiz  Integer         size of qrwork
 c
 c-----------------------------------------------------------------------
 
-      integer info,k
+      integer info
 
       double precision Rone
       parameter(Rone=1.0d0)
-      double precision mu
 
 c     perform a QR factorization of rjac (simple Lapack routine)
 c     check for singularity or ill conditioning
 c     form qtf = trans(Q) * fn
 
-      call liqrfa(rjac,ldr,n,qraux,qrwork,qrwsiz,ierr)
-
-c     check for singularity or ill conditioning
-
-      call cndjac(n,rjac,ldr,cndtol,rcond,rcdwrk,icdwrk,ierr)
+      call liqrfa(Rjac,ldr,n,qraux,qrwork,qrwsiz,ierr)
 
 c     compute qtf = trans(Q)*fn
 
       call dcopy(n,fn,1,qtf,1)
-      call liqrqt(rjac, ldr, n, qraux, qtf, qrwork, qrwsiz, info)
+      call liqrqt(Rjac, ldr, n, qraux, qtf, qrwork, qrwsiz, info)
 
-      if( ierr .eq. 0 ) then
-c         Normal Newton step
-c         solve rjac*dn  =  -fn
-c         ==> R*dn = - qtf
-
-          call dcopy(n,qtf,1,dn,1)
-          call dtrsv('U','N','N',n,rjac,ldr,dn,1)
-          call dscal(n, -Rone, dn, 1)
-
-      elseif( stepadj ) then
-c         Adjusted Newton step
-c         approximately from pseudoinverse(Jac+)
-c         use mu to solve (trans(R)*R + mu*I*mu*I) * x = - trans(R) * fn
-c         directly from the QR decomposition of R stacked with mu*I
-c         a la Levenberg-Marquardt
-          call compmu(rjac,ldr,n,mu,rcdwrk,ierr)
-          if( ierr .eq. 0 ) then
-             call liqrev(n,rjac,ldr,mu,qtf,dn,
-     *                   rcdwrk(1+n),rcdwrk(2*n+1))
-             call dscal(n, -Rone, dn, 1)
-
-c            copy lower triangular Rjac to upper triangular
-             do k=1,n
-                call dcopy (n-k+1,rjac(k,k),1,rjac(k,k),ldr)
-                rjac(k,k) = rcdwrk(1+n+k-1)
-             enddo
-          endif
-      endif
+      call lirslv(Rjac,ldr,n,cndtol, stepadj,
+     *                  qtf,dn,ierr,rcond, rcdwrk,icdwrk)
 
       return
       end
