@@ -1,3 +1,9 @@
+3.0.2
+
+o display inverse condition of Jacobian in "ill-conditioned" message
+  in the return value of nleqslv
+o documentation tweaks
+
 3.0.1
 
 o removed item Tcnt from the return value of testnslv.

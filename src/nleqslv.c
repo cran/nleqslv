@@ -1,6 +1,8 @@
 #include <R.h>
 #include <Rinternals.h>
 
+extern double getjacond();
+
 typedef struct opt_struct {
     SEXP x;
     SEXP fcall; /* function */
@@ -100,8 +102,8 @@ static char *fcn_message(char *msg, int termcd)
         case 2: sprintf(msg, "x-values within tolerance 'xtol'"); break;
         case 3: sprintf(msg, "No better point found (algorithm has stalled)"); break;
         case 4: sprintf(msg, "Iteration limit exceeded"); break;
-        case 5: sprintf(msg, "Jacobian is too ill-conditioned (see allowSingular option)"); break;
-        case 6: sprintf(msg, "Jacobian is singular (see allowSingular option)"); break;
+        case 5: sprintf(msg, "Jacobian is too ill-conditioned (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
+        case 6: sprintf(msg, "Jacobian is singular (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
         case 7: sprintf(msg, "Jacobian is completely unusable (all zero entries?)"); break;
         case -10: sprintf(msg, "User supplied Jacobian most likely incorrect"); break;
         default: sprintf(msg, "'termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);

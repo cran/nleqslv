@@ -46,6 +46,8 @@ void F77_SUB(nwsnot)(int *jtype, int *ierr, double *rcond)
     jacond = *rcond;
 }
 
+double getjacond() { return(jacond); }
+
 /*
  * output a compact description of the type of the jacobian used
  *    Newton/Broyden followed by lowercase letter for ill-conditioned/singular

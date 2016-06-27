@@ -35,6 +35,7 @@ c                                          ==> cannot find a better point
 c                                        4 iteration limit exceeded
 c                                        5 Jacobian too ill-conditioned
 c                                        6 Jacobian singular
+c                                        7 Jacobian not usable (all zero entries)
 c
 c-------------------------------------------------------------------------
 

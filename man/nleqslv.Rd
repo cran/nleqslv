@@ -125,13 +125,18 @@ There is no guarantee that the final Broyden matrix resembles the actual Jacobia
 
 The package can cope with a singular or ill-conditioned Jacobian if needed
 by setting the \code{allowSingular} component of the \code{control} argument.
-The method used is described in Dennis and Schnabel (1996).
+The method used is described in Dennis and Schnabel (1996);
+it is equivalent to a Levenberg-Marquardt type adjustment with a small damping factor.
+\emph{There is no guarantee that this method will be successful.}
+Warning: \emph{\code{nleqslv} may report spurious convergence in this case.}
+
 By default \code{nleqslv} returns an error
 if a Jacobian becomes singular or very ill-conditioned.
 A Jacobian is considered to be very ill-conditioned when the estimated inverse
 condition is less than or equal to a specified tolerance with a default value
-equal to \eqn{10^{-12}}{1e-12}.
-\emph{There is no guarantee that this method will be succesfull.}
+equal to \eqn{10^{-12}}{1e-12}; this can be changed and made smaller
+with the \code{cndtol} item of the \code{control} argument.
+\emph{There is no guarantee that any change will be effective.}
 }
 
 \subsection{Control options}{
@@ -225,7 +230,10 @@ A list containing components
          \item{\code{1}}{Function criterion is near zero.
          Convergence of function values has been achieved.}
          \item{\code{2}}{x-values within tolerance. This means that the relative distance between two
-         consecutive x-values is smaller than \code{xtol}.}
+         consecutive x-values is smaller than \code{xtol} but that
+         the function value criterion is still larger than \code{ftol}.
+         \emph{Function values may not be near zero; therefore the user must check if
+               function values are acceptably small.}}
          \item{\code{3}}{No better point found.
          This means that the algorithm has stalled and cannot find an acceptable new point.
          This may or may not indicate acceptably small function values.}

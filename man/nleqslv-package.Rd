@@ -13,7 +13,7 @@ The methods provided are
           using the Broyden rank 1 update.
     \item a full Newton method where the Jacobian matrix of derivatives is recalculated at each iteration
   }
-Both methods utilise global strategies such as line search or trust region methods
+Both methods utilize global strategies such as line search or trust region methods
 whenever the standard Newton/Broyden step does not lead to a point closer to a root
 of the equation system. Both methods can also be used without a norm reducing global strategy.
 Line search may be either cubic, quadratic or geometric. The trust region methods are either

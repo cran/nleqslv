@@ -1,6 +1,6 @@
-d7966fa805f5d4e860bbeb86aecf8158 *DESCRIPTION
+543eb9730cb0968a596b008a16835f5b *DESCRIPTION
 33fbdf15197803cd9b89706fbff463c7 *NAMESPACE
-a48dd1e3b55c2d42945546aa70c74ba6 *NEWS
+675393d417fad0ce34928e5c4311761c *NEWS
 c1fafc50b261ee0214cd29408d5bb791 *R/nleqslv.R
 46e850d267885e5d388d2b1afdda5d29 *R/searchzeros.R
 11bd8df056de39ac1a96c342b0f1656c *R/testnslv.R
@@ -20,8 +20,8 @@ e93eba5f1640e0cbe7521cd7c05f6b6c *inst/iterationreport/dspure.Rout.txt
 8d8fab0912a8002eb55d6c8dbe6432fb *inst/iterationreport/dspwldog.R
 59cd081725a1294ceaeac776c4dca271 *inst/iterationreport/dspwldog.Rout
 84af886c99be7561dae7d5e490796b81 *inst/iterationreport/dspwldog.Rout.txt
-7e0de6c032f35b7af5149d6b9c1bc1d3 *man/nleqslv-package.Rd
-15ee8b3800e890df1914eb7d4a8d7378 *man/nleqslv.Rd
+d82b60e6e9615ce348f82cddb64433a1 *man/nleqslv-package.Rd
+4c33b7f5ba2603eea23ced58543ce723 *man/nleqslv.Rd
 3daad4ddd6cbf326478a613c86c93015 *man/print.testnslv.Rd
 0ad14d5a3cfb30cce86ae1b74ab751b4 *man/searchzeros.Rd
 326b7955128c00862c3182ba1199e84c *man/testnslv.Rd
@@ -32,7 +32,7 @@ adbe16b0f0703e1cca12061c7426388b *src/limhpar.f
 6738247bac3f2ac8f88bb0176560d137 *src/liqrev.f
 6bb33b8afa14e8bec2dad29c3b3be862 *src/liqrup.f
 d83a0b755fccf6fa9bd593fe73a24514 *src/lirslv.f
-0c6413de64cd3b1c9549797cd2ef07d5 *src/nleqslv.c
+29f7e5ddf71c8a08b36a8242102894c5 *src/nleqslv.c
 39aa2bee1e689c9a1d9ad427a2996c9a *src/nwbjac.f
 006767c20f9b38cea482779c3b98caf5 *src/nwbrdn.f
 8addf8de63f1b9690f67fb53a99dd929 *src/nwclsh.f
@@ -42,12 +42,12 @@ d83a0b755fccf6fa9bd593fe73a24514 *src/lirslv.f
 90835cab5fff0a3f28bc86f5ec9fdb09 *src/nwnjac.f
 3f4e8f353fbd7f4a44f94a918dd4c2b1 *src/nwnleq.f
 0863974b1e5678439edacc545d66d9c2 *src/nwnwtn.f
-8cb994abf80aa1b584e6be334bea9097 *src/nwout.c
+3d1781591d54d8325c888b7309335f88 *src/nwout.c
 5e4ef134bf4864e1f0f5a7b436ca3c60 *src/nwpdlg.f
 3635901d16a6773f2736796b1b63d977 *src/nwpure.f
 62c658d38a581a947bbe710e2a76a1cc *src/nwqlsh.f
 4007f86427390c2d7bcebaf65fcf688b *src/nwtrup.f
-ab82de34773627e10458d901e9aa82db *src/nwutil.f
+e4236f110e2aad1093ae638065fc3c2b *src/nwutil.f
 368145c17dea673fcce9e3de7a9c46ec *tests/brdban.R
 1b92b0b4a8877d51c098cb8a17dd0a11 *tests/brdban.Rout
 1b92b0b4a8877d51c098cb8a17dd0a11 *tests/brdban.Rout.save
