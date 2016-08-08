@@ -6,7 +6,7 @@
 The function tests different methods and global strategies for solving a system of nonlinear equations with \code{nleqslv}
 }
 \usage{
-testnslv(x, fn, jac=NULL,...,
+testnslv(x, fn, jac=NULL, ...,
           method = c("Newton", "Broyden"),
           global = c("cline", "qline", "gline", "pwldog", "dbldog", "hook", "none"),
           Nrep=0L, title=NULL
@@ -16,6 +16,9 @@ testnslv(x, fn, jac=NULL,...,
  \item{x}{A numeric vector with an initial guess of the root.}
  \item{fn}{A function of \code{x} returning the function values.}
  \item{jac}{A function to return the Jacobian for the \code{fn} function.
+            For a vector valued function \code{fn} the Jacobian must be a numeric
+            matrix of the correct dimensions.
+            For a scalar valued function \code{fn} the \code{jac} function may return a scalar.
             If not supplied numerical derivatives will be used.}
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac} and \code{\link{nleqslv}}.}
  \item{method}{The methods to use for finding a solution.}

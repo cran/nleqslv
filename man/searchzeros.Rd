@@ -33,7 +33,8 @@ are used to order the solutions in increasing order.
 They are not returned in the return value of the function.
 }
 \value{
-A list containing components
+If no solutions are found \code{NULL} otherwise
+a list containing components
     \describe{
     \item{\code{x}}{a matrix with each row containing a unique solution (unrounded)}
     \item{\code{xfnorm}}{a vector of the function criterion associated with each row of

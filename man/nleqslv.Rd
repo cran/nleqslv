@@ -8,7 +8,7 @@ full Newton method. It provides line search and trust region global strategies
 for difficult systems.
 }
 \usage{
-nleqslv(x, fn, jac=NULL,...,
+nleqslv(x, fn, jac=NULL, ...,
                method = c("Broyden", "Newton"),
                global = c("dbldog", "pwldog",
                           "cline", "qline", "gline", "hook", "none"),
@@ -22,9 +22,12 @@ nleqslv(x, fn, jac=NULL,...,
  \item{fn}{A function of \code{x} returning a vector of function values
            with the same length as the vector \code{x}.}
  \item{jac}{A function to return the Jacobian for the \code{fn} function.
+            For a vector valued function \code{fn} the Jacobian must be a numeric
+            matrix of the correct dimensions.
+            For a scalar valued function \code{fn} the \code{jac} function may return a scalar.
             If not supplied numerical derivatives will be used.}
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac}.}
- \item{method}{The method used for finding a solution. See \sQuote{Details}.}
+ \item{method}{The method to use for finding a solution. See \sQuote{Details}.}
  \item{global}{The global strategy to apply. See \sQuote{Details}.}
  \item{xscalm}{The type of x scaling to use. See \sQuote{Details}.}
  \item{jacobian}{A logical indicating if the estimated (approximate) jacobian in the solution should be returned.

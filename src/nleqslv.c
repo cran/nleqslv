@@ -189,8 +189,13 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
     PROTECT(sexp_fjac = eval(OS->jcall, OS->env));
     jdims = getAttrib(sexp_fjac,R_DimSymbol);
 
+    /* test jacobian of function returning scalar.
+     * Scalar jacobian allowed if *n==1
+     */
+    if(isReal(sexp_fjac) && IS_SCALAR(sexp_fjac,REALSXP) && *n == 1 )
+        ;
     /* test for numerical matrix with correct dimensions */
-    if (!isReal(sexp_fjac) || !isMatrix(sexp_fjac) || INTEGER(jdims)[0]!=*n || INTEGER(jdims)[1]!=*n)
+    else if (!isReal(sexp_fjac) || !isMatrix(sexp_fjac) || INTEGER(jdims)[0]!=*n || INTEGER(jdims)[1]!=*n)
         error("The jacobian function must return a numerical matrix of dimension (%d,%d).",*n,*n);
 
     for (j = 0; j < *n; j++)

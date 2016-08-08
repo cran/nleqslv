@@ -1,3 +1,9 @@
+3.0.3
+
+o allow scalar user supplied derivative for a scalar function.
+  (avoid error message about jacobian not being a matrix) (bug)
+o documentation tweaks
+
 3.0.2
 
 o display inverse condition of Jacobian in "ill-conditioned" message
