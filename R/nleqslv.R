@@ -65,8 +65,8 @@ nleqslv <- function(x, fn, jac = NULL, ...,
     else if( !is.numeric(tmp) ) stop('control["delta"] should be either character or numeric')
 
     # to reset flag for checking recursive calls (not allowed for now)
-    on.exit(.C("deactivatenleq",PACKAGE="nleqslv"))
-    out <- .Call("nleqslv", x, fn1, jacfunc, method, global, xscalm, jacobian, con, new.env(), PACKAGE = "nleqslv")
+    on.exit(.C(C_deactivatenleq))
+    out <- .Call(C_nleqslv, x, fn1, jacfunc, method, global, xscalm, jacobian, con, new.env())
 
     out
 }

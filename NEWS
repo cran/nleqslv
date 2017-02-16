@@ -1,3 +1,7 @@
+3.1
+
+o register native routines in dll
+
 3.0.3
 
 o allow scalar user supplied derivative for a scalar function.
