@@ -237,8 +237,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
-    if( LENGTH(xstart) < 1 ) error("Length initial estimates must be >= 1");
-    else if( isReal(xstart) )
+    if( isReal(xstart) )
         PROTECT(OS->x = duplicate(xstart));
     else if(isInteger(xstart) || isLogical(xstart) )
         PROTECT(OS->x = coerceVector(xstart,REALSXP));
