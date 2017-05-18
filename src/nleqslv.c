@@ -134,13 +134,16 @@ static int  findcol(int row, int n, int k)
  *         > *n (*flag-*n) is strip number for banded evaluation
  */
 
-void fcnval(double *xc, double *fc, int *n, int *flag)
+void fcnval(double *x, double *fc, int *n, int *flag)
 {
     int i;
     SEXP sexp_fvec;
 
-    for (i = 0; i < *n; i++)
-            REAL(OS->x)[i] = xc[i];
+    for (i = 0; i < *n; i++) {
+         if (!R_FINITE(x[i]))
+             error("non-finite value for `x[%d]` supplied to function\n",i+1);
+         REAL(OS->x)[i] = x[i];
+    }
 
     SETCADR(OS->fcall, OS->x);
     PROTECT(sexp_fvec = eval(OS->fcall, OS->env));
@@ -181,7 +184,7 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 
     for (i = 0; i < *n; i++) {
          if (!R_FINITE(x[i]))
-             error("non-finite value for `x[%d]` supplied to jacobian function\n",i);
+             error("non-finite value for `x[%d]` supplied to jacobian function\n",i+1);
          REAL(OS->x)[i] = x[i];
     }
 

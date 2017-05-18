@@ -1,6 +1,6 @@
-b956112c942a7d2e7b95e9a29aed78d5 *DESCRIPTION
+3c98f99f085168e1d5203166d84fa2c2 *DESCRIPTION
 de8ab13c7cefd5014e9a71517a07c547 *NAMESPACE
-d629a93de067b1ac544acebc95bf6a6d *NEWS
+cdc5cdc11c4d1e35bce5d9bf9e7b61c8 *NEWS
 1ce28b9e3f2747aafe8fa96d4f1d069b *R/nleqslv.R
 46e850d267885e5d388d2b1afdda5d29 *R/searchzeros.R
 11bd8df056de39ac1a96c342b0f1656c *R/testnslv.R
@@ -23,7 +23,7 @@ e93eba5f1640e0cbe7521cd7c05f6b6c *inst/iterationreport/dspure.Rout.txt
 d82b60e6e9615ce348f82cddb64433a1 *man/nleqslv-package.Rd
 526b2b6a6cebf3d6bdd8ad58ece8cba4 *man/nleqslv.Rd
 3daad4ddd6cbf326478a613c86c93015 *man/print.testnslv.Rd
-62c35752b6e8cd1a5c8f59cac2c8ad20 *man/searchzeros.Rd
+cfa67a05abdeb8e1aca25e409ac6ed85 *man/searchzeros.Rd
 a291e7c0ef44985835aa9856764783ad *man/testnslv.Rd
 9290ebb081a2f9def80826a6555f3fb6 *man/zznleqslv-iterationreport.Rd
 1ed18cd8f15e511a405098ea1e6cc224 *src/Makevars
@@ -33,10 +33,10 @@ adbe16b0f0703e1cca12061c7426388b *src/limhpar.f
 6738247bac3f2ac8f88bb0176560d137 *src/liqrev.f
 6bb33b8afa14e8bec2dad29c3b3be862 *src/liqrup.f
 d83a0b755fccf6fa9bd593fe73a24514 *src/lirslv.f
-bfda1300a798c65a43e84b9237f8967a *src/nleqslv.c
+0f5eeace374fa1b2d2791919a773d7a0 *src/nleqslv.c
 39aa2bee1e689c9a1d9ad427a2996c9a *src/nwbjac.f
 006767c20f9b38cea482779c3b98caf5 *src/nwbrdn.f
-8addf8de63f1b9690f67fb53a99dd929 *src/nwclsh.f
+4356bb6143a112fbd08af084cae5249f *src/nwclsh.f
 91225b7618a9de81260b3992ce9e48fc *src/nwddlg.f
 1fdfc01ee9482bddab455ec464fa0f1f *src/nwglsh.f
 49c20de17d7977ce6929ffe48ea7aa16 *src/nwmhlm.f

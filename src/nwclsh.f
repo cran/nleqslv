@@ -145,9 +145,10 @@ c                      not quadratic but linear
                        t = -slope/(2*b)
                    else
 c                      use Higham procedure to compute roots acccurately
-c                      Higham: Accuracy and Stability of Numerical Algorithms, second edition,2002, page 10.    
+c                      Higham: Accuracy and Stability of Numerical Algorithms, second edition,2002, page 10.
 c                      Actually solving 3*a*x^2+2*b*x+c=0 ==> (3/2)*a*x^2+b*x+(c/2)=0
-                       disc = b**2 - Rthree * a * slope
+c                      use max to prevent NaN in sqrt(disc)
+                       disc = max(b**2 - Rthree * a * slope,Rzero)
                        t1 = -(b+sign(Rone,b)*sqrt(disc))/(Rthree*a)
                        t2 = slope/(Rthree*a)/t1
                        if(a .gt. Rzero ) then

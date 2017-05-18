@@ -14,7 +14,7 @@ searchZeros(x, fn, digits=4, ... )
  \item{fn}{A function of \code{x} returning a vector of function values
            with the same length as the vector \code{x}.}
  \item{digits}{integer passed to \code{\link{round}}
-               for locating and removing duplicate the rounded solutions.}
+               for locating and removing duplicate rounded solutions.}
  \item{\dots}{Further arguments to be passed to \code{\link{nleqslv}}, \code{fn} and \code{jac}.}
 }
 \details{
@@ -30,11 +30,11 @@ For the remaining initial estimates \code{nleqslv} is executed silently.
 Only solutions for which the \code{nleqslv} termination code \code{tcode} equals \code{1}
 are regarded as valid solutions. The rounded solutions (after removal of duplicates)
 are used to order the solutions in increasing order.
-They are not returned in the return value of the function.
+These rounded solutions are not included in the return value of the function.
 }
 \value{
-If no solutions are found \code{NULL} otherwise
-a list containing components
+If no solutions are found \code{NULL} is returned.
+Otherwise a list containing the following components is returned
     \describe{
     \item{\code{x}}{a matrix with each row containing a unique solution (unrounded)}
     \item{\code{xfnorm}}{a vector of the function criterion associated with each row of

@@ -1,3 +1,10 @@
+3.3
+
+o prevent possible intermediate NaN's in cubic linesearch
+o test for NaN's in x-vector supplied to user function while iterating
+o documentation tweaks for searchZeros
+o more accurate error messags for non-finite arguments passed to user jacobian function
+
 3.2
 
 o more precise error checking in nleqslv.c (bug)
