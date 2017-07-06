@@ -55,7 +55,7 @@ of the current function criterion value compared to that of the previous iterati
 A comprehensive discussion of these issues can be found in Dennis and Schnabel (1996).
 Both methods apply an unpivoted QR-decomposition to the Jacobian as implemented in Lapack.
 The Broyden method applies a rank-1 update to the Jacobian at the end of each iteration
-and uses a modified version of the algorithm described in Dennis and Schnabel (1996).
+and is based on a simplified and modernized version of the algorithm described in Reichel and Gragg (1990).
 }
 
 \subsection{Global strategies}{

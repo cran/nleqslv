@@ -133,3 +133,50 @@ c     Does nothing when n <= 0
 
       return
       end
+
+c ----------------------------------------------------------------------
+
+      subroutine nuvgiv(x,y,c,s)
+      double precision x,y,c,s
+
+c     Parameters
+c
+c     Inout   x     Real       x input / c*x+s*y on output
+c     Inout   y     Real       y input / 0       on output
+c     Out     c     Real       c of tranformation (cosine)
+c     Out     s     Real       s of tranformation (  sine)
+c
+c     Description
+c
+c     Nuvgiv calculates the givens rotator
+c
+c             |  c   s |
+c         G = |        |
+c             | -s   c |
+c
+c     with  c*c+s*s=1
+c
+c     for which G * | x | = | t |
+c                   | y |   | 0 |
+c
+c     resulting in
+c
+c            c * x + s * y = t
+c           -s * x + c * y = 0   ==>  s/c = y/x or c/s = x/y
+c
+c     Use Lapack dlartg routine
+c     return c and s and the modified x and y
+c     This differs from dlartg which does not modify input arguments.
+c     See http://www.netlib.org/lapack/explore-html/dd/d24/dlartg_8f_source.html
+c     c * x + s * y may differ from t with machine precision
+
+      double precision t
+
+      double precision Rzero
+      parameter(Rzero=0.0d0)
+
+      call dlartg(x,y,c,s,t)
+      x = t
+      y = Rzero
+      return
+      end

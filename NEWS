@@ -1,3 +1,9 @@
+3.3.1
+
+o better comments in Fortran source and some reorganization of code
+o simplification QR update subroutines
+o documentation tweaks
+
 3.3
 
 o prevent possible intermediate NaN's in cubic linesearch
