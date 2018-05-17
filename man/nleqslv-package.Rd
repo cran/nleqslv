@@ -1,11 +1,10 @@
 \name{nleqslv-package}
 \alias{nleqslv-package}
 \alias{nleqslv.Intro}
-\docType{package}
 
-\title{Solving Nonlinear Systems of Equations}
-
-\description{
+\title{\packageTitle{nleqslv}}
+\description{\packageDescription{nleqslv}}
+\details{
 The \pkg{nleqslv} package provides two algorithms for solving (dense) nonlinear systems of equations.
 The methods provided are
   \itemize{
@@ -32,8 +31,6 @@ The algorithms provided in this package are derived from Dennis and Schnabel (19
 The code is written in Fortran 77 and Fortran 95
 and uses Lapack and BLAS routines as provided by the R system.
 }
-
-\author{Berend Hasselman \email{bhh@xs4all.nl}}
 
 \references{
 Dennis, J.E. Jr  and Schnabel, R.B. (1996), \emph{Numerical Methods for Unconstrained Optimization

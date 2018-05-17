@@ -1,9 +1,10 @@
-abcaaf071cf8387a92ccc15cfc80c285 *DESCRIPTION
+aa936608033d3a7181d3c3f1bb69a4dc *DESCRIPTION
 de8ab13c7cefd5014e9a71517a07c547 *NAMESPACE
-81eedbecc8294996b38879d356de088f *NEWS
+a85115339046c08d61af97ad577ff046 *NEWS
 1ce28b9e3f2747aafe8fa96d4f1d069b *R/nleqslv.R
 46e850d267885e5d388d2b1afdda5d29 *R/searchzeros.R
 11bd8df056de39ac1a96c342b0f1656c *R/testnslv.R
+a7e323375cdfbc505fe965f536ef7dc5 *build/partial.rdb
 d83d9760570892edbd870bdfd7159284 *inst/iterationreport/00readme.txt
 591a0cf58669fdef0daffaa577b91188 *inst/iterationreport/dsdbldog.R
 4b8adf76b4be390b21f293e28e410637 *inst/iterationreport/dsdbldog.Rout
@@ -20,7 +21,7 @@ e93eba5f1640e0cbe7521cd7c05f6b6c *inst/iterationreport/dspure.Rout.txt
 8d8fab0912a8002eb55d6c8dbe6432fb *inst/iterationreport/dspwldog.R
 59cd081725a1294ceaeac776c4dca271 *inst/iterationreport/dspwldog.Rout
 84af886c99be7561dae7d5e490796b81 *inst/iterationreport/dspwldog.Rout.txt
-d82b60e6e9615ce348f82cddb64433a1 *man/nleqslv-package.Rd
+7175ffe3007e889ee4522a0eac902b49 *man/nleqslv-package.Rd
 d6b6400debdec11bcb27b7af42234cee *man/nleqslv.Rd
 3daad4ddd6cbf326478a613c86c93015 *man/print.testnslv.Rd
 cfa67a05abdeb8e1aca25e409ac6ed85 *man/searchzeros.Rd

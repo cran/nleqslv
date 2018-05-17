@@ -1,3 +1,7 @@
+3.3.2
+
+o changed package documentation .Rd to to use metadata macros
+
 3.3.1
 
 o better comments in Fortran source and some reorganization of code
