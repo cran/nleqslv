@@ -1,6 +1,11 @@
+3.3.3
+
+o replaced occurrences of unnecessary \& with &
+o corrected typos in NEWS
+
 3.3.2
 
-o changed package documentation .Rd to to use metadata macros
+o changed package documentation .Rd to use metadata macros
 
 3.3.1
 
@@ -13,7 +18,7 @@ o documentation tweaks
 o prevent possible intermediate NaN's in cubic linesearch
 o test for NaN's in x-vector supplied to user function while iterating
 o documentation tweaks for searchZeros
-o more accurate error messags for non-finite arguments passed to user jacobian function
+o more accurate error messages for non-finite arguments passed to user jacobian function
 
 3.2
 

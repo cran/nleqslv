@@ -294,10 +294,10 @@ Higham, N.J. (2002), Accuracy and Stability of Numerical Algorithms, 2nd ed., SI
 Nocedal, J. and Wright, S.J. (2006), \emph{Numerical Optimization}, Springer.
 
 Powell, M.J.D. (1970), A hybrid method for nonlinear algebraic equations,
-In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon \& Breach.
+In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon & Breach.
 
 Powell, M.J.D. (1970), A Fortran subroutine for solving systems nonlinear equations,
-In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon \& Breach.
+In \emph{Numerical Methods for Nonlinear Algebraic Equations}, P. Rabinowitz (Ed.), Gordon & Breach.
 
 % QRupdate: a Fortran library for fast updating of QR and Cholesky decompositions,
 % \url{http://sourceforge.net/projects/qrupdate/}.

@@ -1,7 +1,7 @@
 Package: nleqslv
-Version: 3.3.2
+Version: 3.3.3
 Title: Solve Systems of Nonlinear Equations
-Date: 2018-05-16
+Date: 2022-08-07
 Author: Berend Hasselman
 Maintainer: Berend Hasselman <bhh@xs4all.nl>
 Description: Solve a system of nonlinear equations using a Broyden or a Newton method
@@ -11,6 +11,6 @@ Description: Solve a system of nonlinear equations using a Broyden or a Newton m
              a singular or ill-conditioned Jacobian.
 License: GPL (>= 2)
 NeedsCompilation: yes
-Packaged: 2018-05-17 07:36:43 UTC; berendhasselman
+Packaged: 2022-08-07 07:57:17 UTC; berendhasselman
 Repository: CRAN
-Date/Publication: 2018-05-17 08:47:37 UTC
+Date/Publication: 2022-08-07 14:10:02 UTC
