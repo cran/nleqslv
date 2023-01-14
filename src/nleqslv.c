@@ -1,7 +1,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
-extern double getjacond();
+extern double getjacond(void);
 
 typedef struct opt_struct {
     SEXP x;
@@ -94,19 +94,19 @@ static void trace_header(int method, int global, int xscalm, double sigma,
     Rprintf("  Iteration report\n  ----------------\n");
 }
 
-static char *fcn_message(char *msg, int termcd)
+static char *fcn_message(char *msg, size_t mbufsiz, int termcd)
 {
     switch(termcd)
     {
-        case 1: sprintf(msg, "Function criterion near zero"); break;
-        case 2: sprintf(msg, "x-values within tolerance 'xtol'"); break;
-        case 3: sprintf(msg, "No better point found (algorithm has stalled)"); break;
-        case 4: sprintf(msg, "Iteration limit exceeded"); break;
-        case 5: sprintf(msg, "Jacobian is too ill-conditioned (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
-        case 6: sprintf(msg, "Jacobian is singular (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
-        case 7: sprintf(msg, "Jacobian is completely unusable (all zero entries?)"); break;
-        case -10: sprintf(msg, "User supplied Jacobian most likely incorrect"); break;
-        default: sprintf(msg, "'termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
+        case 1: snprintf(msg, mbufsiz, "Function criterion near zero"); break;
+        case 2: snprintf(msg, mbufsiz, "x-values within tolerance 'xtol'"); break;
+        case 3: snprintf(msg, mbufsiz, "No better point found (algorithm has stalled)"); break;
+        case 4: snprintf(msg, mbufsiz, "Iteration limit exceeded"); break;
+        case 5: snprintf(msg, mbufsiz, "Jacobian is too ill-conditioned (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
+        case 6: snprintf(msg, mbufsiz, "Jacobian is singular (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
+        case 7: snprintf(msg, mbufsiz, "Jacobian is completely unusable (all zero entries?)"); break;
+        case -10: snprintf(msg, mbufsiz, "User supplied Jacobian most likely incorrect"); break;
+        default: snprintf(msg, mbufsiz, "'termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
     }
     return msg;
 }
@@ -441,7 +441,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
 /*========================================================================*/
 
-    fcn_message(message, termcd);
+    fcn_message(message, sizeof(message), termcd);
 
     PROTECT(sexp_x = allocVector(REALSXP,n));
     for (i = 0; i < n; i++)

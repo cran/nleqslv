@@ -8,7 +8,7 @@
 */
 
 /* .C calls */
-extern void deactivatenleq();
+extern void deactivatenleq(void);
 
 /* .Call calls */
 extern SEXP nleqslv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
