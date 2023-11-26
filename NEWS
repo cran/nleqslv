@@ -1,3 +1,7 @@
+3.3.5
+
+o removed all .Rout files in subdirectory tests
+
 3.3.4
 
 o corrected incomplete C function prototypes
