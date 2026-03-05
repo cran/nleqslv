@@ -1,16 +1,31 @@
 Package: nleqslv
-Version: 3.3.5
+Version: 3.3.6
 Title: Solve Systems of Nonlinear Equations
-Date: 2023-11-25
-Author: Berend Hasselman
-Maintainer: Berend Hasselman <bhh@xs4all.nl>
+Authors@R: 
+    c(person(given = "Berend",
+           family = "Hasselman",
+           role = c("aut"),
+           email = "bhh@xs4all.nl",
+           comment = "Original Author"),
+      person(given = "Rob",
+             family = "Carnell",
+             role = c("aut", "cre"),
+             email = "bertcarnell@gmail.com",
+             comment = c(ORCID = "0009-0009-0465-7564")))
 Description: Solve a system of nonlinear equations using a Broyden or a Newton method
              with a choice of global strategies such as line search and trust region.
              There are options for using a numerical or user supplied Jacobian,
              for specifying a banded numerical Jacobian and for allowing
              a singular or ill-conditioned Jacobian.
 License: GPL (>= 2)
+Encoding: UTF-8
+URL: https://github.com/bertcarnell/nleqslv
+BugReports: https://github.com/bertcarnell/nleqslv/issues
+RoxygenNote: 7.3.3
 NeedsCompilation: yes
-Packaged: 2023-11-24 19:45:26 UTC; berendhasselman
+Packaged: 2026-03-05 04:48:50 UTC; bertc
+Author: Berend Hasselman [aut] (Original Author),
+  Rob Carnell [aut, cre] (ORCID: <https://orcid.org/0009-0009-0465-7564>)
+Maintainer: Rob Carnell <bertcarnell@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-11-26 23:30:14 UTC
+Date/Publication: 2026-03-05 09:00:08 UTC

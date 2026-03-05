@@ -1,3 +1,7 @@
+3.3.6
+
+o Changed maintainer to Rob Carnell
+
 3.3.5
 
 o removed all .Rout files in subdirectory tests

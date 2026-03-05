@@ -1,10 +1,10 @@
-e2a5447210d90364cb693011d2b22164 *DESCRIPTION
+52d362d550b32b72b344b4193f72dcef *DESCRIPTION
 de8ab13c7cefd5014e9a71517a07c547 *NAMESPACE
-acfc88f4daba95d3e97d8570b4a91aac *NEWS
+fe284b5bc1a4260a034aa7ae23ddf14d *NEWS
 1ce28b9e3f2747aafe8fa96d4f1d069b *R/nleqslv.R
 46e850d267885e5d388d2b1afdda5d29 *R/searchzeros.R
 11bd8df056de39ac1a96c342b0f1656c *R/testnslv.R
-09a685e0a5716fa0b4805c37e5d6a1a4 *build/partial.rdb
+83bf70623ad4820dc7ba4b27f1fc9504 *build/partial.rdb
 d83d9760570892edbd870bdfd7159284 *inst/iterationreport/00readme.txt
 591a0cf58669fdef0daffaa577b91188 *inst/iterationreport/dsdbldog.R
 4b8adf76b4be390b21f293e28e410637 *inst/iterationreport/dsdbldog.Rout
