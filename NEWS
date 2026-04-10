@@ -1,3 +1,9 @@
+3.3.7
+
+o Changed from Output-based tests to testthat-based tests
+o Added roxygen2 manual pages and NAMESPACE
+o Fixed a missing PROTECT in src/nleqslv.c
+
 3.3.6
 
 o Changed maintainer to Rob Carnell

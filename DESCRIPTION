@@ -1,5 +1,5 @@
 Package: nleqslv
-Version: 3.3.6
+Version: 3.3.7
 Title: Solve Systems of Nonlinear Equations
 Authors@R: 
     c(person(given = "Berend",
@@ -19,13 +19,16 @@ Description: Solve a system of nonlinear equations using a Broyden or a Newton m
              a singular or ill-conditioned Jacobian.
 License: GPL (>= 2)
 Encoding: UTF-8
-URL: https://github.com/bertcarnell/nleqslv
-BugReports: https://github.com/bertcarnell/nleqslv/issues
+URL: https://bertcarnell.github.io/nleqslv/,
+        https://github.com/bertcarnell/nleqslv/
+BugReports: https://github.com/bertcarnell/nleqslv/issues/
 RoxygenNote: 7.3.3
 NeedsCompilation: yes
-Packaged: 2026-03-05 04:48:50 UTC; bertc
+Packaged: 2026-04-10 01:02:32 UTC; bertc
 Author: Berend Hasselman [aut] (Original Author),
   Rob Carnell [aut, cre] (ORCID: <https://orcid.org/0009-0009-0465-7564>)
 Maintainer: Rob Carnell <bertcarnell@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-03-05 09:00:08 UTC
+Date/Publication: 2026-04-10 05:20:02 UTC
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3

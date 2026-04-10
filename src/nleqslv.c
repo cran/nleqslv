@@ -106,7 +106,7 @@ static char *fcn_message(char *msg, size_t mbufsiz, int termcd)
         case 6: snprintf(msg, mbufsiz, "Jacobian is singular (1/condition=%7.1e) (see allowSingular option)",getjacond()); break;
         case 7: snprintf(msg, mbufsiz, "Jacobian is completely unusable (all zero entries?)"); break;
         case -10: snprintf(msg, mbufsiz, "User supplied Jacobian most likely incorrect"); break;
-        default: snprintf(msg, mbufsiz, "'termcd' == %d should *NEVER* be returned! Please report bug to <bhh@xs4all.nl>.", termcd);
+        default: snprintf(msg, mbufsiz, "'termcd' == %d should *NEVER* be returned! Please report bug where directed in the DESCRIPTION file.", termcd);
     }
     return msg;
 }
@@ -190,7 +190,7 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
 
     SETCADR(OS->jcall, OS->x);
     PROTECT(sexp_fjac = eval(OS->jcall, OS->env));
-    jdims = getAttrib(sexp_fjac,R_DimSymbol);
+    PROTECT(jdims = getAttrib(sexp_fjac,R_DimSymbol));
 
     /* test jacobian of function returning scalar.
      * Scalar jacobian allowed if *n==1
@@ -208,7 +208,7 @@ void fcnjac(double *rjac, int *ldr, double *x, int *n)
             rjac[(*ldr)*j + i] = REAL(sexp_fjac)[(*n)*j + i];
         }
 
-    UNPROTECT(1);
+    UNPROTECT(2);
 }
 
 SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rxscalm,
@@ -241,9 +241,9 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
     if( isReal(xstart) )
-        PROTECT(OS->x = duplicate(xstart));
+        PROTECT(OS->x = duplicate(xstart)); // 1 protected
     else if(isInteger(xstart) || isLogical(xstart) )
-        PROTECT(OS->x = coerceVector(xstart,REALSXP));
+        PROTECT(OS->x = coerceVector(xstart,REALSXP)); // 1 protected
     else
         error("Argument 'x' cannot be converted to numeric!");
 
@@ -258,12 +258,12 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
             error("'x' contains a non-finite value at index=%d\n",i+1);
 
     if (!isFunction(fn)) error("fn is not a function!");
-    PROTECT(OS->fcall = lang2(fn, OS->x));
+    PROTECT(OS->fcall = lang2(fn, OS->x)); // 2 protected
 
     if (!isEnvironment(rho)) error("rho is not an environment!");
     OS->env = rho;
 
-    PROTECT(eval_test = eval(OS->fcall, OS->env));
+    PROTECT(eval_test = eval(OS->fcall, OS->env)); // 3 protected
     if (!isReal(eval_test))
         error("evaluation of fn function returns non-numeric vector!");
     i = length(eval_test);
@@ -275,7 +275,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
             error("initial value of fn function contains non-finite values (starting at index=%d)\n"
                   "  Check initial x and/or correctness of function",i+1);
 
-    UNPROTECT(1);
+    UNPROTECT(1); // eval-test, 2 protected
 
     z = CHAR(STRING_ELT(rmethod, 0));
     if( strcmp(z,"Broyden") == 0 )
@@ -400,7 +400,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     sexp_diag = getListElement(control, "scalex");
     if( LENGTH(sexp_diag) != n )
         error("'scalex' is of the wrong length");
-    PROTECT(sexp_diag = coerceVector(sexp_diag,REALSXP));
+    PROTECT(sexp_diag = coerceVector(sexp_diag,REALSXP)); // 3 protected
     for (i = 0; i < n; i++) {
         scalex[i] = REAL(sexp_diag)[i];
         if( !R_FINITE(scalex[i]) )
@@ -430,52 +430,52 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         /* user supplied jacobian */
         if (!isFunction(jac))
             error("jac is not a function!");
-        PROTECT(OS->jcall = lang2(jac, OS->x));
+        PROTECT(OS->jcall = lang2(jac, OS->x)); // 4 protected
         F77_CALL(nwnleq)(x, &n, scalex, &maxit, jacflg, &xtol, &ftol, &btol, &cndtol,
                          &method, &global, &xscalm, &stepmx, &delta, &sigma,
                          rjac, &ldr,
                          rwork, &lrwork, rcdwrk, icdwrk, qrwork, &qrwsiz,
                          &fcnjac, &fcnval, outopt, xp, fp, gp, &njcnt, &nfcnt, &iter, &termcd);
-        UNPROTECT(1);
+        UNPROTECT(1); // OS->jcall, 3 protected
     }
 
 /*========================================================================*/
 
     fcn_message(message, sizeof(message), termcd);
 
-    PROTECT(sexp_x = allocVector(REALSXP,n));
+    PROTECT(sexp_x = allocVector(REALSXP,n)); // 4 protected
     for (i = 0; i < n; i++)
         REAL(sexp_x)[i] = xp[i];
 
-    PROTECT(xnames = getAttrib(xstart,R_NamesSymbol));
+    PROTECT(xnames = getAttrib(xstart,R_NamesSymbol)); // 5 protected
     if(!isNull(xnames)) setAttrib(sexp_x, R_NamesSymbol, xnames);
 
-    PROTECT(sexp_fvec = allocVector(REALSXP,n));
+    PROTECT(sexp_fvec = allocVector(REALSXP,n)); // 6 protected
     for (i = 0; i < n; i++)
         REAL(sexp_fvec)[i] = fp[i];
 
-    PROTECT(sexp_info = allocVector(INTSXP,1));
+    PROTECT(sexp_info = allocVector(INTSXP,1)); // 7 protected
     INTEGER(sexp_info)[0] = termcd;
 
-    PROTECT(sexp_nfcnt = allocVector(INTSXP,1));
+    PROTECT(sexp_nfcnt = allocVector(INTSXP,1)); // 8 protected
     INTEGER(sexp_nfcnt)[0] = nfcnt;
 
-    PROTECT(sexp_njcnt = allocVector(INTSXP,1));
+    PROTECT(sexp_njcnt = allocVector(INTSXP,1)); // 9 protected
     INTEGER(sexp_njcnt)[0] = njcnt;
 
-    PROTECT(sexp_iter = allocVector(INTSXP,1));
+    PROTECT(sexp_iter = allocVector(INTSXP,1)); // 10 protected
     INTEGER(sexp_iter)[0] = iter;
 
-    PROTECT(sexp_message = allocVector(STRSXP,1));
+    PROTECT(sexp_message = allocVector(STRSXP,1)); // 11 protected
     SET_STRING_ELT(sexp_message, 0, mkChar(message));
 
     for (i = 0; i < n; i++)
         REAL(sexp_diag)[i] = scalex[i];
 
     if( outopt[2] == 1 )
-        PROTECT(out = allocVector(VECSXP,9));
+        PROTECT(out = allocVector(VECSXP,9)); // 12 protected
     else
-        PROTECT(out = allocVector(VECSXP,8));
+        PROTECT(out = allocVector(VECSXP,8)); // 12 protected
 
     SET_VECTOR_ELT(out, 0, sexp_x);
     SET_VECTOR_ELT(out, 1, sexp_fvec);
@@ -486,7 +486,7 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
     SET_VECTOR_ELT(out, 6, sexp_njcnt);
     SET_VECTOR_ELT(out, 7, sexp_iter);
     if( outopt[2] == 1 ) {
-        PROTECT(sexp_jac = allocMatrix(REALSXP, n, n));
+        PROTECT(sexp_jac = allocMatrix(REALSXP, n, n)); // 13 protected
         SET_VECTOR_ELT(out, 8, sexp_jac);
         pjac = REAL(sexp_jac);
         for(j=0; j < n; j++)
@@ -495,19 +495,19 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
 
         if(!isNull(xnames)) {
             SEXP rcnames;
-            PROTECT(rcnames = allocVector(VECSXP, 2));
+            PROTECT(rcnames = allocVector(VECSXP, 2)); // 14 protected
             SET_VECTOR_ELT(rcnames, 0, duplicate(xnames));
             SET_VECTOR_ELT(rcnames, 1, duplicate(xnames));
             setAttrib(sexp_jac, R_DimNamesSymbol, rcnames);
-            UNPROTECT(1);
+            UNPROTECT(1); // rcnames, 13 protected
         }
-
+        UNPROTECT(1); // sexp_jac (and pjac), 12 protected
     }
 
     if( outopt[2] == 1 )
-        PROTECT(out_names = allocVector(STRSXP,9));
+        PROTECT(out_names = allocVector(STRSXP,9)); // 13 protected
     else
-        PROTECT(out_names = allocVector(STRSXP,8));
+        PROTECT(out_names = allocVector(STRSXP,8)); // 13 protected
 
     SET_STRING_ELT(out_names, 0, mkChar("x"));
     SET_STRING_ELT(out_names, 1, mkChar("fvec"));
@@ -521,10 +521,8 @@ SEXP nleqslv(SEXP xstart, SEXP fn, SEXP jac, SEXP rmethod, SEXP rglobal, SEXP rx
         SET_STRING_ELT(out_names, 8, mkChar("jac"));
 
     setAttrib(out, R_NamesSymbol, out_names);
-    if( outopt[2] == 1 )
-        UNPROTECT(14);
-    else
-        UNPROTECT(13);
+
+    UNPROTECT(13);
 
     return out;
 }
